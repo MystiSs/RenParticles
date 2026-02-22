@@ -2,6 +2,12 @@ python early:
     import re
 
 
+    class _RenParserType:
+        Func = 333
+        Shortcut = 666
+        Emitter = 999
+        Preset = 1332
+
     def renp_parse_fast_particles_show(lexer):
         data = { "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "redraw": None, "sprite": [ ], "tag": None, "layer": "master", "zorder": "0", "lifetime": None }
 
@@ -86,8 +92,14 @@ python early:
                 func_data = _renp_parse_function_keyword(on_block)
                 block_data.append(func_data)
 
+            #<Потенциальный шорткат>#
+            else:
+                shortcut_data = _renp_parse_shortcut(on_block)
+                block_data.append(shortcut_data)
+
             on_block.expect_eol()
         
+        #renpy.error("wih?\n{}".format(block_data))
         return block_data
 
     def renp_parse_on_update_block(subblock):
@@ -105,7 +117,7 @@ python early:
         images = _renp_eval_images(data["sprite"])
         on_update = _renp_eval_on_update(data["on_update"])
         on_event = _renp_eval_on_event(data["on_event"])
-        on_particle_dead = _renp_eval_on_dead(data["on_particle_dead"])
+        on_particle_dead = _renp_eval_on_particle_dead(data["on_particle_dead"])
 
         lifetime_type = data["lifetime"]["type"]
         lifetime_timings = eval(data["lifetime"]["timings"])
@@ -129,7 +141,17 @@ python early:
     def _renp_eval_on_block(on_block_data):
         on_block = [ ]
         for content in on_block_data:
-            behavior = eval(content["func"])()
+            behavior = None
+            if content["type"] in (_RenParserType.Func, _RenParserType.Emitter):
+                behavior = eval(content["func"])
+            elif content["type"] == _RenParserType.Shortcut:
+                shortcuts_block = content["shortcuts_block"]
+                shortcut = content["shortcut"]
+                behavior = renparticles.static_shortcuts[shortcuts_block].get(shortcut, None)
+                if behavior is None:
+                    _renp_shortcut_error(shortcuts_block, shortcut)
+
+            behavior = behavior()
             props = _renp_eval_props(content["properties"])
             behavior.inject_properties(**props)
             on_block.append((behavior, props))
@@ -195,11 +217,9 @@ python early:
     def _renp_parse_function_keyword(lexer, allow_oneshot=True, allow_properties=True, expect_eol=True):
         func = lexer.simple_expression()
         properties = {}
-        data = {"func": None, "properties": None}
 
-        oneshot = None
         if allow_oneshot:
-            properties["oneshot"] = lexer.keyword("oneshot") or "False"
+            properties["oneshot"] = "True" if lexer.keyword("oneshot") else "False"
 
         if allow_properties and lexer.match(':'):
             properties.update(_renp_parse_properties_properties(lexer))
@@ -207,26 +227,30 @@ python early:
         if expect_eol:
             lexer.expect_eol()
         
-        return {"func": func, "properties": properties}
+        return {"func": func, "properties": properties, "type": _RenParserType.Func}
+
+    def _renp_parse_shortcut(lexer, what_block="behaviors", allow_oneshot=True, allow_properties=True, expect_eol=True):
+        shortcut = lexer.word()
+        properties = { }
+
+        if allow_oneshot:
+            properties["oneshot"] = "True" if lexer.keyword("oneshot") else "False"
+
+        if allow_properties and lexer.match(':'):
+            properties.update(_renp_parse_properties_properties(lexer))
+
+        if expect_eol:
+            lexer.expect_eol()
+
+        return {"shortcut": shortcut, "shortcuts_block": what_block, "properties": properties, "type": _RenParserType.Shortcut}
 
     def _renp_parse_emitter_keyword(subblock):
         data = { }
 
-        oneshot = "False"
-        if subblock.keyword("oneshot"):
-            oneshot = "True"
-
-        subblock.require(':')
-
-        emitter_block = subblock.subblock_lexer()
-
-        while emitter_block.advance():
-            if emitter_block.keyword("function"):
-                func_data = _renp_parse_function_keyword(emitter_block, False)
-                
-                data = {"func": func_data["func"], "properties": func_data["properties"], "type": 1}
-                data["properties"]["oneshot"] = oneshot
-                break
+        if subblock.keyword("function"):
+            data = _renp_parse_function_keyword(subblock)
+        else:
+            data = _renp_parse_shortcut(subblock, "emitters")
         
         return data
 
@@ -240,5 +264,12 @@ python early:
             properties[key] = value
         
         return properties
+
+    def _renp_shortcut_error(shortcuts_block, shortcut):
+        available = ", ".join(renparticles.static_shortcuts[shortcuts_block].keys())
+        renpy.error(
+            "Unknown shortcut '{}' in '{}' block.\n"
+            "Available shortcuts: {}".format(shortcut, shortcuts_block, available)
+        )
 
     renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block="possible")
