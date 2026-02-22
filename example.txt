@@ -1,0 +1,18 @@
+    rparticles as rparticles_test onlayer master zorder 1:
+        sprite expr Solid("#960000", xysize=(12, 12)); expr Solid("#138808", xysize=(12, 12))
+        lifetime range random (1.5, 3.0)
+        redraw 0.0
+        on update:
+            emitter oneshot:
+                function renparticles.EmitterRandomExplode:
+                    amount 250
+                    area (0, 0, config.screen_width, config.screen_height)
+            function renparticles.RepulsorUpdate
+            function renparticles.LifetimeDeltaDecreaser
+        on event:
+            function renparticles.RepulsorEvent
+        on particle dead:
+            emitter:
+                function renparticles.EmitterOnDeadRandom:
+                    amount 1
+                    area (0, 0, config.screen_width, config.screen_height)
