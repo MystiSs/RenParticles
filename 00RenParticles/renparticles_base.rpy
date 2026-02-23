@@ -25,7 +25,7 @@ init -2448 python in renparticles:
 
     class _CheckInitialisedMixin:
         def check_initialised(self):
-            uninitialised = [ ]
+            uninitialised = set()
             for attr_name in dir(self):
                 if attr_name.startswith('_'):
                     continue
@@ -33,7 +33,7 @@ init -2448 python in renparticles:
                 for attr_name, cls_val in self.__class__.__dict__.items():
                     if isinstance(cls_val, _RequiredField):
                         if isinstance(getattr(self, attr_name, None), _RequiredField):
-                            uninitialised.append(attr_name)
+                            uninitialised.add(attr_name)
             
             if uninitialised:
                 raise ValueError(

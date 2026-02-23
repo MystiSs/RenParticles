@@ -6,10 +6,16 @@ init -1226 python in renparticles:
             "on_particle_dead": None
         }
 
+        m_oneshot = False
+
         def __init__(self):
             self.behaviors = self.behaviors.copy()
 
-        m_oneshot = False
+        def get_one(self):
+            return next((block for block in self.behaviors.values() if block is not None), None)
+
+        def is_one_block(self):
+            return sum(1 for block in self.behaviors.values() if block is not None) == 1
 
         def instanciate_behaviors(self):
             for key, behaviors in self.behaviors.items():

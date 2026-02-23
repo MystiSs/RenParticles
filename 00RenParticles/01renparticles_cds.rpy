@@ -8,11 +8,12 @@ python early:
         Emitter = 999
 
         GeneralPreset = 1332
-        UpdatePreset = 1665
-        EventPreset = 1998
-        ParticleDeadPreset = 2331
+        InnerPreset = 1665
+        # UpdatePreset = 1665
+        # EventPreset = 1998
+        # ParticleDeadPreset = 2331
 
-        PresetsTypes = (GeneralPreset, UpdatePreset, EventPreset, ParticleDeadPreset)
+        PresetsTypes = (GeneralPreset, InnerPreset)
 
     redraw_asap_aliases = {
         "asap",
@@ -63,7 +64,7 @@ python early:
                 
                 for alias in redraw_asap_aliases:
                     if subblock.keyword(alias):
-                        data[redraw] = "0.0"
+                        data["redraw"] = "0.0"
                         break
                 else:
                     data["redraw"] = subblock.float()
@@ -108,6 +109,10 @@ python early:
             if on_block.keyword("emitter"):
                 emitter_data = _renp_parse_emitter_keyword(on_block)
                 block_data.append(emitter_data)
+
+            elif on_block.keyword("preset"):
+                preset_data = _renp_parse_preset(on_block, _RenParserType.InnerPreset)
+                block_data.append(preset_data)
 
             elif on_block.keyword("custom"):
                 func_data = _renp_parse_custom_keyword(on_block)
@@ -176,6 +181,7 @@ python early:
             behavior = None
             if content["type"] in (_RenParserType.Func, _RenParserType.Emitter):
                 behavior = eval(content["func"])
+
             elif content["type"] == _RenParserType.Shortcut:
                 shortcuts_block = content["shortcuts_block"]
                 shortcut = content["shortcut"]
@@ -183,11 +189,23 @@ python early:
                 if behavior is None:
                     _renp_shortcut_error(shortcuts_block, shortcut)
 
+            elif content["type"] == _RenParserType.InnerPreset:
+                behavior = _renp_try_get_preset_behavior("general", preset["shortcut"])
+
             behavior = behavior()
             props = _renp_eval_props(content["properties"])
-            behavior.inject_properties(**props)
+
+            if content["type"] not in _RenParserType.PresetsTypes:
+                behavior.inject_properties(**props)
+                behavior.check_initialised()
+                on_block.append((behavior, behavior.m_properties))
+            else:
+                if not behavior.is_one_block():
+                    _renp_inner_preset_multiple_blocks_error(behavior)
+                behavior.build()
+                on_block.extend(behavior.get_one())
+
             # on_block.append((behavior, props))
-            on_block.append((behavior, behavior.m_properties))
         return on_block
 
     def _renp_eval_on_update(on_update_data):
@@ -198,9 +216,7 @@ python early:
 
     def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
         for preset in presets:
-            preset_behavior = renparticles.static_shortcuts["presets"]["general"].get(preset["shortcut"], None)
-            if preset_behavior is None:
-                _renp_shortcut_error("{}->{}".format(preset["shortcuts_block"], "general"), shortcut)
+            preset_behavior = _renp_try_get_preset_behavior("general", preset["shortcut"])
             
             preset_behavior = preset_behavior()
             props = _renp_eval_props(preset["properties"])
@@ -209,6 +225,13 @@ python early:
             on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_update"]])
             on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_event"]])
             on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_particle_dead"]])
+
+    def _renp_try_get_preset_behavior(preset_block, shortcut):
+        preset_behavior = renparticles.static_shortcuts["presets"][preset_block].get(shortcut, None)
+        if preset_behavior is None:
+            _renp_shortcut_error("{}->{}".format(preset["shortcuts_block"], "general"), shortcut)
+
+        return preset_behavior
 
     def _renp_eval_on_particle_dead(on_particle_dead_data):
         return _renp_eval_on_block(on_particle_dead_data)
@@ -325,5 +348,16 @@ python early:
             "Available shortcuts: {}".format(shortcut, shortcuts_block, available)
         )
 
+    def _renp_inner_preset_multiple_blocks_error(preset_behavior):
+        renpy.error(
+            "Preset '{}' must have exactly one active block. "
+            "Current blocks: on_update={}, on_event={}, on_particle_dead={}. "
+            "Expected: exactly one block to be active (not None).".format(
+                preset_behavior.__class__.__name__,
+                preset_behavior.behaviors.get('on_update') is not None,
+                preset_behavior.behaviors.get('on_event') is not None,
+                preset_behavior.behaviors.get('on_particle_dead') is not None
+            )
+        )
 
     renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block="possible")

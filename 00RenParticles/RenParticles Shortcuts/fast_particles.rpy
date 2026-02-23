@@ -4,19 +4,30 @@ init -555 python in renparticles:
             "renpy_repulsor_update": RepulsorUpdate,
             "renpy_repulsor_event": RepulsorEvent,
 
-            "auto_expire": LifetimeDeltaDecreaser
+            "auto_expire": LifetimeDeltaDecreaser,
+
+            "simple_move": SimpleMove,
+            "move": Move,
+
+            "orbit_mouse": OrbitCursorUpdate
         },
 
         "emitters": {
-            "spray": EmitterRandom
+            "spray": EmitterRandom,
+            "interval_spray": IntervalSprayEmitter
         },
 
         "presets": {
             "general": {
                 "spray": SprayPreset,
+                "interval_spray": IntervalSprayPreset,
 
                 "renpy_repulsor": RepulsorPreset,
                 "auto_expire": AutoExpirePreset
+            },
+
+            "inner": {
+                
             }
         }
     }

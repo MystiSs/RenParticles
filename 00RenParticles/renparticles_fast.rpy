@@ -1,5 +1,6 @@
 init -1337 python in renparticles:
     import random
+    import weakref
     from renpy.store import SpriteManager
     from renpy.store import Sprite
     from builtins import min, max
@@ -11,7 +12,11 @@ init -1337 python in renparticles:
     }
 
     class ParticlesData:
+        particles_properties = None
+
         def __init__(self, **properties):
+            self.particles_properties = weakref.WeakKeyDictionary()
+
             for key, value in properties.items():
                 setattr(self, key, value)
         
@@ -330,6 +335,7 @@ init -1337 python in renparticles:
 
             if self.on_update_emitters:
                 new_update_emitters = []
+                self._update_emitters_ctx.delta = self._dtime
                 for emitter_func, props in self.on_update_emitters:
                     return_value = emitter_func(self._update_emitters_ctx)
                     if props.get("oneshot", False) or return_value == UpdateState.Kill:
