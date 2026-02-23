@@ -14,6 +14,12 @@ python early:
 
         PresetsTypes = (GeneralPreset, UpdatePreset, EventPreset, ParticleDeadPreset)
 
+    redraw_asap_aliases = {
+        "asap",
+        "fastest",
+        "fast"
+    }
+
     def renp_parse_fast_particles_show(lexer):
         data = {"presets": [ ], "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "redraw": None, "sprite": [ ], "tag": None, "layer": "master", "zorder": "0", "lifetime": None }
 
@@ -55,7 +61,13 @@ python early:
                 if was_redraw:
                     renpy.error("there can be only one 'redraw' instruction")
                 
-                data["redraw"] = subblock.simple_expression()
+                for alias in redraw_asap_aliases:
+                    if subblock.keyword(alias):
+                        data[redraw] = "0.0"
+                        break
+                else:
+                    data["redraw"] = subblock.float()
+                    
                 was_redraw = True
 
             elif subblock.keyword("preset"):

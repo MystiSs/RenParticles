@@ -10,7 +10,7 @@ label renp_test_chamber:
     rparticles as rparticles_test onlayer master zorder 1:
         sprite expr Solid("#960000", xysize=(12, 12)); test_particle
         lifetime range random (1.5, 3.0)
-        redraw 0.0
+        redraw asap
 
         preset spray:
             amount 250
