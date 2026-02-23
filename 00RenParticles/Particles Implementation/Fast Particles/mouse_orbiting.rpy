@@ -92,3 +92,27 @@ init -1115 python in renparticles:
                     particle.y = system.height - 2
             
             return UpdateState.Pass
+    
+    class OrbitMousePreset(_RFBehaviorPreset):
+        behaviors = {
+            "on_update": [OrbitCursorUpdate],
+            "on_event": None,
+            "on_particle_dead": None
+        }
+
+        radius = 100.0
+        speed = 10.0
+        speed_variance = 0.5
+        pull_strength = 0.5
+        clockwise = True
+        screen_bounds = False
+
+        def distribute_properties(self):
+            super(OrbitMousePreset, self).distribute_properties()
+            self.behaviors["on_update"][0].inject_properties(radius=self.radius,
+                                            speed=self.speed,
+                                            speed_variance=self.speed_variance,
+                                            pull_strength=self.pull_strength,
+                                            clockwise=self.clockwise,
+                                            screen_bounds=self.screen_bounds,
+                                            oneshot=self.m_oneshot)

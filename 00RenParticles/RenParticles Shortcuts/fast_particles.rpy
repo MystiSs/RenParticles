@@ -23,7 +23,9 @@ init -555 python in renparticles:
                 "interval_spray": IntervalSprayPreset,
 
                 "renpy_repulsor": RepulsorPreset,
-                "auto_expire": AutoExpirePreset
+                "auto_expire": AutoExpirePreset,
+
+                "orbit_mouse": OrbitMousePreset
             },
 
             "inner": {

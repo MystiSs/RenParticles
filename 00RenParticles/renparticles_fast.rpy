@@ -1,6 +1,5 @@
 init -1337 python in renparticles:
     import random
-    import weakref
     from renpy.store import SpriteManager
     from renpy.store import Sprite
     from builtins import min, max
@@ -15,23 +14,19 @@ init -1337 python in renparticles:
         particles_properties = None
 
         def __init__(self, **properties):
-            self.particles_properties = weakref.WeakKeyDictionary()
+            self.particles_properties = {}
 
             for key, value in properties.items():
                 setattr(self, key, value)
-        
-        def __getattr__(self, name):
-            return None
-            #renpy.error("Attribute '{}' does not exist in {}".format(name, self))
     
-    class Context:
+    class RenpFContext:
         system = None
         st = None
         delta = None
         particle = None
 
         def __init__(self, other_ctx=None):
-            if isinstance(other_ctx, Context):
+            if isinstance(other_ctx, RenpFContext):
                 self.copy(other_ctx)
 
         def copy(self, other):
@@ -41,22 +36,19 @@ init -1337 python in renparticles:
             self.particle = None
             return self
 
-    class UpdateEmitterContext(Context):
+    class UpdateEmitterContext(RenpFContext):
         pass
 
-    class EventContext(Context):
+    class EventContext(RenpFContext):
         x = None
         y = None
         event = None
 
-    class ParticleDeadContext(Context):
+    class ParticleDeadContext(RenpFContext):
         pass
 
     class RenSprite(Sprite):
         lifetime = 0.0
-
-        def __getattr__(self, name):
-            return None
     
     class RenParticlesFast(SpriteManager):
         def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, redraw=None, **properties):
@@ -120,7 +112,7 @@ init -1337 python in renparticles:
             return "\n".join(lines)
         
         def _init_contexts(self):
-            self._update_ctx = Context()
+            self._update_ctx = RenpFContext()
             self._update_ctx.system = self
             self._update_emitters_ctx = UpdateEmitterContext(self._update_ctx)
             self._event_ctx = EventContext(self._update_ctx)
@@ -188,136 +180,6 @@ init -1337 python in renparticles:
 
             return _lifetime_getters[lifetime_type](*lifetime_timings)
 
-        def render_leg(self, width, height, st, at):
-            if self.animation:
-                st = at
-
-            self._dtime = max(0.0, st - self._old_st)
-            self._old_st = st
-
-            self._update_ctx.st = st
-            self._update_ctx.delta = self._dtime
-
-            self.width = width
-            self.height = height
-
-            if self.on_update_emitters:
-                oneshotted = [ ]
-                new_update_emitters = [ ]
-                self._update_emitters_ctx.st = st
-                self._update_emitters_ctx.delta = self._dtime
-                for emitter_func, props in self.on_update_emitters:
-                    return_value = emitter_func(self._update_emitters_ctx)
-                    if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                        self.oneshotted_on_update_emitters.append((emitter_func, props))
-                    else:
-                        new_update_emitters.append((emitter_func, props))
-                self.on_update_emitters = new_update_emitters
-
-            if self.on_update:
-                oneshotted = [ ]
-                functions_to_check = list(self.on_update)
-
-                for particle in self.children:
-                    self._update_ctx.particle = particle
-                    for update_func, props in functions_to_check:
-                        return_value = update_func(self._update_ctx)
-                        if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                            if (update_func, props) not in oneshotted:
-                                oneshotted.append((update_func, props))
-
-                self.on_update = [item for item in functions_to_check if item not in oneshotted]
-                self.oneshotted_on_update.extend(oneshotted)
-
-            if self.redraw is not None:
-                renpy.display.render.redraw(self, self.redraw)
-
-            if not self.ignore_time:
-                self.displayable_map.clear()
-
-            if self.dead_child:
-                live_children = [ ]
-                oneshotted = [ ]
-                new_on_particle_dead = [ ]
-
-                self._particle_dead_ctx.st = st
-                self._particle_dead_ctx.delta = self._dtime
-
-                for particle in self.children:
-                    if not particle.live:
-                        self._particle_dead_ctx.particle = particle
-                        for behavior_func, props in self.on_particle_dead:
-                            return_value = behavior_func(self._particle_dead_ctx)
-                            if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                                if (behavior_func, props) not in oneshotted:
-                                    oneshotted.append((behavior_func, props))
-                            else:
-                                if (behavior_func, props) not in new_on_particle_dead:
-                                    new_on_particle_dead.append((behavior_func, props))
-                    else:
-                        live_children.append(particle)
-
-                if oneshotted:
-                    renpy.error("{}".format(oneshotted))
-
-                self.children = live_children
-                self.oneshotted_on_dead.extend(oneshotted)
-                self.on_particle_dead = new_on_particle_dead
-                self.dead_child = False
-
-            if self.particles_queue:
-                self.children.extend(self.particles_queue)
-                self.particles_queue = [ ]
-                renpy.redraw(self, 0.0)
-
-            self.children.sort(key=lambda sc: sc.zorder)
-
-            caches = [ ]
-
-            rv = renpy.display.render.Render(width, height)
-
-            events = False
-
-            for i in self.children:
-                events |= i.events
-
-                cache = i.cache
-                r = i.cache.render
-                if cache.render is None:
-                    if cache.st is None:
-                        cache.st = st
-
-                    cst = st - cache.st
-
-                    cache.render = r = renpy.render(cache.child_copy, width, height, cst, cst)
-                    cache.fast = (
-                        (r.forward is None)
-                        and (not r.mesh)
-                        and (not r.uniforms)
-                        and (not r.shaders)
-                        and (not r.properties)
-                        and (not r.xclipping)
-                        and not (r.yclipping)
-                    )
-                    rv.depends_on(r)
-
-                    caches.append(cache)
-
-                if cache.fast:
-                    for child, xo, yo, _focus, _main in r.children:
-                        rv.children.append((child, xo + i.x, yo + i.y, False, False))
-
-                else:
-                    rv.subpixel_blit(r, (i.x, i.y))
-
-            for i in caches:
-                i.render = None
-
-            # dbg = renpy.store.Text("{}\n{}".format(len(self.children), self.cnt), size=32)
-            # rv.place(dbg)
-
-            return rv
-
         def render(self, width, height, st, at):
             if self.animation:
                 st = at
@@ -372,6 +234,8 @@ init -1337 python in renparticles:
                         else:
                             if (behavior_func, props) not in new_on_particle_dead:
                                 new_on_particle_dead.append((behavior_func, props))
+
+                        self.particles_data.particles_properties.pop(particle, None)
                 else:
                     live_children.append(particle)
 

@@ -9,24 +9,28 @@ label renp_test_chamber:
 
     rparticles as rparticles_test onlayer master zorder 1:
         sprite expr Solid("#960000", xysize=(12, 12)); test_particle
-        lifetime range random (0.5, 0.75)
+        lifetime range random (1.5, 1.75)
         redraw asap
 
         preset interval_spray:
             interval 0.01
             amount 100
 
-        on update:
-            orbit_mouse:
-                screen_bounds True
-                pull_strength 0.25
+        preset orbit_mouse:
+            screen_bounds True
+            pull_strength 0.1
+            speed 20.0
 
-            auto_expire
+        preset auto_expire
 
         on particle dead:
             emitter spray:
                 amount 1
     
     "Executed"
+
+    hide rparticles_test with dissolve
+
+    "Hided"
 
     $ renpy.pause(hard=True)
