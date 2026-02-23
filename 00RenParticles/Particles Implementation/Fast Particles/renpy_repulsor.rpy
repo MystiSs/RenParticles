@@ -1,6 +1,6 @@
 # From Renpy documentation: https://www.renpy.org/doc/html/sprites.html#sprite-examples
 
-init -1337 python in renparticles:
+init -1115 python in renparticles:
     import math
 
     class RepulsorUpdate(_Behavior):
@@ -54,3 +54,18 @@ init -1337 python in renparticles:
                     )
                 )
             context.system.particles_data.repulsor_pos = (context.x, context.y)
+
+    class RepulsorPreset(_RFBehaviorPreset):
+        behaviors = {
+            "on_update": [RepulsorUpdate],
+            "on_event": [RepulsorEvent],
+            "on_particle_dead": None
+        }
+
+        repulsor_pos = None
+
+        def distribute_properties(self):
+            super(RepulsorPreset, self).distribute_properties()
+
+            if self.repulsor_pos is not None:
+                self.behaviors["on_update"][0].inject_properties(self.repulsor_pos)

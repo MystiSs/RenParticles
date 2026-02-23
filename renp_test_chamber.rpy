@@ -11,18 +11,15 @@ label renp_test_chamber:
         sprite expr Solid("#960000", xysize=(12, 12)); test_particle
         lifetime range random (1.5, 3.0)
         redraw 0.0
-        on update:
-            emitter spray oneshot:
-                amount 250
-                area (0, 0, config.screen_width, config.screen_height)
-            renpy_repulsor_update
-            auto_expire
-        on event:
-            renpy_repulsor_event
+
+        preset spray:
+            amount 250
+        preset renpy_repulsor
+        preset auto_expire
+
         on particle dead:
             emitter spray:
                 amount 1
-                area (0, 0, config.screen_width, config.screen_height)
     
     "Executed"
 

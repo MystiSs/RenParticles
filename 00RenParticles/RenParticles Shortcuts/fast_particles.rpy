@@ -12,6 +12,11 @@ init -555 python in renparticles:
         },
 
         "presets": {
+            "general": {
+                "spray": SprayPreset,
 
+                "renpy_repulsor": RepulsorPreset,
+                "auto_expire": AutoExpirePreset
+            }
         }
     }

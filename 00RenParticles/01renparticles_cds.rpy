@@ -6,10 +6,16 @@ python early:
         Func = 333
         Shortcut = 666
         Emitter = 999
-        Preset = 1332
+
+        GeneralPreset = 1332
+        UpdatePreset = 1665
+        EventPreset = 1998
+        ParticleDeadPreset = 2331
+
+        PresetsTypes = (GeneralPreset, UpdatePreset, EventPreset, ParticleDeadPreset)
 
     def renp_parse_fast_particles_show(lexer):
-        data = { "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "redraw": None, "sprite": [ ], "tag": None, "layer": "master", "zorder": "0", "lifetime": None }
+        data = {"presets": [ ], "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "redraw": None, "sprite": [ ], "tag": None, "layer": "master", "zorder": "0", "lifetime": None }
 
         while not lexer.match(':'):
             if lexer.keyword("as"):
@@ -52,6 +58,9 @@ python early:
                 data["redraw"] = subblock.simple_expression()
                 was_redraw = True
 
+            elif subblock.keyword("preset"):
+                data["presets"].append(_renp_parse_preset(subblock))
+
             elif subblock.match("on update"):
                 if was_on_update:
                     renpy.error("there can be only one 'on update' block")
@@ -88,8 +97,8 @@ python early:
                 emitter_data = _renp_parse_emitter_keyword(on_block)
                 block_data.append(emitter_data)
 
-            elif on_block.keyword("function"):
-                func_data = _renp_parse_function_keyword(on_block)
+            elif on_block.keyword("custom"):
+                func_data = _renp_parse_custom_keyword(on_block)
                 block_data.append(func_data)
 
             #<Потенциальный шорткат>#
@@ -115,9 +124,20 @@ python early:
         on_update = [ ]
         on_event = [ ]
         images = _renp_eval_images(data["sprite"])
+
+        on_update_preset = [ ]
+        on_event_preset = [ ]
+        on_particle_dead_preset = [ ]
+        _renp_eval_high_level_presets(data["presets"], on_update_preset, on_event_preset, on_particle_dead_preset)
+
         on_update = _renp_eval_on_update(data["on_update"])
         on_event = _renp_eval_on_event(data["on_event"])
         on_particle_dead = _renp_eval_on_particle_dead(data["on_particle_dead"])
+
+        #<Объединяем списки>#
+        on_update = on_update_preset + on_update
+        on_event = on_event_preset + on_event
+        on_particle_dead = on_particle_dead_preset + on_particle_dead
 
         lifetime_type = data["lifetime"]["type"]
         lifetime_timings = eval(data["lifetime"]["timings"])
@@ -154,7 +174,8 @@ python early:
             behavior = behavior()
             props = _renp_eval_props(content["properties"])
             behavior.inject_properties(**props)
-            on_block.append((behavior, props))
+            # on_block.append((behavior, props))
+            on_block.append((behavior, behavior.m_properties))
         return on_block
 
     def _renp_eval_on_update(on_update_data):
@@ -162,6 +183,20 @@ python early:
 
     def _renp_eval_on_event(on_event_data):
         return _renp_eval_on_block(on_event_data)
+
+    def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
+        for preset in presets:
+            preset_behavior = renparticles.static_shortcuts["presets"]["general"].get(preset["shortcut"], None)
+            if preset_behavior is None:
+                _renp_shortcut_error("{}->{}".format(preset["shortcuts_block"], "general"), shortcut)
+            
+            preset_behavior = preset_behavior()
+            props = _renp_eval_props(preset["properties"])
+            preset_behavior.inject_properties(**props)
+            behaviors = preset_behavior.build()
+            on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_update"]])
+            on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_event"]])
+            on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors["on_particle_dead"]])
 
     def _renp_eval_on_particle_dead(on_particle_dead_data):
         return _renp_eval_on_block(on_particle_dead_data)
@@ -214,7 +249,7 @@ python early:
 
         return data
 
-    def _renp_parse_function_keyword(lexer, allow_oneshot=True, allow_properties=True, expect_eol=True):
+    def _renp_parse_custom_keyword(lexer, allow_oneshot=True, allow_properties=True, expect_eol=True):
         func = lexer.simple_expression()
         properties = {}
 
@@ -244,11 +279,17 @@ python early:
 
         return {"shortcut": shortcut, "shortcuts_block": what_block, "properties": properties, "type": _RenParserType.Shortcut}
 
+    def _renp_parse_preset(lexer, what_type=_RenParserType.GeneralPreset):
+        shortcut_data = _renp_parse_shortcut(lexer, "presets", False)
+        shortcut_data["type"] = what_type
+
+        return shortcut_data
+
     def _renp_parse_emitter_keyword(subblock):
         data = { }
 
-        if subblock.keyword("function"):
-            data = _renp_parse_function_keyword(subblock)
+        if subblock.keyword("custom"):
+            data = _renp_parse_custom_keyword(subblock)
         else:
             data = _renp_parse_shortcut(subblock, "emitters")
         
@@ -271,5 +312,6 @@ python early:
             "Unknown shortcut '{}' in '{}' block.\n"
             "Available shortcuts: {}".format(shortcut, shortcuts_block, available)
         )
+
 
     renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block="possible")
