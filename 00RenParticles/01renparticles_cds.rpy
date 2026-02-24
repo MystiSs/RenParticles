@@ -13,6 +13,9 @@ python early:
         # EventPreset = 1998
         # ParticleDeadPreset = 2331
 
+        System = 8888
+        SubSystem = 9999
+
         PresetsTypes = (GeneralPreset, InnerPreset)
 
     redraw_asap_aliases = {
@@ -22,7 +25,20 @@ python early:
     }
 
     def renp_parse_fast_particles_show(lexer):
-        data = {"presets": [ ], "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "redraw": None, "sprite": [ ], "tag": None, "layer": "master", "zorder": "0", "lifetime": None }
+        data = {"subsystems": None,
+                "presets": [ ],
+                "on_update": [ ],
+                "on_event": [ ],
+                "on_particle_dead": [ ],
+                "redraw": None,
+                "sprite": [ ],
+                "tag": None,
+                "layer": "master",
+                "zorder": "0",
+                "multiple": False,
+                "lifetime": None,
+                "type": _RenParserType.System
+                }
 
         while not lexer.match(':'):
             if lexer.keyword("as"):
@@ -33,6 +49,9 @@ python early:
             
             elif lexer.keyword("zorder"):
                 data["zorder"] = lexer.integer()
+
+            elif lexer.keyword("multiple"):
+                data["multiple"] = True
             
             if lexer.eol():
                 renpy.error("subblock required")
@@ -40,6 +59,23 @@ python early:
         lexer.expect_eol()
         
         subblock = lexer.subblock_lexer()
+
+        if data["multiple"]:
+            subsystems = [ ]
+            
+            was_redraw = False
+            while subblock.advance():
+                if subblock.keyword("redraw"):
+                    data["redraw"] = _renp_parse_redraw(subblock, was_redraw)
+                elif subblock.match("system:"):
+                    subsystems.append(_renp_parse_subsystem(subblock))
+                else:
+                    renpy.error("a system with the 'multiple' modifier can only have 'system' blocks.\ngot:{}".format(subblock.rest()))
+
+                subblock.expect_eol()
+            
+            data["subsystems"] = subsystems
+            return data
 
         was_on_update = False
         was_on_event = False
@@ -59,16 +95,7 @@ python early:
                 data["lifetime"] = _renp_parse_lifetime_keyword(subblock)
 
             elif subblock.keyword("redraw"):
-                if was_redraw:
-                    renpy.error("there can be only one 'redraw' instruction")
-                
-                for alias in redraw_asap_aliases:
-                    if subblock.keyword(alias):
-                        data["redraw"] = "0.0"
-                        break
-                else:
-                    data["redraw"] = subblock.float()
-                    
+                data["redraw"] = _renp_parse_redraw(subblock, was_redraw)   
                 was_redraw = True
 
             elif subblock.keyword("preset"):
@@ -97,6 +124,64 @@ python early:
             
             subblock.expect_eol()
         
+        return data
+
+    def _renp_parse_redraw(lexer, was_redraw=False):
+        if was_redraw:
+            renpy.error("there can be only one 'redraw' instruction")
+        
+        for alias in redraw_asap_aliases:
+            if lexer.keyword(alias):
+                return "0.0"
+        return lexer.float()
+
+    def _renp_parse_subsystem(lexer):
+        data = {"presets": [ ], "on_update": [ ], "on_event": [ ], "on_particle_dead": [ ], "sprite": [ ], "lifetime": None, "type": _RenParserType.SubSystem}
+
+        subblock = lexer.subblock_lexer()
+
+        was_on_update = False
+        was_on_event = False
+        was_on_particle_dead = False
+        while subblock.advance():
+            if subblock.keyword("sprite"):
+                if data["sprite"]:
+                    renpy.error("there can be only one 'sprite' instruction")
+
+                data["sprite"] = _renp_parse_sprites_keyword(subblock)
+            
+            elif subblock.keyword("lifetime"):
+                if data["lifetime"] is not None:
+                    renpy.error("there can be only one 'lifetime' instruction")
+                
+                data["lifetime"] = _renp_parse_lifetime_keyword(subblock)
+
+            elif subblock.keyword("preset"):
+                data["presets"].append(_renp_parse_preset(subblock))
+
+            elif subblock.match("on update"):
+                if was_on_update:
+                    renpy.error("there can be only one 'on update' block")
+
+                data["on_update"] = renp_parse_on_update_block(subblock)
+                was_on_update = True
+
+            elif subblock.match("on event"):
+                if was_on_event:
+                    renpy.error("there can be only one 'on event' block")
+                    
+                data["on_event"] = renp_parse_on_event_block(subblock)
+                was_on_event = True
+
+            elif subblock.match("on particle dead"):
+                if was_on_particle_dead:
+                    renpy.error("there can be only one 'on particle dead' block")
+
+                data["on_particle_dead"] = renp_parse_on_particle_dead_block(subblock)
+                was_on_particle_dead = True
+            
+            subblock.expect_eol()
+
         return data
 
     def _renp_parse_on_block(subblock):
@@ -138,33 +223,59 @@ python early:
         return _renp_parse_on_block(subblock)
 
     def renp_execute_fast_particles_show(data):
+        if data["multiple"]:
+            renp_execute_multiple_fast_particles_show(data)
+        else:
+            renp_execute_base_fast_particles_show(data)
+
+    def renp_execute_base_fast_particles_show(data):
+        system = _renp_eval_system(data)
+
+        print("EXECUTE REN-PARTICLES:\n{}".format(system.get_info()))
+        
+        renpy.show(data["tag"], what=system, layer=data["layer"], zorder=eval(data["zorder"]))
+
+    def renp_execute_multiple_fast_particles_show(data):
+        subsystems = _renp_eval_subsystems(data["subsystems"])
+        system = renparticles.RenParticleFastGroup(subsystems, eval(data["redraw"]))
+
+        print("EXECUTE MULTIPLE REN-PARTICLES:\n{}".format(system.get_info()))
+
+        renpy.show(data["tag"], what=system, layer=data["layer"], zorder=eval(data["zorder"]))
+
+    def _renp_eval_subsystems(systems):
+        subsystems = [ ]
+        for subsystem_data in systems:
+            subsystems.append(_renp_eval_system(subsystem_data))
+        
+        return subsystems
+
+    def _renp_eval_system(system):
         on_update = [ ]
         on_event = [ ]
-        images = _renp_eval_images(data["sprite"])
+        images = _renp_eval_images(system["sprite"])
 
         on_update_preset = [ ]
         on_event_preset = [ ]
         on_particle_dead_preset = [ ]
-        _renp_eval_high_level_presets(data["presets"], on_update_preset, on_event_preset, on_particle_dead_preset)
+        _renp_eval_high_level_presets(system["presets"], on_update_preset, on_event_preset, on_particle_dead_preset)
 
-        on_update = _renp_eval_on_update(data["on_update"])
-        on_event = _renp_eval_on_event(data["on_event"])
-        on_particle_dead = _renp_eval_on_particle_dead(data["on_particle_dead"])
+        on_update = _renp_eval_on_update(system["on_update"])
+        on_event = _renp_eval_on_event(system["on_event"])
+        on_particle_dead = _renp_eval_on_particle_dead(system["on_particle_dead"])
 
-        #<Объединяем списки>#
+        #<Merge lists>#
         on_update = on_update_preset + on_update
         on_event = on_event_preset + on_event
         on_particle_dead = on_particle_dead_preset + on_particle_dead
 
-        lifetime_type = data["lifetime"]["type"]
-        lifetime_timings = eval(data["lifetime"]["timings"])
+        lifetime_type = system["lifetime"]["type"]
+        lifetime_timings = eval(system["lifetime"]["timings"])
 
-        particles_data = renparticles.ParticlesData(images=images, tag=data["tag"], lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
-        particles = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(data["redraw"]))
+        particles_data = renparticles.ParticlesData(images=images, tag=system.get("tag", None), lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
+        system = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get("redraw", "None")))
 
-        print("EXECUTE RENPARTICLES:\n{}".format(particles.get_info()))
-        
-        renpy.show(data["tag"], what=particles, layer=data["layer"], zorder=eval(data["zorder"]))
+        return system
 
     def _renp_eval_images(images_data):
         images = [ ]

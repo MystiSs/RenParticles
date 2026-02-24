@@ -10,7 +10,7 @@ init -1115 python in renparticles:
             system = context.system
             particles_data = system.particles_data
 
-            if particles_data.repulsor_pos is None:
+            if particles_data.get("repulsor_pos") is None:
                 if self.repulsor_pos is not None:
                     particles_data.repulsor_pos = self.repulsor_pos
                 else:

@@ -18,6 +18,9 @@ init -1337 python in renparticles:
 
             for key, value in properties.items():
                 setattr(self, key, value)
+        
+        def get(self, key):
+            return self.__dict__.get(key, None)
     
     class RenpFContext:
         system = None
@@ -329,3 +332,38 @@ init -1337 python in renparticles:
 
                 self.on_event = new_on_event
                 self.oneshotted_on_event.extend(oneshotted)
+    
+    class RenParticleFastGroup(renpy.Displayable):
+        def __init__(self, systems=None, redraw=None, **properties):
+            super(RenParticleFastGroup, self).__init__(**properties)
+
+            self.redraw = redraw
+
+            self.systems = systems or [ ]
+
+        def get_info(self):
+            lines = [ ]
+            lines.append("=" * 40)
+            lines.append("MULTIPLE FAST REN-PARTICLE SYSTEM")
+            lines.append("=" * 40)
+
+            for system in self.systems:
+                lines.append(system.get_info())
+
+            lines.append("=" * 40)
+            return "\n".join(lines)
+
+        def visit(self):
+            return self.systems[:]
+        
+        def render(self, width, height, st, at):
+            main_render = renpy.Render(width, height)
+
+            for system in self.systems:
+                system_render = system.render(width, height, st, at)
+                main_render.subpixel_blit(system_render, (0, 0))
+
+            if self.redraw is not None:
+                renpy.redraw(self, self.redraw)
+
+            return main_render
