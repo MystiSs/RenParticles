@@ -5,41 +5,56 @@ init -1115 python in renparticles:
 
     class RepulsorUpdate(_Behavior):
         repulsor_pos = None
+        strength = 3.0
+        radius = 150.0
+        clamp_margin = 2.0
 
         def __call__(self, context):
             system = context.system
             particles_data = system.particles_data
 
-            if particles_data.get("repulsor_pos") is None:
+            pos = particles_data.get("repulsor_pos")
+            if pos is None:
                 if self.repulsor_pos is not None:
-                    particles_data.repulsor_pos = self.repulsor_pos
+                    pos = self.repulsor_pos
+                    particles_data.repulsor_pos = pos
                 else:
                     return UpdateState.Pass
 
-            px, py = particles_data.repulsor_pos
-            i = context.particle
-            
-            vx = i.x - px
-            vy = i.y - py
-            vl = math.hypot(vx, vy)
-            if vl >= 150:
+            px, py = pos
+            p = context.particle
+
+            vx = p.x - px
+            vy = p.y - py
+
+            dist = math.hypot(vx, vy)
+            if dist == 0:
                 return UpdateState.Pass
 
-            distance = 3.0 * (150 - vl) / 150
-            i.x += distance * vx / vl
-            i.y += distance * vy / vl
+            if dist >= self.radius:
+                return UpdateState.Pass
 
-            if i.x < 2:
-                i.x = 2
+            falloff = (self.radius - dist) / self.radius
 
-            if i.x > system.width - 2:
-                i.x = system.width - 2
+            force = self.strength * falloff
 
-            if i.y < 2:
-                i.y = 2
+            nx = vx / dist
+            ny = vy / dist
 
-            if i.y > system.height - 2:
-                i.y = system.height - 2
+            p.x += force * nx
+            p.y += force * ny
+
+            m = self.clamp_margin
+
+            if p.x < m:
+                p.x = m
+            elif p.x > system.width - m:
+                p.x = system.width - m
+
+            if p.y < m:
+                p.y = m
+            elif p.y > system.height - m:
+                p.y = system.height - m
 
             return UpdateState.Pass
         
@@ -64,8 +79,11 @@ init -1115 python in renparticles:
 
         repulsor_pos = None
 
+        strength = 3.0
+        radius = 150.0
+        clamp_margin = 2.0
+
         def distribute_properties(self):
             super(RepulsorPreset, self).distribute_properties()
 
-            if self.repulsor_pos is not None:
-                self.behaviors["on_update"][0].inject_properties(self.repulsor_pos)
+            self.behaviors["on_update"][0].inject_properties(repulsor_pos=self.repulsor_pos, strength=self.strength, radius=self.radius, clamp_margin=self.clamp_margin)

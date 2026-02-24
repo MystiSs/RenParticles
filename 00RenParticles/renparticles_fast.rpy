@@ -20,7 +20,7 @@ init -1337 python in renparticles:
                 setattr(self, key, value)
         
         def get(self, key):
-            return self.__dict__.get(key, None)
+            return getattr(self, key, None)
     
     class RenpFContext:
         system = None
@@ -367,3 +367,11 @@ init -1337 python in renparticles:
                 renpy.redraw(self, self.redraw)
 
             return main_render
+
+        def event(self, ev, x, y, st):
+            return_value = None
+            for system in self.systems:
+                result = system.event(ev, x, y, st)
+                if result is not None:
+                    return_value = result
+            return return_value

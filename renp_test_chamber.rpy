@@ -34,7 +34,9 @@ label renp_test_chamber:
             preset interval_spray:
                 interval 0.02
                 amount 100
-            preset renpy_repulsor
+            preset renpy_repulsor:
+                strength 64.0
+
             preset auto_expire
 
             on update:
