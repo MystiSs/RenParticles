@@ -21,8 +21,7 @@ label renp_test_chamber:
                 orbit_mouse:
                     screen_bounds True
                     pull_strength 0.1
-
-                auto_expire
+                    speed 20.0
 
             on particle dead:
                 emitter spray:
@@ -35,11 +34,15 @@ label renp_test_chamber:
                 interval 0.02
                 amount 100
             preset renpy_repulsor:
-                strength 64.0
+                strength 32.0
 
             preset auto_expire
 
             on update:
+                oscillate:
+                    amplitudes [0.0, 0.0]
+                    amplitudes_range [125.0, 400.0]
+
                 move:
                     velocity [0.0, 0.0]
                     velocity_range [200.0, 100.0]

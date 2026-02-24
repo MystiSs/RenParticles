@@ -8,6 +8,7 @@ init -555 python in renparticles:
 
             "simple_move": SimpleMove,
             "move": Move,
+            "oscillate": OscillateMove,
 
             "orbit_mouse": OrbitCursorUpdate
         },
