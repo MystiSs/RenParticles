@@ -84,6 +84,7 @@ init -1337 python in renparticles:
                 cache.child_copy = transformed_image
 
             self.cache = cache
+            self.queued_transforms.clear()
 
         def set_child(self, d):
             super(RenSprite, self).set_child(d)
