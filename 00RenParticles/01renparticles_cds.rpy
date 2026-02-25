@@ -28,9 +28,13 @@ python early:
         PRESETS = "presets"
         PROPERTIES = "properties"
         REDRAW = "redraw"
+        CACHE = "cache"
         SHORTCUT = "shortcut"
         SHORTCUTS_BLOCK = "shortcuts_block"
+
         SPRITE = "sprite"
+        IMAGES = "images"
+
         SUBSYSTEMS = "subsystems"
         TAG = "tag"
         TIMINGS = "timings"
@@ -108,14 +112,8 @@ python early:
                 subblock.expect_eol()
         else:
             system_data = _renp_get_default_system_data(_RenParserType.System)
-            while subblock.advance():
-                checkpoint = subblock.checkpoint()
-                if subblock.keyword(_RenPKeywords.REDRAW):
-                    data[_RenPKeywords.REDRAW] = _renp_parse_redraw(subblock)
-                else:
-                    subblock.revert(checkpoint)
-                    if not _renp_parse_common_system_content(subblock, system_data):
-                         renpy.error("Unknown instruction in rparticles: " + subblock.rest())
+            if not _renp_parse_common_system_content(subblock, system_data):
+                renpy.error("Unknown instruction in rparticles: " + subblock.rest())
             
             data.update(system_data)
 
@@ -127,8 +125,8 @@ python early:
             _RenPKeywords.ON_UPDATE: [], 
             _RenPKeywords.ON_EVENT: [], 
             _RenPKeywords.ON_PARTICLE_DEAD: [], 
-            _RenPKeywords.SPRITE: [], 
-            _RenPKeywords.LIFETIME: None, 
+            _RenPKeywords.IMAGES: [],
+            _RenPKeywords.LIFETIME: None,
             _RenPKeywords.TYPE: system_type
         }
 
@@ -138,19 +136,34 @@ python early:
             _RenPKeywords.LIFETIME: False, 
             _RenPKeywords.ON_UPDATE: False, 
             _RenPKeywords.ON_EVENT: False, 
-            _RenPKeywords.ON_PARTICLE_DEAD: False
+            _RenPKeywords.ON_PARTICLE_DEAD: False,
+            _RenPKeywords.REDRAW: False,
+            _RenPKeywords.CACHE: False,
         }
 
         while subblock.advance():
-            if subblock.keyword(_RenPKeywords.SPRITE):
+            if subblock.keyword(_RenPKeywords.REDRAW):
+                if seen[_RenPKeywords.REDRAW]: 
+                    subblock.error("only one 'redraw' instruction allowed")
+                data[_RenPKeywords.REDRAW] = _renp_parse_redraw(subblock)
+                seen[_RenPKeywords.REDRAW] = True
+
+            elif subblock.keyword(_RenPKeywords.CACHE):
+                if seen[_RenPKeywords.CACHE]: 
+                    subblock.error("only one 'cache' instruction allowed")
+                data[_RenPKeywords.CACHE] = "True"
+                seen[_RenPKeywords.CACHE] = True
+                subblock.expect_eol()
+
+            elif subblock.keyword(_RenPKeywords.SPRITE):
                 if seen[_RenPKeywords.SPRITE]: 
-                    subblock.error("Only one 'sprite' allowed")
-                data[_RenPKeywords.SPRITE] = _renp_parse_sprites_keyword(subblock)
+                    subblock.error("only one 'sprite' instruction allowed")
+                data[_RenPKeywords.IMAGES] = _renp_parse_sprites_keyword(subblock)
                 seen[_RenPKeywords.SPRITE] = True
             
             elif subblock.keyword(_RenPKeywords.LIFETIME):
                 if seen[_RenPKeywords.LIFETIME]: 
-                    subblock.error("Only one 'lifetime' allowed")
+                    subblock.error("only one 'lifetime' instruction allowed")
                 data[_RenPKeywords.LIFETIME] = _renp_parse_lifetime_keyword(subblock)
                 seen[_RenPKeywords.LIFETIME] = True
 
@@ -159,19 +172,19 @@ python early:
 
             elif subblock.match(_RenPLexerKeywords.ON_UPDATE):
                 if seen[_RenPKeywords.ON_UPDATE]: 
-                    subblock.error("Only one 'on update' block")
+                    subblock.error("only one 'on update' block allowed")
                 data[_RenPKeywords.ON_UPDATE] = _renp_parse_on_block(subblock)
                 seen[_RenPKeywords.ON_UPDATE] = True
 
             elif subblock.match(_RenPLexerKeywords.ON_EVENT):
                 if seen[_RenPKeywords.ON_EVENT]: 
-                    subblock.error("Only one 'on event' block")
+                    subblock.error("only one 'on event' block allowed")
                 data[_RenPKeywords.ON_EVENT] = _renp_parse_on_block(subblock)
                 seen[_RenPKeywords.ON_EVENT] = True
 
             elif subblock.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
                 if seen[_RenPKeywords.ON_PARTICLE_DEAD]: 
-                    subblock.error("Only one 'on particle dead' block")
+                    subblock.error("only one 'on particle dead' block allowed")
                 data[_RenPKeywords.ON_PARTICLE_DEAD] = _renp_parse_on_block(subblock)
                 seen[_RenPKeywords.ON_PARTICLE_DEAD] = True
             
@@ -231,14 +244,14 @@ python early:
         else:
             displayable = _renp_eval_system(data)
 
-        #print(displayable.get_info())
+        print(displayable.get_info())
 
         renpy.show(tag, what=displayable, layer=layer, zorder=zorder)
 
     def _renp_eval_system(system):
         on_update = [ ]
         on_event = [ ]
-        images = _renp_eval_images(system[_RenPKeywords.SPRITE])
+        images = _renp_eval_images(system[_RenPKeywords.IMAGES])
 
         on_update_preset = [ ]
         on_event_preset = [ ]
@@ -258,7 +271,7 @@ python early:
         lifetime_timings = eval(system[_RenPKeywords.LIFETIME][_RenPKeywords.TIMINGS])
 
         particles_data = renparticles.ParticlesData(images=images, tag=system.get(_RenPKeywords.TAG, None), lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
-        system = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get(_RenPKeywords.REDRAW, "None")))
+        system = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get(_RenPKeywords.REDRAW, "None")), eval(system.get(_RenPKeywords.CACHE, "False")))
 
         return system
 
@@ -319,7 +332,7 @@ python early:
     def _renp_try_get_preset_behavior(preset_block, shortcut):
         preset_behavior = renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
         if preset_behavior is None:
-            _renp_shortcut_error("{}->{}".format(preset[_RenPKeywords.SHORTCUTS_BLOCK], "general"), shortcut)
+            _renp_preset_error(preset_block, shortcut)
 
         return preset_behavior
 
@@ -433,6 +446,13 @@ python early:
         renpy.error(
             "Unknown shortcut '{}' in '{}' block.\n"
             "Available shortcuts: {}".format(shortcut, shortcuts_block, available)
+        )
+
+    def _renp_preset_error(preset_block, shortcut):
+        available = ", ".join(renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].keys())
+        renpy.error(
+            "Unknown shortcut '{}' in '{}' block.\n"
+            "Available shortcuts: {}".format(shortcut, preset_block, available)
         )
 
     def _renp_inner_preset_multiple_blocks_error(preset_behavior):

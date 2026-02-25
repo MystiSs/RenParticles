@@ -54,8 +54,8 @@ init -1337 python in renparticles:
         lifetime = 0.0
     
     class RenParticlesFast(SpriteManager):
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, redraw=None, **properties):
-            super(RenParticlesFast, self).__init__(**properties)
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, **properties):
+            super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
             self.particles_queue = [ ]
 
             self.animation = False
@@ -187,6 +187,11 @@ init -1337 python in renparticles:
             if self.animation:
                 st = at
 
+            if self.particles_queue:
+                self.children.extend(self.particles_queue)
+                self.particles_queue = []
+                renpy.redraw(self, 0.0)
+
             self._dtime = max(0.0, st - self._old_st)
             self._old_st = st
 
@@ -257,17 +262,12 @@ init -1337 python in renparticles:
             if not self.ignore_time:
                 self.displayable_map.clear()
 
-            if self.particles_queue:
-                self.children.extend(self.particles_queue)
-                self.particles_queue = []
-                renpy.redraw(self, 0.0)
-
             self.children.sort(key=lambda sc: sc.zorder)
-
-            caches = []
 
             rv = renpy.display.render.Render(width, height)
             events = False
+
+            caches = []
 
             for i in self.children:
                 events |= i.events
@@ -290,16 +290,20 @@ init -1337 python in renparticles:
                         and not (r.yclipping)
                     )
                     rv.depends_on(r)
+
                     caches.append(cache)
+
+                w, h = r.get_size()
+                r_size_half = (w * 0.5, h * 0.5)
 
                 if cache.fast:
                     for child, xo, yo, _focus, _main in r.children:
-                        rv.children.append((child, xo + i.x, yo + i.y, False, False))
+                        rv.children.append((child, xo + i.x - r_size_half[0], yo + i.y - r_size_half[1], False, False))
                 else:
-                    rv.subpixel_blit(r, (i.x, i.y))
+                    rv.subpixel_blit(r, (i.x - r_size_half[0], i.y - r_size_half[1]))
 
-            for cache in caches:
-                cache.render = None
+            for i in caches:
+                i.render = None
 
             return rv
 

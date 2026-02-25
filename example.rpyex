@@ -25,10 +25,10 @@ rparticles as rparticles_test onlayer master zorder 1:
         emitter spray oneshot:
             amount 250
             area (0, 0, config.screen_width, config.screen_height)
-        renpy_repulsor_update
+        repulsor_update
         auto_expire
     on event:
-        renpy_repulsor_event
+        repulsor_event
     on particle dead:
         emitter spray:
             amount 1
@@ -43,7 +43,7 @@ rparticles as rparticles_test onlayer master zorder 1:
 
     preset spray:
         amount 250
-    preset renpy_repulsor
+    preset repulsor
     preset auto_expire
 
     on particle dead:
@@ -57,7 +57,7 @@ rparticles as rparticles_test onlayer master zorder 1:
 
     preset spray:
         amount 250
-    preset renpy_repulsor
+    preset repulsor
     preset auto_expire
 
     on particle dead:
@@ -74,7 +74,7 @@ rparticles as rparticles_test onlayer master zorder 1:
     preset interval_spray:
         interval 0.02
         amount 250
-    preset renpy_repulsor
+    preset repulsor
     preset auto_expire
 
     on update:
@@ -139,7 +139,7 @@ rparticles multiple as rparticles_test onlayer master zorder 1:
         preset interval_spray:
             interval 0.02
             amount 100
-        preset renpy_repulsor
+        preset repulsor
         preset auto_expire
 
         on update:
@@ -175,7 +175,7 @@ rparticles multiple as rparticles_test onlayer master zorder 1:
         preset interval_spray:
             interval 0.02
             amount 100
-        preset renpy_repulsor:
+        preset repulsor:
             strength 32.0
 
         preset auto_expire

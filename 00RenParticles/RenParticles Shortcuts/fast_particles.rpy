@@ -1,8 +1,8 @@
 init -555 python in renparticles:
     static_shortcuts = {
         "behaviors": {
-            "renpy_repulsor_update": RepulsorUpdate,
-            "renpy_repulsor_event": RepulsorEvent,
+            "repulsor_update": RepulsorUpdate,
+            "repulsor_event": RepulsorEvent,
 
             "auto_expire": LifetimeDeltaDecreaser,
 
@@ -10,7 +10,9 @@ init -555 python in renparticles:
             "move": Move,
             "oscillate": OscillateMove,
 
-            "orbit_mouse": OrbitCursorUpdate
+            "orbit_mouse": OrbitCursorUpdate,
+
+            "tween": PropertyTween
         },
 
         "emitters": {
@@ -23,7 +25,7 @@ init -555 python in renparticles:
                 "spray": SprayPreset,
                 "interval_spray": IntervalSprayPreset,
 
-                "renpy_repulsor": RepulsorPreset,
+                "repulsor": RepulsorPreset,
                 "auto_expire": AutoExpirePreset,
 
                 "orbit_mouse": OrbitMousePreset
