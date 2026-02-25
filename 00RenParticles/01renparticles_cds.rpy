@@ -65,6 +65,8 @@ python early:
 
         AS = "as"
 
+        PROP_BLOCK = "block"
+
     redraw_asap_aliases = {
         "asap",
         "fastest",
@@ -336,13 +338,25 @@ python early:
 
         return preset_behavior
 
-    def _renp_eval_props(props_raw):
-        props = { }
-        for key, raw_value in props_raw.items():
-            value = eval(raw_value)
-            props[key] = value
-    
-        return props
+    def _renp_eval_props(props_raw):        
+        if isinstance(props_raw, dict):
+            result = {}
+            for key, value in props_raw.items():
+                result[key] = _renp_eval_props(value)
+            return result
+        
+        elif isinstance(props_raw, (list, tuple)):
+            result = [_renp_eval_props(item) for item in props_raw]
+            return type(props_raw)(result)
+        
+        elif isinstance(props_raw, basestring):
+            try:
+                return eval(props_raw)
+            except:
+                return props_raw
+        
+        else:
+            return props_raw
 
     # lifetime ::= "constant" <postive number> | "range" <range behavior>
     # range behavior ::= <random range>
@@ -392,7 +406,7 @@ python early:
             properties[_RenPKeywords.ONESHOT] = "True" if lexer.keyword(_RenPKeywords.ONESHOT) else "False"
 
         if allow_properties and lexer.match(':'):
-            properties.update(_renp_parse_properties_properties(lexer))
+            properties.update(_renp_parse_properties(lexer))
 
         if expect_eol:
             lexer.expect_eol()
@@ -407,7 +421,7 @@ python early:
             properties[_RenPKeywords.ONESHOT] = "True" if lexer.keyword(_RenPKeywords.ONESHOT) else "False"
 
         if allow_properties and lexer.match(':'):
-            properties.update(_renp_parse_properties_properties(lexer))
+            properties.update(_renp_parse_properties(lexer))
 
         if expect_eol:
             lexer.expect_eol()
@@ -430,15 +444,25 @@ python early:
         
         return data
 
-    def _renp_parse_properties_properties(lexer):
+    def _renp_parse_properties(lexer, allow_dynamic=True):
         properties = { }
+        prop_blocks = { }
         properties_block = lexer.subblock_lexer()
 
         while properties_block.advance():
-            key = properties_block.word()
-            value = properties_block.simple_expression()
-            properties[key] = value
+            if allow_dynamic and properties_block.keyword(_RenPLexerKeywords.PROP_BLOCK):
+                prop_name = properties_block.string()
+                properties_block.require(':')
+                properties_block.expect_eol()
+                prop_blocks[prop_name] = _renp_parse_properties(properties_block, False)
+            else:
+                key = properties_block.word()
+                value = properties_block.simple_expression()
+                properties[key] = value
         
+        if prop_blocks:
+            properties["dynamic"] = prop_blocks
+
         return properties
 
     def _renp_shortcut_error(shortcuts_block, shortcut):

@@ -9,12 +9,13 @@ label renp_test_chamber:
 
     rparticles as rparticles_test onlayer master zorder 1:
         redraw asap
-        sprite expr Solid("#e78300", xysize=(12, 12)); expr Solid("#160094", xysize=(12, 12))
+        sprite expr Solid("#e78300", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
         lifetime range random (1.5, 3.0)
 
         preset interval_spray:
             interval 0.005
             amount 50
+
         preset repulsor:
             strength 32.0
 
@@ -22,10 +23,12 @@ label renp_test_chamber:
 
         on update:
             tween:
-                time 0.5
-                end_value 1.0
-                property "zoom"
-
+                block "alpha":
+                    time 0.5
+                block "zoom":
+                    time 0.5
+                    start_value 2.0
+                    end_value 1.0
 
         on particle dead:
             emitter spray:

@@ -21,7 +21,7 @@ init -1115 python in renparticles:
         speed_variance = 0.5
         pull_strength = 0.5
         clockwise = True
-        screen_bounds = False
+        screen_bounds = True
         
         _RENP_MORBIT = "_orbit_speed"
         _RENP_ACC = 0
@@ -105,7 +105,7 @@ init -1115 python in renparticles:
         speed_variance = 0.5
         pull_strength = 0.5
         clockwise = True
-        screen_bounds = False
+        screen_bounds = True
 
         def distribute_properties(self):
             super(OrbitMousePreset, self).distribute_properties()

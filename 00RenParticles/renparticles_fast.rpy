@@ -1,7 +1,8 @@
 init -1337 python in renparticles:
     import random
-    from renpy.store import SpriteManager
-    from renpy.store import Sprite
+    from renpy.store import SpriteManager, Sprite
+    from renpy.display.particle import SpriteCache
+    from renpy.store import Transform
     from builtins import min, max
 
 
@@ -52,6 +53,41 @@ init -1337 python in renparticles:
 
     class RenSprite(Sprite):
         lifetime = 0.0
+
+        _base_image = None
+
+        def __init__(self):
+            self.queued_transforms = {}
+
+        def queue_transform(self, **properties):
+            self.queued_transforms.update(properties)
+
+        def apply_transforms(self):
+            if not self.queued_transforms:
+                return
+            if self.cache is None:
+                return
+            if self._base_image is None:
+                self._base_image = self.cache.child_copy
+            
+            cache = SpriteCache()
+            transformed_image = Transform(self._base_image, **self.queued_transforms)
+
+            cache.render = None
+            cache.st = None
+            cache.child = transformed_image
+
+            if transformed_image._duplicatable:
+                cache.child_copy = transformed_image._duplicate(None)
+                cache.child_copy._unique()
+            else:
+                cache.child_copy = transformed_image
+
+            self.cache = cache
+
+        def set_child(self, d):
+            super(RenSprite, self).set_child(d)
+            self._base_image = None
     
     class RenParticlesFast(SpriteManager):
         def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, **properties):
@@ -246,6 +282,8 @@ init -1337 python in renparticles:
                         self.particles_data.particles_properties.pop(particle, None)
                 else:
                     live_children.append(particle)
+                    #<Scheduled transforms>#
+                    particle.apply_transforms()
 
             self.on_update = [item for item in new_on_update if item not in oneshotted_update]
             self.oneshotted_on_update.extend(oneshotted_update)
