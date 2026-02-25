@@ -32,6 +32,8 @@ python early:
         SHORTCUT = "shortcut"
         SHORTCUTS_BLOCK = "shortcuts_block"
 
+        SYSTEM_ID = "system_id"
+
         SPRITE = "sprite"
         IMAGES = "images"
 
@@ -62,6 +64,7 @@ python early:
         CONSTANT = "constant"
 
         SYSTEM = "system"
+        SUBSYSTEM_ID = "id"
 
         AS = "as"
 
@@ -104,9 +107,14 @@ python early:
                 if subblock.keyword(_RenPKeywords.REDRAW):
                     data[_RenPKeywords.REDRAW] = _renp_parse_redraw(subblock)
                 elif subblock.keyword(_RenPLexerKeywords.SYSTEM):
+                    system_id = None
+                    if subblock.keyword(_RenPLexerKeywords.SUBSYSTEM_ID):
+                        system_id = subblock.string()
+
                     subblock.require(':')
                     subblock.expect_eol()
                     sub_data = _renp_get_default_system_data(_RenParserType.SubSystem)
+                    sub_data[_RenPKeywords.SYSTEM_ID] = system_id
                     _renp_parse_common_system_content(subblock.subblock_lexer(), sub_data)
                     data[_RenPKeywords.SUBSYSTEMS].append(sub_data)
                 else:
@@ -269,13 +277,17 @@ python early:
         on_event = on_event_preset + on_event
         on_particle_dead = on_particle_dead_preset + on_particle_dead
 
-        lifetime_type = system[_RenPKeywords.LIFETIME][_RenPKeywords.TYPE]
-        lifetime_timings = eval(system[_RenPKeywords.LIFETIME][_RenPKeywords.TIMINGS])
+        lifetime_type = None
+        lifetime_timings = None
+        if system[_RenPKeywords.LIFETIME]:
+            lifetime_type = system[_RenPKeywords.LIFETIME][_RenPKeywords.TYPE]
+            lifetime_timings = eval(system[_RenPKeywords.LIFETIME][_RenPKeywords.TIMINGS])
 
         particles_data = renparticles.ParticlesData(images=images, tag=system.get(_RenPKeywords.TAG, None), lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
-        system = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get(_RenPKeywords.REDRAW, "None")), eval(system.get(_RenPKeywords.CACHE, "False")))
+        system_instance = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get(_RenPKeywords.REDRAW, "None")), eval(system.get(_RenPKeywords.CACHE, "False")))
+        system_instance.system_id = system.get(_RenPKeywords.SYSTEM_ID, None)
 
-        return system
+        return system_instance
 
     def _renp_eval_images(images_data):
         images = [ ]

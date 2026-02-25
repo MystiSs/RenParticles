@@ -12,12 +12,16 @@ init -555 python in renparticles:
 
             "orbit_mouse": OrbitCursorUpdate,
 
-            "tween": PropertyTween
+            "tween": PropertyTween,
+
+            "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn
         },
 
         "emitters": {
             "spray": EmitterRandom,
-            "interval_spray": IntervalSprayEmitter
+            "interval_spray": IntervalSprayEmitter,
+            "fragmentation": EmitterRemoteSpawn,
+            "interval_fragmentation": EmitterIntervalRemoteSpawn
         },
 
         "presets": {

@@ -18,7 +18,8 @@ init -1115 python in renparticles:
             
             return UpdateState.Pass
 
-    class IntervalSprayEmitter(Emitter):
+    #<_Behavior чтобы эмиттер получал частицу даже в блоке 'on update'>#
+    class IntervalSprayEmitter(_Behavior):
         amount = _RequiredField()
         interval = 0.0
         per_amount = 1

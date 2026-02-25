@@ -50,6 +50,8 @@ rparticles as rparticles_test onlayer master zorder 1:
         emitter spray:
             amount 1
 
+-------------------------------------------------------------------------------------------------------------------------------
+
 rparticles as rparticles_test onlayer master zorder 1:
     sprite expr Solid("#960000", xysize=(12, 12)); test_particle
     lifetime range random (1.5, 3.0)
@@ -190,6 +192,35 @@ rparticles multiple as rparticles_test onlayer master zorder 1:
                 velocity_range [200.0, 100.0]
 
                 acceleration [150.0, 400.0]
+
+        on particle dead:
+            emitter spray:
+                amount 1
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+rparticles as rparticles_test onlayer master zorder 1:
+        redraw asap
+        sprite expr Solid("#e78300", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
+        lifetime range random (1.5, 3.0)
+
+        preset interval_spray:
+            interval 0.005
+            amount 50
+
+        preset repulsor:
+            strength 32.0
+
+        preset auto_expire
+
+        on update:
+            tween:
+                block "alpha":
+                    time 0.5
+                block "zoom":
+                    time 0.5
+                    start_value 2.0
+                    end_value 1.0
 
         on particle dead:
             emitter spray:

@@ -28,16 +28,19 @@ init -1337 python in renparticles:
         st = None
         delta = None
         particle = None
+        systems = None
 
         def __init__(self, other_ctx=None):
             if isinstance(other_ctx, RenpFContext):
-                self.copy(other_ctx)
+                self.systems = {}
+                self.depends_on(other_ctx)
 
-        def copy(self, other):
+        def depends_on(self, other):
             self.system = other.system
             self.st = other.st
             self.delta = other.delta
             self.particle = None
+            self.systems = other.systems
             return self
 
     class UpdateEmitterContext(RenpFContext):
@@ -112,6 +115,8 @@ init -1337 python in renparticles:
             self._old_st = 0.0
             self._dtime = 0.0
 
+            self.system_id = None
+
             self._init_contexts()
 
         def get_info(self):
@@ -157,6 +162,14 @@ init -1337 python in renparticles:
             self._update_emitters_ctx = UpdateEmitterContext(self._update_ctx)
             self._event_ctx = EventContext(self._update_ctx)
             self._particle_dead_ctx = ParticleDeadContext(self._update_ctx)
+
+        def set_systems_in_contexts(self, subsystems_by_id):
+            if not subsystems_by_id:
+                return
+            self._update_ctx.systems = subsystems_by_id
+            self._update_emitters_ctx.depends_on(self._update_ctx)
+            self._event_ctx.depends_on(self._update_ctx)
+            self._particle_dead_ctx.depends_on(self._update_ctx)
 
         def _set_on_update(self, on_update):
             if on_update is None:
@@ -215,8 +228,13 @@ init -1337 python in renparticles:
             if self.particles_data is None or self.particles_data.lifetime_type is None or self.particles_data.lifetime_timings is None:
                 return 0.0
 
+            #renpy.error("{}\n{}\n{}".format(self.particles_data, self.particles_data.lifetime_type, self.particles_data.lifetime_timings))
+
             lifetime_type = self.particles_data.lifetime_type
             lifetime_timings = self.particles_data.lifetime_timings
+
+            if lifetime_type == "constant":
+                return lifetime_timings
 
             return _lifetime_getters[lifetime_type](*lifetime_timings)
 
@@ -381,8 +399,14 @@ init -1337 python in renparticles:
             super(RenParticleFastGroup, self).__init__(**properties)
 
             self.redraw = redraw
-
             self.systems = systems or [ ]
+
+            self._link_systems_in_contexts()
+
+        def _link_systems_in_contexts(self):
+            systems_by_id = { system.system_id: system for system in self.systems if system.system_id }
+            for system in self.systems:
+                system.set_systems_in_contexts(systems_by_id)
 
         def get_info(self):
             lines = [ ]
