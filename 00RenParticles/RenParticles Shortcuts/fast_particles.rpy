@@ -40,3 +40,23 @@ init -555 python in renparticles:
             }
         }
     }
+
+    dynamic_shortcuts = {
+        "behaviors": {
+
+        },
+
+        "emitters": {
+
+        },
+
+        "presets": {
+            "general": {
+
+            },
+
+            "inner": {
+                
+            }
+        }
+    }

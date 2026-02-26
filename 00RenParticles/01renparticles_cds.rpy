@@ -31,6 +31,7 @@ python early:
         CACHE = "cache"
         SHORTCUT = "shortcut"
         SHORTCUTS_BLOCK = "shortcuts_block"
+        GENERAL_SHORTCUTS = "general"
 
         SYSTEM_ID = "system_id"
         TARGET_SYSTEM = "renp_target_system"
@@ -314,12 +315,10 @@ python early:
             elif content[_RenPKeywords.TYPE] == _RenParserType.Shortcut:
                 shortcuts_block = content[_RenPKeywords.SHORTCUTS_BLOCK]
                 shortcut = content[_RenPKeywords.SHORTCUT]
-                behavior = renparticles.static_shortcuts[shortcuts_block].get(shortcut, None)
-                if behavior is None:
-                    _renp_shortcut_error(shortcuts_block, shortcut)
+                behavior = _renp_try_get_shortcut_behavior(shortcuts_block, shortcut)
 
             elif content[_RenPKeywords.TYPE] == _RenParserType.InnerPreset:
-                behavior = _renp_try_get_preset_behavior("general", preset[_RenPKeywords.SHORTCUT])
+                behavior = _renp_try_get_preset_behavior(_RenPKeywords.GENERAL_SHORTCUTS, preset[_RenPKeywords.SHORTCUT])
 
             behavior = behavior()
             props = _renp_eval_props(content[_RenPKeywords.PROPERTIES])
@@ -337,9 +336,20 @@ python early:
             # on_block.append((behavior, props))
         return on_block
 
+    def _renp_try_get_shortcut_behavior(shortcut_block, shortcut):
+        shortcut_behavior = renparticles.static_shortcuts[shortcut_block].get(shortcut, None)
+        
+        if shortcut_behavior is None:
+            shortcut_behavior = renparticles.dynamic_shortcuts[shortcut_block].get(shortcut, None)
+        
+        if shortcut_behavior is None:
+            _renp_shortcut_error(shortcut_block, shortcut)
+        
+        return shortcut_behavior
+
     def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
         for preset in presets:
-            preset_behavior = _renp_try_get_preset_behavior("general", preset[_RenPKeywords.SHORTCUT])
+            preset_behavior = _renp_try_get_preset_behavior(_RenPKeywords.GENERAL_SHORTCUTS, preset[_RenPKeywords.SHORTCUT])
             
             preset_behavior = preset_behavior()
             props = _renp_eval_props(preset[_RenPKeywords.PROPERTIES])
@@ -350,11 +360,15 @@ python early:
             on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_PARTICLE_DEAD]])
 
     def _renp_try_get_preset_behavior(preset_block, shortcut):
-        preset_behavior = renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
-        if preset_behavior is None:
-            _renp_preset_error(preset_block, shortcut)
-
-        return preset_behavior
+            preset_behavior = renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
+            
+            if preset_behavior is None:
+                preset_behavior = renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS, {}][preset_block].get(shortcut, None)
+                
+            if preset_behavior is None:
+                _renp_preset_error(preset_block, shortcut)
+            
+            return preset_behavior
 
     def _renp_eval_props(props_raw):        
         if isinstance(props_raw, dict):
@@ -397,7 +411,7 @@ python early:
         return data
 
     # expression_jit ::= "expr" | "expession" <expression>
-    # sprite_property ::= <expression_jit> | <image tag> {";" sprite_property}*
+    # sprite_property ::= <expression_jit> | <image tag> {";" <sprite_property>}*
     def _renp_parse_sprites_keyword(lexer):
         data = [ ]
         images = [ img.strip() for img in lexer.rest().split(';') ]
@@ -522,17 +536,23 @@ python early:
         return properties
 
     def _renp_shortcut_error(shortcuts_block, shortcut):
-        available = ", ".join(renparticles.static_shortcuts[shortcuts_block].keys())
         renpy.error(
             "Unknown shortcut '{}' in '{}' block.\n"
-            "Available shortcuts: {}".format(shortcut, shortcuts_block, available)
+            "Available static shortcuts: {}\n"
+            "Available dynamic shortcuts: {}".format(shortcut, shortcuts_block,
+                                                ", ".join(renparticles.static_shortcuts[shortcuts_block].keys()),
+                                                ", ".join(renparticles.dynamic_shortcuts[shortcuts_block].keys())
+                                                )
         )
 
     def _renp_preset_error(preset_block, shortcut):
-        available = ", ".join(renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].keys())
         renpy.error(
             "Unknown shortcut '{}' in '{}' block.\n"
-            "Available shortcuts: {}".format(shortcut, preset_block, available)
+            "Available static preset shortcuts: {}\n"
+            "Available dynamic preset shortcuts: {}".format(shortcut, preset_block,
+                                                ", ".join(renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].keys()),
+                                                ", ".join(renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS][preset_block].keys())
+                                                )
         )
 
     def _renp_inner_preset_multiple_blocks_error(preset_behavior):
