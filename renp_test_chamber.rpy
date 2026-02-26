@@ -1,13 +1,5 @@
-label renp_test_chamber:
-    $ st_chmbr_test = False
-
-    #show screen shcs_overlay_hided
-    scene black
-    with dspr
-
-    "RenParticles"
-
-    rparticles multiple as rparticles_test onlayer master zorder 1:
+init 100:
+    rparticles define multiple "renparticles_test_model":
         redraw asap
 
         system id "orbit":
@@ -44,6 +36,17 @@ label renp_test_chamber:
                     velocity_range [100.0, 5.0]
                     acceleration [0.0, 0.0]
                     acceleration_range [50.0, 50.0]
+
+label renp_test_chamber:
+    $ st_chmbr_test = False
+
+    #show screen shcs_overlay_hided
+    scene black
+    with dspr
+
+    "RenParticles"
+
+    rparticles model "renparticles_test_model" as rparticles_test
     
     "Executed"
 

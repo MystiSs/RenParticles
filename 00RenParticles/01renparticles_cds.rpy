@@ -41,6 +41,7 @@ python early:
 
         SUBSYSTEMS = "subsystems"
         TAG = "tag"
+        MODEL_NAME = "model_name"
         BASE_NAME = "rparticles_displayable"
         TIMINGS = "timings"
         TYPE = "type"
@@ -72,6 +73,8 @@ python early:
 
         AS = "as"
 
+        MODEL = "model"
+
         PROP_BLOCK = "block"
 
     redraw_asap_aliases = {
@@ -90,13 +93,20 @@ python early:
             _RenPKeywords.REDRAW: "None"
         }
 
+        if lexer.keyword(_RenPLexerKeywords.MODEL):
+            data[_RenPKeywords.MODEL_NAME] = lexer.string()
+
+            while not lexer.eol():
+                if lexer.match(':'):
+                    renpy.error("rparticles model show mode does not support redefining properties. Sub-block there is not allowed")
+                data.update(_renp_try_parse_show_data_component(lexer))
+            return data
+
         while not lexer.match(':'):
-            if lexer.keyword(_RenPLexerKeywords.AS):
-                data[_RenPKeywords.TAG] = lexer.image_name_component()
-            elif lexer.keyword(_RenPLexerKeywords.ONLAYER):
-                data[_RenPKeywords.LAYER] = lexer.simple_expression()
-            elif lexer.keyword(_RenPLexerKeywords.ZORDER):
-                data[_RenPKeywords.ZORDER] = lexer.simple_expression()
+            show_component = _renp_parse_show_data_component(lexer)
+
+            if show_component:
+                data.update(show_component)
             elif lexer.keyword(_RenPLexerKeywords.MULTIPLE):
                 data[_RenPKeywords.MULTIPLE] = True
             
@@ -105,7 +115,22 @@ python early:
 
         lexer.expect_eol()
         subblock = lexer.subblock_lexer()
+        _renp_parse_renparticles_system_subblock(subblock, data)
 
+        return data
+
+    def _renp_try_parse_show_data_component(lexer):
+        data = { }
+        if lexer.keyword(_RenPLexerKeywords.AS):
+            data[_RenPKeywords.TAG] = lexer.image_name_component()
+        elif lexer.keyword(_RenPLexerKeywords.ONLAYER):
+            data[_RenPKeywords.LAYER] = lexer.simple_expression()
+        elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+            data[_RenPKeywords.ZORDER] = lexer.simple_expression()
+
+        return data
+
+    def _renp_parse_renparticles_system_subblock(subblock, data):
         if data[_RenPKeywords.MULTIPLE]:
             while subblock.advance():
                 if subblock.keyword(_RenPKeywords.REDRAW):
@@ -247,7 +272,20 @@ python early:
         return block_data
 
     def renp_execute_fast_particles_show(data):
-        tag = data.get(_RenPKeywords.TAG)
+        is_model = _RenPKeywords.MODEL_NAME in data
+        if is_model:
+            model_name = data[_RenPKeywords.MODEL_NAME]
+            model_data = renparticles._fast_particles_models.get(model_name, None)
+            if model_data is None:
+                renpy.error("the rparticles model named '{}' does not exist\n"
+                            "Available static preset shortcuts: {}".format(model_name, renparticles._fast_particles_models.keys())
+                            )
+                return
+            
+            data = data.copy()
+            data.update(model_data)
+
+        tag = data.get(_RenPKeywords.TAG, None)
         layer = data[_RenPKeywords.LAYER]
         zorder = eval(data[_RenPKeywords.ZORDER])
         redraw = eval(data[_RenPKeywords.REDRAW])
@@ -568,6 +606,40 @@ python early:
         )
 
     renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block=_RenPKeywords.POSSIBLE)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    def renp_parse_fast_particles_define(lexer):
+        data = {
+            _RenPKeywords.MODEL_NAME: None, 
+            _RenPKeywords.MULTIPLE: False, 
+            _RenPKeywords.SUBSYSTEMS: [], 
+            _RenPKeywords.REDRAW: "None"
+        }
+
+        if lexer.keyword(_RenPLexerKeywords.MULTIPLE):
+            data[_RenPKeywords.MULTIPLE] = True
+
+        data[_RenPKeywords.MODEL_NAME] = lexer.string()
+
+        if not lexer.match(':'):
+            renpy.error("rparticles define: subblock required")
+
+        lexer.expect_eol()
+        subblock = lexer.subblock_lexer()
+        _renp_parse_renparticles_system_subblock(subblock, data)
+
+        return data
+
+    def renp_parse_fast_particles_define_execute_init(data):
+        model_name = data[_RenPKeywords.MODEL_NAME]
+
+        if model_name in renparticles._fast_particles_models:
+            renpy.error("rparticles model named '{}' already declared. Name your system differently".format(model_name))
+
+        renparticles._fast_particles_models[model_name] = data.copy()
+    
+    renpy.register_statement("rparticles define", renp_parse_fast_particles_define, None, execute_init=renp_parse_fast_particles_define_execute_init, block=_RenPKeywords.POSSIBLE)
 
 # -------------------------------------------------------------------------------------------------------------------------------
 

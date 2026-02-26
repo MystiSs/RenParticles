@@ -316,7 +316,7 @@ init -1337 python in renparticles:
                             if (behavior_func, props) not in new_on_particle_dead:
                                 new_on_particle_dead.append((behavior_func, props))
 
-                        self.particles_data.particles_properties.pop(particle, None)
+                    self.particles_data.particles_properties.pop(particle, None)
                 else:
                     live_children.append(particle)
                     #<Scheduled transforms>#
@@ -448,12 +448,19 @@ init -1337 python in renparticles:
         def render(self, width, height, st, at):
             main_render = renpy.Render(width, height)
 
+            #dbg_lines = []
             for system in self.systems:
+                #dbg_lines.append(str(len(system.particles_data.particles_properties)))
+
                 system_render = system.render(width, height, st, at)
                 main_render.subpixel_blit(system_render, (0, 0))
 
             if self.redraw is not None:
                 renpy.redraw(self, self.redraw)
+
+            # dbg = renpy.store.Text("\n".join(dbg_lines), size=32)
+
+            # main_render.place(dbg)
 
             return main_render
 

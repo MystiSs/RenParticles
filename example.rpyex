@@ -200,17 +200,54 @@ rparticles multiple as rparticles_test onlayer master zorder 1:
 -------------------------------------------------------------------------------------------------------------------------------
 
 rparticles as rparticles_test onlayer master zorder 1:
-        redraw asap
-        sprite expr Solid("#e78300", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
-        lifetime range random (1.5, 3.0)
+    redraw asap
+    sprite expr Solid("#e78300", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
+    lifetime range random (1.5, 3.0)
 
-        preset interval_spray:
-            interval 0.005
-            amount 50
+    preset interval_spray:
+        interval 0.005
+        amount 50
 
-        preset repulsor:
-            strength 32.0
+    preset repulsor:
+        strength 32.0
 
+    preset auto_expire
+
+    on update:
+        tween:
+            block "alpha":
+                time 0.5
+            block "zoom":
+                time 0.5
+                start_value 2.0
+                end_value 1.0
+
+    on particle dead:
+        emitter spray:
+            amount 1
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+rparticles multiple as rparticles_test onlayer master zorder 1:
+    redraw asap
+
+    system id "orbit":
+        sprite expr Solid("#e7a900", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
+
+        preset spray:
+            amount 1
+        preset orbit_mouse:
+            speed 10.0
+
+        on update:
+            interval_fragmentation_per_particle system "rain":
+                amount 1
+                interval 0.1
+    
+    system id "rain":
+        sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))
+        lifetime constant 1.0
+        
         preset auto_expire
 
         on update:
@@ -218,50 +255,59 @@ rparticles as rparticles_test onlayer master zorder 1:
                 block "alpha":
                     time 0.5
                 block "zoom":
-                    time 0.5
-                    start_value 2.0
-                    end_value 1.0
-
-        on particle dead:
-            emitter spray:
-                amount 1
+                    time 1.0
+                    start_value 1.0
+                    end_value 0.0
+                    warper "ease"
+            
+            move:
+                velocity [0.0, 0.0]
+                velocity_range [100.0, 5.0]
+                acceleration [0.0, 0.0]
+                acceleration_range [50.0, 50.0]
 
 -------------------------------------------------------------------------------------------------------------------------------
 
-rparticles multiple as rparticles_test onlayer master zorder 1:
-        redraw asap
+#<DEFINE>#
+rparticles define multiple "renparticles_test_model":
+    redraw asap
 
-        system id "orbit":
-            sprite expr Solid("#e7a900", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
+    system id "orbit":
+        sprite expr Solid("#e7a900", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
 
-            preset spray:
+        preset spray:
+            amount 3
+        preset orbit_mouse:
+            speed 10.0
+
+        on update:
+            interval_fragmentation_per_particle system "rain":
                 amount 1
-            preset orbit_mouse:
-                speed 10.0
-
-            on update:
-                interval_fragmentation_per_particle system "rain":
-                    amount 1
-                    interval 0.1
+                interval 0.1
+    
+    system id "rain":
+        sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))
+        lifetime constant 1.0
         
-        system id "rain":
-            sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))
-            lifetime constant 1.0
-            
-            preset auto_expire
+        preset auto_expire
 
-            on update:
-                tween:
-                    block "alpha":
-                        time 0.5
-                    block "zoom":
-                        time 1.0
-                        start_value 1.0
-                        end_value 0.0
-                        warper "ease"
-                
-                move:
-                    velocity [0.0, 0.0]
-                    velocity_range [100.0, 5.0]
-                    acceleration [0.0, 0.0]
-                    acceleration_range [50.0, 50.0]
+        on update:
+            tween:
+                block "alpha":
+                    time 0.5
+                block "zoom":
+                    time 1.0
+                    start_value 1.0
+                    end_value 0.0
+                    warper "ease"
+            
+            move:
+                velocity [0.0, 0.0]
+                velocity_range [100.0, 5.0]
+                acceleration [0.0, 0.0]
+                acceleration_range [50.0, 50.0]
+
+#IN LABEL#
+rparticles model "renparticles_test_model" as rparticles_test
+
+-------------------------------------------------------------------------------------------------------------------------------

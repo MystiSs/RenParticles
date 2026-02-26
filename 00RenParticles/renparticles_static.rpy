@@ -3,6 +3,7 @@ init -1337 python in renparticles:
 
 
     _fast_particles_entries = { }
+    _fast_particles_models = { }
 
     def add_shortcut(tag, behavior, is_emitter=False):
         if not issubclass(behavior, _Behavior):
