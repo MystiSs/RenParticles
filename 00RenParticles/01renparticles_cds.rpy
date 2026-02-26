@@ -33,12 +33,14 @@ python early:
         SHORTCUTS_BLOCK = "shortcuts_block"
 
         SYSTEM_ID = "system_id"
+        TARGET_SYSTEM = "renp_target_system"
 
         SPRITE = "sprite"
         IMAGES = "images"
 
         SUBSYSTEMS = "subsystems"
         TAG = "tag"
+        BASE_NAME = "rparticles_displayable"
         TIMINGS = "timings"
         TYPE = "type"
         ZORDER = "zorder"
@@ -64,6 +66,7 @@ python early:
         CONSTANT = "constant"
 
         SYSTEM = "system"
+        TARGET_SYSTEM = "system"
         SUBSYSTEM_ID = "id"
 
         AS = "as"
@@ -255,8 +258,11 @@ python early:
             displayable = _renp_eval_system(data)
 
         print(displayable.get_info())
+        
+        true_tag = tag or _RenPKeywords.BASE_NAME
+        renparticles._fast_particles_entries[true_tag] = displayable
 
-        renpy.show(tag, what=displayable, layer=layer, zorder=zorder)
+        renpy.show(name=_RenPKeywords.BASE_NAME, tag=tag, what=displayable, layer=layer, zorder=zorder)
 
     def _renp_eval_system(system):
         on_update = [ ]
@@ -410,14 +416,33 @@ python early:
 
         return data
 
-    def _renp_parse_custom_keyword(lexer, allow_oneshot=True, allow_properties=True, expect_eol=True):
+    def _renp_parse_custom_keyword(lexer, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
         func = lexer.simple_expression()
-        properties = {}
+        properties = { _RenPKeywords.ONESHOT: "False" }
 
-        if allow_oneshot:
-            properties[_RenPKeywords.ONESHOT] = "True" if lexer.keyword(_RenPKeywords.ONESHOT) else "False"
+        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False }
+        
+        was_delim = False
+        while not lexer.eol():
+            if allow_oneshot and lexer.keyword(_RenPKeywords.ONESHOT):
+                if seen[_RenPKeywords.ONESHOT]:
+                    lexer.error("only one 'oneshot' instruction allowed")
 
-        if allow_properties and lexer.match(':'):
+                properties[_RenPKeywords.ONESHOT] = "True"
+                seen[_RenPKeywords.ONESHOT] = True
+
+            elif allow_target_system and lexer.keyword(_RenPLexerKeywords.TARGET_SYSTEM):
+                if seen[_RenPLexerKeywords.TARGET_SYSTEM]:
+                    lexer.error("only one 'system' instruction allowed")
+
+                properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
+                seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
+
+            elif lexer.match(':'):
+                lexer.expect_eol()
+                was_delim = True
+
+        if allow_properties and was_delim:
             properties.update(_renp_parse_properties(lexer))
 
         if expect_eol:
@@ -425,14 +450,33 @@ python early:
         
         return {_RenPKeywords.FUNC: func, _RenPKeywords.PROPERTIES: properties, _RenPKeywords.TYPE: _RenParserType.Func}
 
-    def _renp_parse_shortcut(lexer, what_block=_RenPKeywords.BEHAVIORS, allow_oneshot=True, allow_properties=True, expect_eol=True):
+    def _renp_parse_shortcut(lexer, what_block=_RenPKeywords.BEHAVIORS, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
         shortcut = lexer.word()
-        properties = { }
+        properties = { _RenPKeywords.ONESHOT: "False" }
 
-        if allow_oneshot:
-            properties[_RenPKeywords.ONESHOT] = "True" if lexer.keyword(_RenPKeywords.ONESHOT) else "False"
+        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False }
 
-        if allow_properties and lexer.match(':'):
+        was_delim = False
+        while not lexer.eol():
+            if allow_oneshot and lexer.keyword(_RenPKeywords.ONESHOT):
+                if seen[_RenPKeywords.ONESHOT]:
+                    lexer.error("only one 'oneshot' instruction allowed")
+
+                properties[_RenPKeywords.ONESHOT] = "True"
+                seen[_RenPKeywords.ONESHOT] = True
+
+            elif allow_target_system and lexer.keyword(_RenPLexerKeywords.TARGET_SYSTEM):
+                if seen[_RenPLexerKeywords.TARGET_SYSTEM]:
+                    lexer.error("only one 'system' instruction allowed")
+
+                properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
+                seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
+
+            elif lexer.match(':'):
+                lexer.expect_eol()
+                was_delim = True
+
+        if allow_properties and was_delim:
             properties.update(_renp_parse_properties(lexer))
 
         if expect_eol:
@@ -504,3 +548,28 @@ python early:
         )
 
     renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block=_RenPKeywords.POSSIBLE)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    def renp_parse_fast_particles_reset(lexer):
+        data = { "tag": None }
+
+        if lexer.eol():
+            return data
+
+        data["tag"] = lexer.image_name_component()
+
+        lexer.expect_eol()
+
+        return data
+
+    def renp_execute_fast_particles_reset(data):
+        tag = data["tag"]
+
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if system is not None:
+            system.reset()
+    
+    renpy.register_statement("rparticles reset", renp_parse_fast_particles_reset, None, renp_execute_fast_particles_reset)
+
+# -------------------------------------------------------------------------------------------------------------------------------

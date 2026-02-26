@@ -14,19 +14,18 @@ label renp_test_chamber:
             sprite expr Solid("#e7a900", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
 
             preset spray:
-                amount 1
+                amount 3
             preset orbit_mouse:
                 speed 10.0
 
             on update:
-                interval_fragmentation_per_particle:
+                interval_fragmentation_per_particle system "rain":
                     amount 1
                     interval 0.1
-                    target_system "rain"
         
         system id "rain":
             sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))
-            lifetime constant 2.5
+            lifetime constant 1.0
             
             preset auto_expire
 
@@ -35,8 +34,9 @@ label renp_test_chamber:
                     block "alpha":
                         time 0.5
                     block "zoom":
-                        time 0.5
-                        start_value 1.5
+                        time 1.0
+                        start_value 1.0
+                        end_value 0.0
                         warper "ease"
                 
                 move:
@@ -46,6 +46,10 @@ label renp_test_chamber:
                     acceleration_range [50.0, 50.0]
     
     "Executed"
+
+    rparticles reset rparticles_test
+
+    "Reseted"
 
     hide rparticles_test with dissolve
 

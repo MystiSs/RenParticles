@@ -112,6 +112,10 @@ init -1337 python in renparticles:
             self.oneshotted_on_event = [ ]
             self.oneshotted_on_dead = [ ]
 
+            self.on_update_raw = on_update
+            self.on_event_raw = on_event
+            self.on_particle_dead_raw = on_particle_dead
+
             self._old_st = 0.0
             self._dtime = 0.0
 
@@ -208,6 +212,34 @@ init -1337 python in renparticles:
             else:
                 self.on_particle_dead = [(func, props) for func, props in on_particle_dead]
 
+        def _get_lifetime(self):
+            if self.particles_data is None or self.particles_data.lifetime_type is None or self.particles_data.lifetime_timings is None:
+                return 0.0
+
+            #renpy.error("{}\n{}\n{}".format(self.particles_data, self.particles_data.lifetime_type, self.particles_data.lifetime_timings))
+
+            lifetime_type = self.particles_data.lifetime_type
+            lifetime_timings = self.particles_data.lifetime_timings
+
+            if lifetime_type == "constant":
+                return lifetime_timings
+
+            return _lifetime_getters[lifetime_type](*lifetime_timings)
+
+        def reset(self):
+            particles_properties = self.particles_data.particles_properties
+            to_remove = [item for item in particles_properties.keys() if isinstance(item, RenSprite)]
+            for item in to_remove:
+                particles_properties.pop(item)
+
+            self.destroy_all()
+            self.particles_queue.clear()
+
+            self._set_on_update(self.on_update_raw)
+            self._set_on_update_emitters_from_update_list()
+            self._set_on_event(self.on_event_raw)
+            self._set_on_particle_dead(self.on_particle_dead_raw)
+
         def create(self, d):
             s = RenSprite()
             s.x = 0
@@ -223,20 +255,6 @@ init -1337 python in renparticles:
             self.particles_queue.append(s)
 
             return s
-
-        def _get_lifetime(self):
-            if self.particles_data is None or self.particles_data.lifetime_type is None or self.particles_data.lifetime_timings is None:
-                return 0.0
-
-            #renpy.error("{}\n{}\n{}".format(self.particles_data, self.particles_data.lifetime_type, self.particles_data.lifetime_timings))
-
-            lifetime_type = self.particles_data.lifetime_type
-            lifetime_timings = self.particles_data.lifetime_timings
-
-            if lifetime_type == "constant":
-                return lifetime_timings
-
-            return _lifetime_getters[lifetime_type](*lifetime_timings)
 
         def render(self, width, height, st, at):
             if self.animation:
@@ -407,6 +425,10 @@ init -1337 python in renparticles:
             systems_by_id = { system.system_id: system for system in self.systems if system.system_id }
             for system in self.systems:
                 system.set_systems_in_contexts(systems_by_id)
+
+        def reset(self):
+            for system in self.systems:
+                system.reset()
 
         def get_info(self):
             lines = [ ]

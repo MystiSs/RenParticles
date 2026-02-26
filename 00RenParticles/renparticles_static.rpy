@@ -2,7 +2,7 @@ init -1337 python in renparticles:
     from builtins import min, max
 
 
-    _fast_particles_cache = { }
+    _fast_particles_entries = { }
 
     def add_to_cache_fast_particles(particles):
         _fast_particles_cache[particles.image_tag] = particles

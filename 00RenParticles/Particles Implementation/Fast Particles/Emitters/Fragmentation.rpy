@@ -1,7 +1,6 @@
 init -1115 python in renparticles:
     class EmitterRemoteSpawn(Emitter):
             amount = _RequiredField()
-            target_system = None
 
             def __call__(self, context):
                 target_system = context.system
@@ -24,7 +23,6 @@ init -1115 python in renparticles:
     class EmitterIntervalRemoteSpawn(_Behavior):
             per_amount = 1
             interval = 0.0
-            target_system = None
 
             _RENP_INT_REM_EM = "_renp_int_rem_em"        
             _RENP_INT_REM_EM_COUNTER = 0
@@ -68,9 +66,7 @@ init -1115 python in renparticles:
                 if not can_spawn:
                     return UpdateState.Pass
 
-                target_system = context.system
-                if self.target_system is not None:
-                    target_system = context.systems.get(self.target_system, target_system)
+                target_system = self.get_system(context, self.renp_target_system)
 
                 spawn_x = particle.x if particle else 0
                 spawn_y = particle.y if particle else 0

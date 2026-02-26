@@ -43,18 +43,27 @@ init -2448 python in renparticles:
                 )
             return True
 
-    class _Behavior(_InjectPropertiesMixin, _CheckInitialisedMixin):
+    class _TryGetOtherSystemMixin:
+        renp_target_system = None
+
+        def get_system(self, context, id=None):
+            if id is None:
+                return context.system
+            return context.systems.get(id, None)
+
+    class _Behavior(_InjectPropertiesMixin, _CheckInitialisedMixin, _TryGetOtherSystemMixin):
         def __call__(self, context):
             raise NotImplementedError("_Behavior base class must be implemented")
 
-    class _UpdateBehavior(_InjectPropertiesMixin, _CheckInitialisedMixin):
+    class _UpdateBehavior(_Behavior):
         def __call__(self, context):
             raise NotImplementedError("_UpdateBehavior base class must be implemented")
 
-    class _EventBehavior(_InjectPropertiesMixin, _CheckInitialisedMixin):
+    class _EventBehavior(_Behavior):
         def __call__(self, context):
             raise NotImplementedError("_EventBehavior base class must be implemented")
 
-    class _OnDeadBehavior(_InjectPropertiesMixin, _CheckInitialisedMixin):
+    class _OnDeadBehavior(_Behavior):
         def __call__(self, context):
             raise NotImplementedError("_EventBehavior base class must be implemented")
+
