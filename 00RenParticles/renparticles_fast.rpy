@@ -94,8 +94,10 @@ init -1337 python in renparticles:
             self._base_image = None
     
     class RenParticlesFast(SpriteManager):
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, **properties):
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, **properties):
             super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
+            self.layer = layer
+
             self.particles_queue = [ ]
 
             self.animation = False
@@ -120,6 +122,8 @@ init -1337 python in renparticles:
             self._dtime = 0.0
 
             self.system_id = None
+
+            self._frozen = False
 
             self._init_contexts()
 
@@ -160,13 +164,6 @@ init -1337 python in renparticles:
             lines.append("=" * 40)
             return "\n".join(lines)
         
-        def _init_contexts(self):
-            self._update_ctx = RenpFContext()
-            self._update_ctx.system = self
-            self._update_emitters_ctx = UpdateEmitterContext(self._update_ctx)
-            self._event_ctx = EventContext(self._update_ctx)
-            self._particle_dead_ctx = ParticleDeadContext(self._update_ctx)
-
         def set_systems_in_contexts(self, subsystems_by_id):
             if not subsystems_by_id:
                 return
@@ -174,6 +171,13 @@ init -1337 python in renparticles:
             self._update_emitters_ctx.depends_on(self._update_ctx)
             self._event_ctx.depends_on(self._update_ctx)
             self._particle_dead_ctx.depends_on(self._update_ctx)
+
+        def _init_contexts(self):
+            self._update_ctx = RenpFContext()
+            self._update_ctx.system = self
+            self._update_emitters_ctx = UpdateEmitterContext(self._update_ctx)
+            self._event_ctx = EventContext(self._update_ctx)
+            self._particle_dead_ctx = ParticleDeadContext(self._update_ctx)
 
         def _set_on_update(self, on_update):
             if on_update is None:
@@ -240,6 +244,14 @@ init -1337 python in renparticles:
             self._set_on_event(self.on_event_raw)
             self._set_on_particle_dead(self.on_particle_dead_raw)
 
+        def freeze(self):
+            self._frozen = True
+
+        def unfreeze(self, redraw=True):
+            self._frozen = False
+            if redraw:
+                renpy.redraw(self, 0.0)
+
         def create(self, d):
             s = RenSprite()
             s.x = 0
@@ -276,7 +288,7 @@ init -1337 python in renparticles:
             self._particle_dead_ctx.st = st
             self._particle_dead_ctx.delta = self._dtime
 
-            if self.on_update_emitters:
+            if self.on_update_emitters and not self._frozen:
                 new_update_emitters = []
                 self._update_emitters_ctx.delta = self._dtime
                 for emitter_func, props in self.on_update_emitters:
@@ -294,42 +306,43 @@ init -1337 python in renparticles:
 
             live_children = []
 
-            for particle in self.children:
-                self._update_ctx.particle = particle
-                self._particle_dead_ctx.particle = particle
+            if not self._frozen:
+                for particle in self.children:
+                    self._update_ctx.particle = particle
+                    self._particle_dead_ctx.particle = particle
 
-                #<On update part>#
-                for update_func, props in new_on_update:
-                    return_value = update_func(self._update_ctx)
-                    if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                        if (update_func, props) not in oneshotted_update:
-                            oneshotted_update.append((update_func, props))
-
-                #<On some particle dead part>#
-                if self.dead_child and not particle.live:
-                    for behavior_func, props in self.on_particle_dead:
-                        return_value = behavior_func(self._particle_dead_ctx)
+                    #<On update part>#
+                    for update_func, props in new_on_update:
+                        return_value = update_func(self._update_ctx)
                         if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                            if (behavior_func, props) not in oneshotted_dead:
-                                oneshotted_dead.append((behavior_func, props))
-                        else:
-                            if (behavior_func, props) not in new_on_particle_dead:
-                                new_on_particle_dead.append((behavior_func, props))
+                            if (update_func, props) not in oneshotted_update:
+                                oneshotted_update.append((update_func, props))
 
-                    self.particles_data.particles_properties.pop(particle, None)
-                else:
-                    live_children.append(particle)
-                    #<Scheduled transforms>#
-                    particle.apply_transforms()
+                    #<On some particle dead part>#
+                    if self.dead_child and not particle.live:
+                        for behavior_func, props in self.on_particle_dead:
+                            return_value = behavior_func(self._particle_dead_ctx)
+                            if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                                if (behavior_func, props) not in oneshotted_dead:
+                                    oneshotted_dead.append((behavior_func, props))
+                            else:
+                                if (behavior_func, props) not in new_on_particle_dead:
+                                    new_on_particle_dead.append((behavior_func, props))
 
-            self.on_update = [item for item in new_on_update if item not in oneshotted_update]
-            self.oneshotted_on_update.extend(oneshotted_update)
+                        self.particles_data.particles_properties.pop(particle, None)
+                    else:
+                        live_children.append(particle)
+                        #<Scheduled transforms>#
+                        particle.apply_transforms()
 
-            if self.dead_child:
-                self.children = live_children
-                self.on_particle_dead = new_on_particle_dead
-                self.oneshotted_on_dead.extend(oneshotted_dead)
-                self.dead_child = False
+                self.on_update = [item for item in new_on_update if item not in oneshotted_update]
+                self.oneshotted_on_update.extend(oneshotted_update)
+
+                if self.dead_child:
+                    self.children = live_children
+                    self.on_particle_dead = new_on_particle_dead
+                    self.oneshotted_on_dead.extend(oneshotted_dead)
+                    self.dead_child = False
 
             if self.redraw is not None:
                 renpy.display.render.redraw(self, self.redraw)
@@ -413,22 +426,51 @@ init -1337 python in renparticles:
                 self.oneshotted_on_event.extend(oneshotted)
     
     class RenParticleFastGroup(renpy.Displayable):
-        def __init__(self, systems=None, redraw=None, **properties):
+        def __init__(self, systems=None, redraw=None, layer=None, **properties):
             super(RenParticleFastGroup, self).__init__(**properties)
+
+            self.layer = layer
 
             self.redraw = redraw
             self.systems = systems or [ ]
+            self.systems_by_id = self._create_systems_by_id_map()
 
             self._link_systems_in_contexts()
 
+        def _create_systems_by_id_map(self):
+            return { system.system_id: system for system in self.systems if system.system_id }
+
         def _link_systems_in_contexts(self):
-            systems_by_id = { system.system_id: system for system in self.systems if system.system_id }
             for system in self.systems:
-                system.set_systems_in_contexts(systems_by_id)
+                system.set_systems_in_contexts(self.systems_by_id)
 
         def reset(self):
             for system in self.systems:
                 system.reset()
+
+        def freeze(self):
+            for system in self.systems:
+                system.freeze()
+
+        def unfreeze(self, redraw=True):
+            for system in self.systems:
+                system.unfreeze(False)
+
+            if redraw:
+                renpy.redraw(self, 0.0)
+
+        def freeze_one(self, id):
+            system = self.systems_by_id.get(id, None)
+            if system:
+                system.freeze()
+
+        def unfreeze_one(self, id, redraw=True):
+            system = self.systems_by_id.get(id, None)
+            if system:
+                system.unfreeze(False)
+                
+            if redraw:
+                renpy.redraw(self, 0.0)
 
         def get_info(self):
             lines = [ ]

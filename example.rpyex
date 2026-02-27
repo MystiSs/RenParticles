@@ -311,3 +311,43 @@ rparticles define multiple "renparticles_test_model":
 rparticles model "renparticles_test_model" as rparticles_test
 
 -------------------------------------------------------------------------------------------------------------------------------
+
+"RenParticles"
+
+rparticles model "renparticles_test_model" as rparticles_test
+
+"Executed"
+
+rparticles reset "rparticles_test"
+
+"Reseted"
+
+rparticles freeze "rparticles_test"
+
+"frozen"
+
+rparticles unfreeze "rparticles_test"
+
+"unfreeze"
+
+rparticles freeze "rparticles_test"."orbit"
+
+"frozen.orbit subsystem"
+
+rparticles unfreeze "rparticles_test"."orbit" noredraw
+
+"unfreeze.orbit subsystem no redraw"
+
+rparticles freeze "rparticles_test"."rain"
+
+"frozen.rain subsystem"
+
+rparticles unfreeze "rparticles_test"."rain" noredraw
+
+"unfreeze.rain subsystem no redraw"
+
+hide rparticles_test with dissolve
+
+"Hided"
+
+-------------------------------------------------------------------------------------------------------------------------------

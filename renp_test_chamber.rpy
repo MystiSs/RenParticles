@@ -50,12 +50,20 @@ label renp_test_chamber:
     
     "Executed"
 
-    rparticles reset rparticles_test
+    rparticles reset "rparticles_test"
 
     "Reseted"
 
     hide rparticles_test with dissolve
 
     "Hided"
+
+    rparticles continue "rparticles_test" zorder 1 onlayer master
+
+    "Continued"
+
+    rparticles clear cache deep
+
+    "Cache cleared deep mode"
 
     $ renpy.pause(hard=True)

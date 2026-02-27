@@ -77,6 +77,9 @@ python early:
 
         PROP_BLOCK = "block"
 
+        NOREDRAW = "noredraw"
+        DEEP = "deep"
+
     redraw_asap_aliases = {
         "asap",
         "fastest",
@@ -292,7 +295,7 @@ python early:
 
         if data[_RenPKeywords.MULTIPLE]:
             subsystems = [_renp_eval_system(system) for system in data[_RenPKeywords.SUBSYSTEMS]]
-            displayable = renparticles.RenParticleFastGroup(subsystems, redraw)
+            displayable = renparticles.RenParticleFastGroup(subsystems, redraw, layer)
         else:
             displayable = _renp_eval_system(data)
 
@@ -329,7 +332,14 @@ python early:
             lifetime_timings = eval(system[_RenPKeywords.LIFETIME][_RenPKeywords.TIMINGS])
 
         particles_data = renparticles.ParticlesData(images=images, tag=system.get(_RenPKeywords.TAG, None), lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
-        system_instance = renparticles.RenParticlesFast(on_update, on_event, on_particle_dead, particles_data, eval(system.get(_RenPKeywords.REDRAW, "None")), eval(system.get(_RenPKeywords.CACHE, "False")))
+        system_instance = renparticles.RenParticlesFast(on_update,
+                                                        on_event,
+                                                        on_particle_dead,
+                                                        particles_data,
+                                                        eval(system.get(_RenPKeywords.CACHE, "False")),
+                                                        eval(system.get(_RenPKeywords.REDRAW, "None")),
+                                                        system.get(_RenPKeywords.LAYER, None)
+                                                        )
         system_instance.system_id = system.get(_RenPKeywords.SYSTEM_ID, None)
 
         return system_instance
@@ -644,24 +654,192 @@ python early:
 # -------------------------------------------------------------------------------------------------------------------------------
 
     def renp_parse_fast_particles_reset(lexer):
-        data = { "tag": None }
+        data = { _RenPKeywords.TAG: None }
 
         if lexer.eol():
             return data
 
-        data["tag"] = lexer.image_name_component()
+        data[_RenPKeywords.TAG] = lexer.string()
 
         lexer.expect_eol()
 
         return data
 
     def renp_execute_fast_particles_reset(data):
-        tag = data["tag"]
+        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
 
         system = renparticles._fast_particles_entries.get(tag, None)
         if system is not None:
             system.reset()
     
     renpy.register_statement("rparticles reset", renp_parse_fast_particles_reset, None, renp_execute_fast_particles_reset)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    # rparticles freeze ["particles_tag"[."subsystem"]]
+
+    def renp_parse_fast_particles_freeze(lexer):
+        data = { _RenPKeywords.TAG: None, _RenPKeywords.SYSTEM_ID: None }
+
+        if lexer.eol():
+            return data
+
+        data[_RenPKeywords.TAG] = lexer.string()
+        if lexer.match('.'):
+            data[_RenPKeywords.SYSTEM_ID] = lexer.string()
+
+        lexer.expect_eol()
+
+        return data
+
+    def renp_execute_fast_particles_freeze(data):
+        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
+        system_id = data.get(_RenPKeywords.SYSTEM_ID)
+        
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if not system:
+            return
+        
+        if system_id:
+            if isinstance(system, renparticles.RenParticleFastGroup):
+                system.freeze_one(system_id)
+            return
+        
+        system.freeze()
+
+    renpy.register_statement("rparticles freeze", renp_parse_fast_particles_freeze, None, renp_execute_fast_particles_freeze)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    # rparticles unfreeze ["particles_tag"[."subsystem"]] [noredraw]
+
+    def renp_parse_fast_particles_unfreeze(lexer):
+        data = { _RenPKeywords.TAG: None, _RenPKeywords.SYSTEM_ID: None, _RenPKeywords.REDRAW: True }
+
+        if lexer.eol():
+            return data
+
+        #<da fuq?>#
+        checkpoint = lexer.checkpoint()
+        if lexer.keyword( _RenPLexerKeywords.NOREDRAW):
+            data[_RenPKeywords.REDRAW] = False
+            lexer.expect_eol()
+            return data
+        lexer.revert(checkpoint)
+
+        data[_RenPKeywords.TAG] = lexer.string()
+        
+        if lexer.match('.'):
+            data[_RenPKeywords.SYSTEM_ID] = lexer.string()
+        
+        if lexer.keyword(_RenPLexerKeywords.NOREDRAW):
+            data[_RenPKeywords.REDRAW] = False
+
+        lexer.expect_eol()
+
+        return data
+
+    def renp_execute_fast_particles_unfreeze(data):
+        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
+        system_id = data.get(_RenPKeywords.SYSTEM_ID)
+        redraw = data[_RenPKeywords.REDRAW]
+        
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if not system:
+            return
+        
+        if system_id:
+            if isinstance(system, renparticles.RenParticleFastGroup):
+                system.unfreeze_one(system_id, redraw)
+            return
+            
+        system.unfreeze(redraw)
+
+    renpy.register_statement("rparticles unfreeze", renp_parse_fast_particles_unfreeze, None, renp_execute_fast_particles_unfreeze)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    def renp_parse_fast_particles_clear_cache(lexer):
+        data = {
+            _RenPLexerKeywords.DEEP: lexer.keyword(_RenPLexerKeywords.DEEP) is not None
+        }
+
+        lexer.expect_eol()
+        return data
+
+    def renp_execute_fast_particles_clear_cache(data):
+        deep = data.get(_RenPLexerKeywords.DEEP, False)
+        
+        if deep:
+            for tag, system in renparticles._fast_particles_entries.items():
+                renpy.hide(tag, layer=system.layer)
+            renparticles._fast_particles_entries.clear()
+        else:
+            for tag, system in list(renparticles._fast_particles_entries.items()):
+                if not renpy.showing(tag, layer=system.layer):
+                    renpy.hide(tag, layer=system.layer)
+                    renparticles._fast_particles_entries.pop(tag, None)
+
+    renpy.register_statement("rparticles clear cache", renp_parse_fast_particles_clear_cache, None, renp_execute_fast_particles_clear_cache)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    def renp_parse_fast_particles_continue(lexer):
+        data = {_RenPKeywords.TAG: None,
+                _RenPKeywords.LAYER: None, 
+                _RenPKeywords.ZORDER: "0",
+                }
+
+        if lexer.eol():
+            return data
+
+        #<da fuq?>#
+        checkpoint = lexer.checkpoint()
+        was_show_component_keyword = False
+
+        if lexer.keyword(_RenPLexerKeywords.ONLAYER):
+            data[_RenPKeywords.LAYER] = lexer.simple_expression()
+            was_show_component_keyword = True
+        elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+            data[_RenPKeywords.ZORDER] = lexer.integer()
+            was_show_component_keyword = True
+        
+        if was_show_component_keyword:
+            while not lexer.eol():
+                if lexer.keyword(_RenPLexerKeywords.ONLAYER):
+                    data[_RenPKeywords.LAYER] = lexer.simple_expression()
+                elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+                    data[_RenPKeywords.ZORDER] = lexer.integer()
+                else:
+                    renpy.error("unknown show component\ngot: {}".format(lexer.rest()))
+            
+            return data
+            
+        lexer.revert(checkpoint)
+
+        data[_RenPKeywords.TAG] = lexer.string()
+
+        #<Пошло оно всё в пизду.>#
+        while not lexer.eol():
+            if lexer.keyword(_RenPLexerKeywords.ONLAYER):
+                data[_RenPKeywords.LAYER] = lexer.simple_expression()
+            elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+                data[_RenPKeywords.ZORDER] = lexer.require(lexer.integer, "integer expected")
+
+        lexer.expect_eol()
+
+        return data
+
+    def renp_execute_fast_particles_continue(data):
+        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
+
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if system is not None:
+            layer = data[_RenPKeywords.LAYER] or system.layer
+            system.layer = layer
+            zorder = eval(data[_RenPKeywords.ZORDER])
+            renpy.show(_RenPKeywords.BASE_NAME, what=system, layer=layer, tag=tag, zorder=zorder)
+
+    renpy.register_statement("rparticles continue", renp_parse_fast_particles_continue, None, renp_execute_fast_particles_continue)
 
 # -------------------------------------------------------------------------------------------------------------------------------
