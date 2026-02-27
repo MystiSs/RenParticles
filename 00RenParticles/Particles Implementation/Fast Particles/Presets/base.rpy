@@ -12,10 +12,10 @@ init -1226 python in renparticles:
             self.behaviors = self.behaviors.copy()
 
         def get_one(self):
-            return next((block for block in self.behaviors.values() if block is not None), None)
+            return next((block for block in self.behaviors.values() if block), None)
 
         def is_one_block(self):
-            return sum(1 for block in self.behaviors.values() if block is not None) == 1
+            return sum(1 for block in self.behaviors.values() if block) == 1
 
         def instanciate_behaviors(self):
             for key, behaviors in self.behaviors.items():
@@ -32,3 +32,6 @@ init -1226 python in renparticles:
             self.instanciate_behaviors()
             self.distribute_properties()
             return self.behaviors.copy()
+
+    class _RFDynamicBehaviorPreset(_RFBehaviorPreset):
+        pass

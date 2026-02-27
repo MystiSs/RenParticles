@@ -32,6 +32,11 @@ python early:
         SHORTCUT = "shortcut"
         SHORTCUTS_BLOCK = "shortcuts_block"
         GENERAL_SHORTCUTS = "general"
+        INNER_SHORTCUTS = "inner"
+
+        PRESET_NAME = "preset_name"
+        PRESET_TYPE = "preset_type"
+        PRESET_DEFINE_DATA = "preset_define_data"
 
         SYSTEM_ID = "system_id"
         TARGET_SYSTEM = "renp_target_system"
@@ -58,6 +63,8 @@ python early:
         ON_UPDATE = "on update"
         ON_EVENT = "on event"
         ON_PARTICLE_DEAD = "on particle dead"
+
+        PRESET_TYPE = "type"
 
         EMITTER = "emitter"
 
@@ -366,7 +373,12 @@ python early:
                 behavior = _renp_try_get_shortcut_behavior(shortcuts_block, shortcut)
 
             elif content[_RenPKeywords.TYPE] == _RenParserType.InnerPreset:
-                behavior = _renp_try_get_preset_behavior(_RenPKeywords.GENERAL_SHORTCUTS, preset[_RenPKeywords.SHORTCUT])
+                behavior = _renp_try_get_preset_behavior(_RenPKeywords.INNER_SHORTCUTS, content[_RenPKeywords.SHORTCUT])
+                if isinstance(behavior, renparticles._RFDynamicBehaviorPreset):
+                    if not behavior.is_one_block():
+                        _renp_inner_preset_multiple_blocks_error(behavior)
+                    on_block.extend(_renp_eval_on_block(behavior.get_one()))
+                    continue
 
             behavior = behavior()
             props = _renp_eval_props(content[_RenPKeywords.PROPERTIES])
@@ -398,20 +410,25 @@ python early:
     def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
         for preset in presets:
             preset_behavior = _renp_try_get_preset_behavior(_RenPKeywords.GENERAL_SHORTCUTS, preset[_RenPKeywords.SHORTCUT])
-            
-            preset_behavior = preset_behavior()
-            props = _renp_eval_props(preset[_RenPKeywords.PROPERTIES])
-            preset_behavior.inject_properties(**props)
-            behaviors = preset_behavior.build()
-            on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_UPDATE]])
-            on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_EVENT]])
-            on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_PARTICLE_DEAD]])
+
+            if isinstance(preset_behavior, renparticles._RFDynamicBehaviorPreset):
+                on_update.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_UPDATE]))
+                on_event.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_EVENT]))
+                on_particle_dead.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_PARTICLE_DEAD]))
+            else:
+                preset_behavior = preset_behavior()
+                props = _renp_eval_props(preset[_RenPKeywords.PROPERTIES])
+                preset_behavior.inject_properties(**props)
+                behaviors = preset_behavior.build()
+                on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_UPDATE]])
+                on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_EVENT]])
+                on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_PARTICLE_DEAD]])
 
     def _renp_try_get_preset_behavior(preset_block, shortcut):
             preset_behavior = renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
             
             if preset_behavior is None:
-                preset_behavior = renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS, {}][preset_block].get(shortcut, None)
+                preset_behavior = renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
                 
             if preset_behavior is None:
                 _renp_preset_error(preset_block, shortcut)
@@ -606,12 +623,12 @@ python early:
     def _renp_inner_preset_multiple_blocks_error(preset_behavior):
         renpy.error(
             "Preset '{}' must have exactly one active block. "
-            "Current blocks: on_update={}, on_event={}, on_particle_dead={}. "
+            "Current blocks: on_update={}\non_event={}\non_particle_dead={}. "
             "Expected: exactly one block to be active (not None).".format(
                 preset_behavior.__class__.__name__,
-                preset_behavior.behaviors.get(_RenPKeywords.ON_UPDATE) is not None,
-                preset_behavior.behaviors.get(_RenPKeywords.ON_EVENT) is not None,
-                preset_behavior.behaviors.get(_RenPKeywords.ON_PARTICLE_DEAD) is not None
+                preset_behavior.behaviors.get(_RenPKeywords.ON_UPDATE),
+                preset_behavior.behaviors.get(_RenPKeywords.ON_EVENT),
+                preset_behavior.behaviors.get(_RenPKeywords.ON_PARTICLE_DEAD)
             )
         )
 
@@ -653,6 +670,72 @@ python early:
 
 # -------------------------------------------------------------------------------------------------------------------------------
 
+    def renp_parse_fast_particles_define_preset(lexer):
+        data = {
+            _RenPKeywords.PRESET_NAME: None,
+            _RenPKeywords.PRESET_TYPE: "general",
+            _RenPKeywords.PRESET_DEFINE_DATA: { }
+        }
+
+        data[_RenPKeywords.PRESET_NAME] = lexer.word()
+
+        if lexer.keyword(_RenPLexerKeywords.PRESET_TYPE):
+            data[_RenPKeywords.PRESET_TYPE] = lexer.word()
+        
+        lexer.require(':')
+        lexer.expect_eol()
+        _renp_parse_fast_particles_preset_block(lexer.subblock_lexer(), data[_RenPKeywords.PRESET_DEFINE_DATA])
+
+        return data
+
+    def _renp_parse_fast_particles_preset_block(subblock, data):
+        seen = {
+                _RenPKeywords.ON_UPDATE: False, 
+                _RenPKeywords.ON_EVENT: False, 
+                _RenPKeywords.ON_PARTICLE_DEAD: False
+            }
+
+        while subblock.advance():
+            if subblock.match(_RenPLexerKeywords.ON_UPDATE):
+                if seen[_RenPKeywords.ON_UPDATE]: 
+                    subblock.error("only one 'on update' block allowed")
+                data[_RenPKeywords.ON_UPDATE] = _renp_parse_on_block(subblock)
+                seen[_RenPKeywords.ON_UPDATE] = True
+
+            elif subblock.match(_RenPLexerKeywords.ON_EVENT):
+                if seen[_RenPKeywords.ON_EVENT]: 
+                    subblock.error("only one 'on event' block allowed")
+                data[_RenPKeywords.ON_EVENT] = _renp_parse_on_block(subblock)
+                seen[_RenPKeywords.ON_EVENT] = True
+
+            elif subblock.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
+                if seen[_RenPKeywords.ON_PARTICLE_DEAD]: 
+                    subblock.error("only one 'on particle dead' block allowed")
+                data[_RenPKeywords.ON_PARTICLE_DEAD] = _renp_parse_on_block(subblock)
+                seen[_RenPKeywords.ON_PARTICLE_DEAD] = True
+            
+            elif subblock.keyword(_RenPLexerKeywords.PRESET):
+                renpy.error("recursive presets are not allowed")
+                #data[_RenPKeywords.PRESETS].append(_renp_parse_preset(subblock))
+            
+            else:
+                return False
+            
+            subblock.expect_eol()
+        return True
+
+    def renp_execute_fast_particles_define_preset(data):
+        preset_prefab = renparticles._RFDynamicBehaviorPreset()
+        preset_prefab.behaviors[_RenPKeywords.ON_UPDATE] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_UPDATE, {})
+        preset_prefab.behaviors[_RenPKeywords.ON_EVENT] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_EVENT, {})
+        preset_prefab.behaviors[_RenPKeywords.ON_PARTICLE_DEAD] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_PARTICLE_DEAD, {})
+
+        renparticles.add_preset(data[_RenPKeywords.PRESET_NAME], preset_prefab, data[_RenPKeywords.PRESET_TYPE])
+        
+    renpy.register_statement("rparticles define preset", renp_parse_fast_particles_define_preset, None, execute_init=renp_execute_fast_particles_define_preset, block=_RenPKeywords.POSSIBLE)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
     def renp_parse_fast_particles_reset(lexer):
         data = { _RenPKeywords.TAG: None }
 
@@ -664,14 +747,14 @@ python early:
         lexer.expect_eol()
 
         return data
-
+ 
     def renp_execute_fast_particles_reset(data):
         tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
 
         system = renparticles._fast_particles_entries.get(tag, None)
         if system is not None:
             system.reset()
-    
+
     renpy.register_statement("rparticles reset", renp_parse_fast_particles_reset, None, renp_execute_fast_particles_reset)
 
 # -------------------------------------------------------------------------------------------------------------------------------

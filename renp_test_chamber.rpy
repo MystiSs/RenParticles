@@ -1,4 +1,21 @@
 init 100:
+    rparticles define preset dynamic_preset_test type general:
+        on update:
+            tween:
+                block "alpha":
+                    time 0.5
+                block "zoom":
+                    time 1.0
+                    start_value 1.0
+                    end_value 0.0
+                    warper "ease"
+            
+            move:
+                velocity [0.0, 0.0]
+                velocity_range [100.0, 5.0]
+                acceleration [0.0, 0.0]
+                acceleration_range [50.0, 50.0]
+
     rparticles define multiple "renparticles_test_model":
         redraw asap
 
@@ -21,21 +38,7 @@ init 100:
             
             preset auto_expire
 
-            on update:
-                tween:
-                    block "alpha":
-                        time 0.5
-                    block "zoom":
-                        time 1.0
-                        start_value 1.0
-                        end_value 0.0
-                        warper "ease"
-                
-                move:
-                    velocity [0.0, 0.0]
-                    velocity_range [100.0, 5.0]
-                    acceleration [0.0, 0.0]
-                    acceleration_range [50.0, 50.0]
+            preset dynamic_preset_test
 
 label renp_test_chamber:
     $ st_chmbr_test = False

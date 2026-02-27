@@ -30,7 +30,7 @@ init -1337 python in renparticles:
         dynamic_shortcuts[emitter_or_behavior][tag] = behavior
 
     def add_preset(tag, preset_behavior, preset_type="general"):
-        if not issubclass(preset_behavior, _RFBehaviorPreset):
+        if not isinstance(preset_behavior, _RFDynamicBehaviorPreset):
             error_msg = (
                 "TypeError in add_preset(): Expected subclass of _RFBehaviorPreset, "
                 "got {} instead. Tag: '{}', preset_type: '{}'"
