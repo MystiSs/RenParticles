@@ -825,6 +825,8 @@ python early:
                 data[_RenPKeywords.LAYER] = lexer.simple_expression()
             elif lexer.keyword(_RenPLexerKeywords.ZORDER):
                 data[_RenPKeywords.ZORDER] = lexer.require(lexer.integer, "integer expected")
+            else:
+                    renpy.error("unknown show component\ngot: {}".format(lexer.rest()))
 
         lexer.expect_eol()
 
