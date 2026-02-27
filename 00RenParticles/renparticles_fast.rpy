@@ -272,7 +272,7 @@ init -1337 python in renparticles:
             if self.animation:
                 st = at
 
-            if self.particles_queue:
+            if not self._frozen and self.particles_queue:
                 self.children.extend(self.particles_queue)
                 self.particles_queue = []
                 renpy.redraw(self, 0.0)
