@@ -62,7 +62,7 @@ Detailed manuals are available in the [docs](docs/) folder:
 # Quick Start (DSL Example)
 
 ```renpy
-rparticles show magic_circles:
+rparticles as magic_circles:
     on update:
        # Define how particles are spawned
        emitter spray:
@@ -163,9 +163,9 @@ The `RenSprite` class extends the standard Ren'Py `Sprite` with additional field
 
 You can create multiple systems in one and create inter-system interaction.
 
-```python
+```renpy
 # Create a group of systems
-rparticles show fire_effect multiple:
+rparticles as fire_effect multiple:
     system "smoke":
         # ... smoke config
     system "flames":
