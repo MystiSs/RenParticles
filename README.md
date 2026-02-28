@@ -111,7 +111,7 @@ init python:
 
 ### 3. The Smol Tweening Engine `-_-`
 
-The `tween` handler is a powerful tool for animating particle properties (alpha, zoom, rotate, etc.).
+The `tween` handler is a tool for animating particle properties (alpha, zoom, rotate, etc.).
 
 **Technical Features:**
 
