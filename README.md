@@ -105,12 +105,13 @@ The `tween` handler is a powerful tool for animating particle properties (alpha,
 
 ### 4. RenSprite Properties
 
-The `RenSprite` class extends the standard Ren'Py Sprite with additional fields:
+The `RenSprite` class extends the standard Ren'Py `Sprite` with additional fields:
 
 * `x, y`: Position.
 * `zorder`: Rendering order.
 * `live`: Boolean flag (if False, the particle is destroyed).
 * `lifetime`: Current remaining time.
+* `lifetime_max`: It is taken when creating a particle from `self.lifetime`.
 * `queue_transform(**kwargs)`: Queues a visual change for the next frame.
 
 ### 5. Multi-System Management
@@ -131,7 +132,7 @@ rparticles show fire_effect multiple:
 
 ## Performance Tips
 
-* **Use Lazy Rendering in your own transorm behaviors**: Avoid direct manipulation of `Transform` objects. Use `particle.queue_transform()` or `particle.queue_transform_additive()` instead.
+* **Use Lazy Rendering in your own transform behaviors**: Avoid direct manipulation of `Transform` objects. Use `particle.queue_transform()` or `particle.queue_transform_additive()` instead.
 
 ## License
 
