@@ -1,2 +1,2 @@
-Спрайты рисуются со смещением "размер_спрайта / 2"
-Однако это смещение происходит уже после всех обработчиков. Возможно стоит сделать по другому.
+Sprites are drawn with an offset of "sprite_size / 2"
+However, this offset occurs after all the handlers. Maybe it should be done differently.
