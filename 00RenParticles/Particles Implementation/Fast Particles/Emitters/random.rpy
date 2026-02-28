@@ -17,17 +17,17 @@ init -1115 python in renparticles:
 
             for i in range(self.amount):
                 sprite = system.create(random.choice(images))
-                sprite.x = random.randint(self.area[0], self.area[2])
-                sprite.y = random.randint(self.area[1], self.area[3])
+                sprite.x = random.randint(0, self.area[2]) + self.area[0]
+                sprite.y = random.randint(0, self.area[3]) + self.area[1]
             
             return UpdateState.Pass
 
-    #<_Behavior чтобы эмиттер получал частицу даже в блоке 'on update'>#
-    class IntervalSprayEmitter(_Behavior):
-        amount = _RequiredField()
+    class IntervalSprayEmitter(Emitter):
+        amount = "infinite"
         interval = 0.0
         per_amount = 1
         kill_on_finish = True
+        infinite = False
 
         area = (0, 0, config.screen_width, config.screen_height)
 
@@ -36,6 +36,11 @@ init -1115 python in renparticles:
             self.current_time = 0.0
 
         def __call__(self, context):
+            if self.amount == "infinite":
+                #<Questions?>#
+                self.remaining = 4294967295
+                self.amount = -1
+
             if self.remaining is None:
                 self.remaining = self.amount
 
@@ -52,8 +57,8 @@ init -1115 python in renparticles:
 
                 for i in range(amount_to_create):
                     sprite = system.create(random.choice(images))
-                    sprite.x = random.randint(self.area[0], self.area[2])
-                    sprite.y = random.randint(self.area[1], self.area[3])
+                    sprite.x = random.randint(0, self.area[2]) + self.area[0]
+                    sprite.y = random.randint(0, self.area[3]) + self.area[1]
                 
                 self.remaining -= amount_to_create
             
@@ -86,7 +91,7 @@ init -1115 python in renparticles:
 
         m_oneshot = False
 
-        amount = _RequiredField()
+        amount = "infinite"
         interval = 0.0
         per_amount = 1
         kill_on_finish = True

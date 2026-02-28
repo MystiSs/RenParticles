@@ -3,7 +3,6 @@
 # Licensed under the MIT License.
 
 init -1115 python in renparticles:
-    import weakref
     import random
 
 
@@ -82,7 +81,7 @@ init -1115 python in renparticles:
             particle = context.particle
             delta = context.delta
 
-            particle_data = particles_props.setdefault(particle, {})
+            particle_data = context.system.particles_data.particles_properties.setdefault(particle, {})
             if self._RENP_VEL not in particle_data:
                 particle_data[self._RENP_VEL] = self._get_velocity()
             velocity = particle_data[self._RENP_VEL]

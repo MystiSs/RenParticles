@@ -67,6 +67,9 @@ init -1337 python in renparticles:
         def __init__(self):
             self.queued_transforms = {}
 
+        def get_transform_from_queue(self, property_key):
+            return self.queued_transforms.get(property_key, None)
+
         def queue_transform(self, **properties):
             self.queued_transforms.update(properties)
 

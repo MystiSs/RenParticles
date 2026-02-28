@@ -14,15 +14,17 @@
     * [on event](#on-event)
     * [on particle dead](#on-particle-dead)
 * [Emitters](#emitters)
-    * [Handler: spray](#handler-spray)
-    * [Handler: interval_spray](#handler-interval_spray)
-* [Handler: fragmentation (interval_fragmentation_per_particle)](#handler-fragmentation-interval_fragmentation_per_particle)
+    * [Emitter: spray](#handler-spray)
+    * [Emitter: interval_spray](#handler-interval_spray)
+    * [Emitter: interval_spray](#emitter-mouse_interval)
+* [Handler-Emitter: fragmentation (interval_fragmentation_per_particle)](#handler-fragmentation-interval_fragmentation_per_particle)
 * [Particle Behaviors](#particle-behaviors)
     * [Handler: auto_expire](#handler-auto_expire-or-preset-auto_expire)
     * [Handler: `bounds_killer`](#handler-bounds_killer-or-preset-bounds_killer)
     * [Handler: move](#handler-move)
     * [Handler: simple_move](#handler-simple_move)
     * [Handler: rotate](#handler-rotate)
+    * [Handler: flicker](#handler-flicker)
     * [Handler: oscillate](#handler-oscillate)
     * [Handler: orbit_mouse](#handler-orbit_mouse-or-preset-orbit_mouse)
     * [Handler: repulsor](#handler-repulsor)
@@ -161,7 +163,7 @@ on particle dead:
 
 Emitters create new particles.
 
-### Handler: spray
+### Emitter: spray
 
 Creates particles all at once:
 
@@ -175,7 +177,7 @@ emitter spray oneshot:
 - `amount` — number of particles (required)
 - `area` — generation area `(x1, y1, width, height)` (defaults to the entire screen)
 
-### Handler: interval_spray
+### Emitter: interval_spray
 
 Creates particles at intervals:
 
@@ -188,13 +190,39 @@ emitter interval_spray:
 
 **Parameters:**
 - `amount` — total number of particles
+* * The parameter can be set as `"infinite"'. Then the particles will be emitted indefinitely.
 - `interval` — interval between generations (seconds)
 - `per_amount` — particles per batch (default 1)
 - `kill_on_finish` — delete the emitter after completion (default True)
 
 ---
 
-## Handler: fragmentation (interval_fragmentation_per_particle)
+### Emitter: `mouse_interval`
+
+Spawns particles at the current mouse cursor position at regular time intervals.
+
+**Usage Example:**
+
+```renpy
+rparticles show cursor_trail:
+    emitter mouse_interval:
+        interval 0.05    # Spawns every 50ms
+        per_amount 2     # 2 particles at once
+        offset (5, 5)    # Slight offset from the cursor tip
+
+```
+
+**Parameters:**
+
+* **`amount`** (int or "infinite") — Total number of particles this emitter can spawn. Default is `"infinite"`.
+* **`interval`** (float) — Time in seconds between spawns. Default is `0.1`.
+* **`per_amount`** (int) — Number of particles spawned per interval tick. Default is `1`.
+* **`offset`** (tuple) — Spawn point offset relative to the cursor `(x, y)`. Default is `(0, 0)`.
+* **`kill_on_finish`** (bool) — If `True`, the emitter will be removed from the system after reaching the `amount` limit. Default is `False`.
+
+---
+
+## Handler-Emitter: fragmentation (interval_fragmentation_per_particle)
 
 This handler allows one system (the donor) to create particles in another system (the receiver). It is used for creating trails, cascading explosions, or complex weather effects.
 
@@ -489,6 +517,30 @@ on update:
 ### Developer Tip:
 
 Using `phase_range 360.0` is the simplest and most effective way to eliminate visual repetition (patterns) in a particle system, as even identical sprites will look different under random angles.
+
+---
+
+## Handler: flicker
+Adds a random "flicker" effect to a property value every frame. It works additively, meaning it adds to existing transformations (like transparency animations) without overriding them.
+
+### Parameters for the `flicker` block:
+
+* **`property`** (string) — Property name (`"alpha"`, `"zoom"`, `"rotate"`).
+* **`base_value`** (number) – If the property is not changed in any way by other blocks, then this value is taken as the initial value and a "shake" is applied to it.
+* **`range`** (tuple) — Range for random values `(min, max)`.
+* **`interval`** (float) — Delay between jitter value changes (in seconds). 0.0 for every frame.
+* **`mode`** (string) — Blend mode:
+* * `"add"` — Value is always added (increases brightness/size).
+* * `"sub"` — Value is always subtracted (decreases brightness/size).
+
+**Usage Example:**
+
+```renpy
+on update:
+    flicker:
+        property "zoom"
+        range (-0.05, 0.05) # Subtle size jittering
+```
 
 ---
 

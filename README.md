@@ -8,6 +8,7 @@ Ver. ¯\\_(ツ)_/¯
 # Table of Contents
 
 * [Installation](#installation)
+* [Running Examples](#running-examples)
 * [Documentation](#documentation)
 * [Quick Start](#quick-start-dsl-example)
 * [Developer Guide](#developer-guide)
@@ -21,6 +22,29 @@ Ver. ¯\\_(ツ)_/¯
 
 1. Download the `00RenParticles` folder.
 2. Place it inside your project's `game/` directory.
+
+# Running Examples
+
+The project includes a comprehensive demo chamber with various particle effects (snow, fireflies, mouse trails, etc.).
+
+1. Ensure the `00RenParticles` folder is in your `game/` directory.
+2. To launch the demo menu, simply jump to the `renparticles_choice` label from anywhere in your script:
+
+```renpy
+label start:
+    "Welcome to my game!"
+    jump renparticles_choice
+```
+
+**Or you can have a look here:**
+
+| Orbit Mouse v2 | Mouse Trail | From Center |
+| :---: | :---: | :---: |
+| ![orbit v2](gif_examples/what_you_can_create.gif) | ![mouse trail](gif_examples/mouse_trail_demo.gif) | ![from center](gif_examples/from_center.gif) |
+
+| Wiggle-Wiggle | Snowfall | Fireflies |
+| :---: | :---: | :---: |
+| ![wiggle-wiggle](gif_examples/wiggle_wiggle.gif) | ![snowfall](gif_examples/snowfall.gif) | ![fireflies](gif_examples/fireflies.gif) |
 
 # Documentation
 

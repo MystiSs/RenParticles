@@ -19,6 +19,7 @@ init -555 python in renparticles:
 
             "tween": PropertyTween,
             "rotate": RotateBehavior,
+            "flicker": FlickerBehavior,
 
             "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn
         },
@@ -26,6 +27,7 @@ init -555 python in renparticles:
         "emitters": {
             "spray": EmitterRandom,
             "interval_spray": IntervalSprayEmitter,
+            "mouse_interval_spray": MouseIntervalSpawner,
             "fragmentation": EmitterRemoteSpawn,
             "interval_fragmentation": EmitterIntervalRemoteSpawn
         },
