@@ -10,6 +10,19 @@ init 100:
                     end_value 0.0
                     warper "ease"
             
+            tween:
+                block "alpha":
+                    mode "lifetime"
+                    from_end True
+                    time 0.5
+                    start_value 1.0
+                    end_value 0.0
+            
+            rotate:
+                speed 0.0
+                speed_range 360.0
+                phase_range 360.0
+            
             move:
                 velocity [0.0, 0.0]
                 velocity_range [100.0, 5.0]
@@ -30,7 +43,7 @@ init 100:
             on update:
                 interval_fragmentation_per_particle system "rain":
                     amount 1
-                    interval 0.1
+                    interval 0.2
         
         system id "rain":
             sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))

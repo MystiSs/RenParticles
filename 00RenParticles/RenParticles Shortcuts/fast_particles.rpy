@@ -13,6 +13,7 @@ init -555 python in renparticles:
             "orbit_mouse": OrbitCursorUpdate,
 
             "tween": PropertyTween,
+            "rotate": RotateBehavior,
 
             "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn
         },

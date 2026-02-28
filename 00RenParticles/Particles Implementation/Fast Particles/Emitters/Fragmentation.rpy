@@ -20,6 +20,8 @@ init -1115 python in renparticles:
                     
                 return UpdateState.Pass
 
+    #<Этот эмиттер считается чистым обработчиком, чтобы его можно было интегрировать в блок поведения и чтобы он не был отделён от него>#
+    #<В специальный блок эмиттеров, которые не получают текущую частицу в параметре context>#
     class EmitterIntervalRemoteSpawn(_Behavior):
             per_amount = 1
             interval = 0.0

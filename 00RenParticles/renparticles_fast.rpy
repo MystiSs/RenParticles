@@ -3,7 +3,7 @@ init -1337 python in renparticles:
     from renpy.store import SpriteManager, Sprite
     from renpy.display.particle import SpriteCache
     from renpy.store import Transform
-    from builtins import min, max
+    from builtins import min, max, len
 
 
     _lifetime_getters = {
@@ -56,6 +56,7 @@ init -1337 python in renparticles:
 
     class RenSprite(Sprite):
         lifetime = 0.0
+        lifetime_max = 0.0
 
         _base_image = None
 
@@ -64,6 +65,27 @@ init -1337 python in renparticles:
 
         def queue_transform(self, **properties):
             self.queued_transforms.update(properties)
+
+        def queue_transform_additive(self, **properties):
+            for key, value in properties.items():
+                if key in self.queued_transforms:
+                    existing = self.queued_transforms[key]
+                    
+                    if isinstance(value, (int, float)) and isinstance(existing, (int, float)):
+                        self.queued_transforms[key] = existing + value
+                    
+                    elif isinstance(value, (list, tuple)) and isinstance(existing, (list, tuple)):
+                        if len(value) == len(existing):
+                            result = [a + b for a, b in zip(existing, value)]
+                            self.queued_transforms[key] = type(existing)(result)
+                        else:
+                            self.queued_transforms[key] = value
+                    
+                    else:
+                        self.queued_transforms[key] = value
+                else:
+                    self.queued_transforms[key] = value
+
 
         def apply_transforms(self):
             if not self.queued_transforms:
@@ -258,7 +280,9 @@ init -1337 python in renparticles:
             s.y = 0
             s.zorder = 0
             s.live = True
-            s.lifetime = self._get_lifetime()
+            lifetime = self._get_lifetime()
+            s.lifetime = lifetime
+            s.lifetime_max = lifetime
             s.manager = self
             s.events = False
 
