@@ -204,7 +204,7 @@ Spawns particles at the current mouse cursor position at regular time intervals.
 **Usage Example:**
 
 ```renpy
-rparticles show cursor_trail:
+rparticles as cursor_trail:
     emitter mouse_interval:
         interval 0.05    # Spawns every 50ms
         per_amount 2     # 2 particles at once

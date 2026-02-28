@@ -210,7 +210,7 @@ emitter interval_spray:
 **Пример использования:**
 
 ```renpy
-rparticles show cursor_trail:
+rparticles as cursor_trail:
     emitter mouse_interval:
         interval 0.05    # Спавн каждые 50мс
         per_amount 2     # По 2 частицы за раз
