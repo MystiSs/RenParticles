@@ -1,3 +1,7 @@
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
+
 init -555 python in renparticles:
     static_shortcuts = {
         "behaviors": {
@@ -40,7 +44,7 @@ init -555 python in renparticles:
             },
 
             "inner": {
-                
+
             }
         }
     }

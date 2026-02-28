@@ -1,3 +1,7 @@
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
+
 init -1115 python in renparticles:
     from renpy.store import Transform
     from renpy.atl import warpers
@@ -10,7 +14,7 @@ init -1115 python in renparticles:
         end_value = 1.0
         warper = "linear"
         
-        mode = "absolute"  # "time" | "lifetime"
+        mode = "absolute"  # "absolute" | "lifetime"
         from_end = False
 
         dynamic = None

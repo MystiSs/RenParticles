@@ -1,3 +1,7 @@
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
+
 init -1115 python in renparticles:
     class LifetimeDeltaDecreaser(_UpdateBehavior):
         def __call__(self, context):

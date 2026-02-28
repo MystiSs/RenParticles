@@ -1,3 +1,8 @@
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
+
+
 python early:
     import re
 

@@ -1,5 +1,9 @@
-# From Renpy documentation: https://www.renpy.org/doc/html/sprites.html#sprite-examples
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
 
+
+# From Ren'Py documentation: https://www.renpy.org/doc/html/sprites.html#sprite-examples
 init -1115 python in renparticles:
     import math
 

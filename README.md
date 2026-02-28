@@ -143,3 +143,4 @@ rparticles show fire_effect multiple:
 
 ## License
 
+RenParticles is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

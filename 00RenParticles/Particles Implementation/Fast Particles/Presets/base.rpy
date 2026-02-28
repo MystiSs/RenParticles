@@ -1,3 +1,7 @@
+# RenParticles - Particle System for Ren'Py
+# Copyright (c) 2026 MystiSs
+# Licensed under the MIT License.
+
 init -1226 python in renparticles:
     class _RFBehaviorPreset(_InjectPropertiesMixin, _CheckInitialisedMixin):
         behaviors = {
