@@ -1,6 +1,7 @@
+>Project subject to change.
 # RenParticles
 
-RenParticles is a ATL-like DSL (Domain Specific Language) for creating complex particle systems in Ren'Py. It allows developers to define particle behavior using a declarative syntax while maintaining the efficiency of low-level Python execution.
+RenParticles is a **ATL-like DSL (Domain Specific Language)** for creating complex particle systems in Ren'Py. It allows developers to define particle behavior using a declarative syntax while maintaining the efficiency of low-level Python execution.
 Ver. ¯\\_(ツ)_/¯
 
 ![what you can create](gif_examples/what_you_can_create.gif)
@@ -61,6 +62,10 @@ Detailed manuals are available in the [docs](docs/) folder:
 ```renpy
 rparticles show magic_circles:
     on update:
+       # Define how particles are spawned
+       emitter spray:
+           amount 10
+
         # Using built-in move behavior
         move:
             velocity [0, -100]
@@ -73,10 +78,6 @@ rparticles show magic_circles:
                 start_value 1.0
                 end_value 0.0
                 warper "linear"
-
-    # Define how particles are spawned
-    emitter spray:
-        amount 10
 
 ```
 
