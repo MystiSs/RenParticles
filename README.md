@@ -4,16 +4,25 @@ RenParticles is a ATL-like DSL (Domain Specific Language) for creating complex p
 
 ![what you can create](gif_examples/what_you_can_create.gif)
 
----
+# Table of Contents
+* [Installation](#installation)
+* [Documentation](#documentation)
+* [Quick Start](#quick-start-dsl-example)
+* [Developer Guide](#developer-guide)
+    * [Architecture](#1-architecture-overview)
+    * [Custom Behaviors](#2-creating-custom-behaviors)
+* [Performance Tips](#performance-tips)
+* [License](#license)
 
-## Installation
+
+# Installation
 
 1. Download the `00RenParticles` folder.
 2. Place it inside your project's `game/` directory.
 
 ---
 
-## Documentation
+# Documentation
 
 Detailed manuals are available in the [docs](docs/) folder:
 
@@ -22,7 +31,7 @@ Detailed manuals are available in the [docs](docs/) folder:
 
 ---
 
-## Quick Start (DSL Example)
+# Quick Start (DSL Example)
 
 ```renpy
 rparticles show magic_circles:
@@ -48,7 +57,7 @@ rparticles show magic_circles:
 
 ---
 
-## Developer Guide
+# Developer Guide
 
 ### Architecture Overview
 
@@ -140,10 +149,19 @@ rparticles show fire_effect multiple:
 
 ---
 
-## Performance Tips
+# Performance Tips
 
 * **Use Lazy Rendering in your own transform behaviors**: Avoid direct manipulation of `Transform` objects. Use `particle.queue_transform()` or `particle.queue_transform_additive()` instead.
 
-## License
+---
+
+# Disclaimer
+
+This particle system was developed purely out of enthusiasm and is provided "as is", without any warranties of perfect performance. Bugs may occur :)
+If you encounter any issues, feel free to report them. Your feedback or contribution is appreciated!
+
+---
+
+# License
 
 RenParticles is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
