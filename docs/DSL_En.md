@@ -218,7 +218,7 @@ rparticles define multiple "projectile":
 
 ```
 
-### Technical Notes for Documentation:
+### Technical Notes:
 
 * **UpdateState.Pass**: The handler always returns `Pass`, as it does not change the state of the current particle but merely initiates a side effect in another system.
 * **Performance**: Using very small intervals (less than 0.02) with a large number of parent particles can lead to an exponential increase in the number of objects in memory. It is recommended to combine fragmentation with `preset auto_expire` in the target system.
