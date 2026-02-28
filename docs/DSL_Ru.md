@@ -146,7 +146,7 @@ emitter interval_spray:
 - `amount` — общее количество частиц
 - `interval` — интервал между генерациями (секунды)
 - `per_amount` — частиц за раз (по умолчанию 1)
-- `kill_on_finish` — удалить эмиттер после завершения (accepts True (true) or False (false)). By default, True
+- `kill_on_finish` — удалить эмиттер после завершения (принимает True (истина) or False (ложь)). По умолчанию – True
 
 ---
 
