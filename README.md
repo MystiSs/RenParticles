@@ -9,6 +9,10 @@ RenParticles is a high-performance, ATL-like DSL (Domain Specific Language) for 
 
 ---
 
+Detailed manuals are in the **docs** folder.
+
+---
+
 ## Quick Start (DSL Example)
 
 ```renpy
