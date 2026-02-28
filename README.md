@@ -62,7 +62,11 @@ Detailed manuals are available in the [docs](docs/) folder:
 # Quick Start (DSL Example)
 
 ```renpy
-rparticles as magic_circles:
+rparticles as magic_squares:
+    redraw asap # as soon as possible redraw
+    sprite expr Solid("#e7a900", xysize=(24, 24)) # yellow square sprite
+    lifetime constant 2.5 # particle lifetime
+
     on update:
        # Define how particles are spawned
        emitter spray:
