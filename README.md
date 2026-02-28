@@ -2,7 +2,7 @@
 
 ---
 
-RenParticles is a high-performance, ATL-like DSL (Domain Specific Language) for creating complex particle systems in Ren'Py. It allows developers to define particle behavior using a declarative syntax while maintaining the efficiency of low-level Python execution.
+RenParticles is a ATL-like DSL (Domain Specific Language) for creating complex particle systems in Ren'Py. It allows developers to define particle behavior using a declarative syntax while maintaining the efficiency of low-level Python execution.
 
 ![what you can create](gif_examples/what_you_can_create.gif)
 
@@ -123,7 +123,7 @@ The `RenSprite` class extends the standard Ren'Py `Sprite` with additional field
 
 ### 5. Multi-System Management
 
-Use `RenParticleFastGroup` to sync multiple systems.
+You can create multiple systems in one and create inter-system interaction.
 
 ```python
 # Create a group of systems
