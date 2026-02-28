@@ -70,7 +70,7 @@ lifetime range random (1.0, 3.0)
 
 ```renpy
 redraw 0.0          # maximum frequency
-redraw asap         # same as above
+redraw asap         # same as above (as soon as possible)
 redraw 0.016        # ~60 FPS
 redraw None         # default update
 ```
@@ -83,7 +83,7 @@ A smaller value means smoother animation but higher load.
 
 ### on update
 
-Executed every frame for each particle:
+Executed every clock cycle for each particle (the "clock cycle" refers to the renpy.redraw call, the speed of which you specify yourself):
 
 ```renpy
 on update:
@@ -129,7 +129,7 @@ emitter spray oneshot:
 
 **Parameters:**
 - `amount` — number of particles (required)
-- `area` — generation area `(x1, y1, x2, y2)` (defaults to the entire screen)
+- `area` — generation area `(x1, y1, width, height)` (defaults to the entire screen)
 
 ### Handler: interval_spray
 
@@ -167,7 +167,7 @@ interval_fragmentation_per_particle system "target_system_id":
 ### Parameters:
 
 * **`system "id"`** (string): The unique identifier of the target system where new particles will be born.
-* **`amount`** (int): How many particles are created at once when the interval triggers.
+* **`amount`** (integer): How many particles are created at once when the interval triggers.
 * **`interval`** (float): The delay between generation cycles.
 
 ### Operational Nuances and Architecture
@@ -620,7 +620,7 @@ The `tween` handler is designed for smoothly changing a sprite's transformation 
 * **`time`** (float): Animation duration. In `absolute` mode — seconds; in `lifetime` mode — coefficient (0.0–1.0).
 * **`start_value`** (float): The initial value of the property.
 * **`end_value`** (float): The final value of the property.
-* **`warper`** (string): The interpolation function (names of standard Ren'Py warpers: `"linear"`, `"ease"`, `"expo"`, `"circ"`, etc.). Default `"linear"`.
+* **`warper`** (string): The interpolation function (names of standard [Ren'Py warpers](https://www.renpy.org/doc/html/transforms.html#warpers): `"linear"`, `"ease"`, `"easein_expo"`, `"easein_circ"`, etc.). Default `"linear"`.
 * **`mode`** (string): Time calculation mode:
   * `"absolute"` (default): `time` is treated as a fixed time in seconds.
   * `"lifetime"`: `time` is treated as a fraction of the particle's total lifetime.
@@ -740,6 +740,8 @@ init 100:
 1.  **Single-Level**: Recursive presets are not available.
 2.  **Parameter Dispatching**: Dynamic presets do not know how to pass overridable parameters (when you open a parameter block while using a preset in a system). Such parameters will not go anywhere, although it is possible to specify them. Keep this in mind.
 
+---
+
 ## Multiple Systems
 
 Creating several independent particle systems:
@@ -784,6 +786,8 @@ on update:
         interval 0.2
 ```
 
+---
+
 ## Models (Templates)
 
 Saving a configuration for reuse:
@@ -819,6 +823,8 @@ label game:
     rparticles model "explosion_effect" as explosion1
 ```
 
+---
+
 ## System Management
 
 ### Control Commands
@@ -851,6 +857,8 @@ rparticles continue "particles" onlayer master zorder 1
 rparticles clear cache        # delete hidden systems
 rparticles clear cache deep   # delete all systems
 ```
+
+---
 
 ## Advanced Features
 
@@ -888,6 +896,8 @@ tween:
         end_value 0.5
         warper "easein"
 ```
+
+---
 
 ## Examples
 
@@ -970,6 +980,8 @@ rparticles as magic onlayer master:
         auto_expire
 ```
 
+---
+
 ## Performance Tips
 
 1.  Use `redraw 0.016` instead of `asap` if maximum frequency is not needed.
@@ -978,9 +990,13 @@ rparticles as magic onlayer master:
 4.  For static effects, use `cache`.
 5.  Group similar particles into one system.
 
+---
+
 ## Debugging
 
 The system outputs configuration information to the console upon creation. Check the Ren'Py console to diagnose issues.
+
+---
 
 ## Limitations
 
