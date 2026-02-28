@@ -26,20 +26,20 @@ rparticles show magic_circles:
     on update:
         # Using built-in move behavior
         move:
-            velocity (0, -100)
-            friction 0.05
+            velocity [0, -100]
+            accelerate [50, 400]
         
         # Using tween for animation
         tween:
             time 2.0
             block "alpha":
-                range (0.0, 1.0)
+                start_value 1.0
+                end_value 0.0
                 warper "linear"
 
     # Define how particles are spawned
     emitter spray:
-        rate 10
-        circle_radius 50
+        amount 10
 
 ```
 
@@ -119,6 +119,7 @@ The `RenSprite` class extends the standard Ren'Py `Sprite` with additional field
 * `lifetime`: Current remaining time.
 * `lifetime_max`: It is taken when creating a particle from `self.lifetime`.
 * `queue_transform(**kwargs)`: Queues a visual change for the next frame.
+* `queue_transform_additive(**kwargs)`: Queues a visual change for the next frame additively.
 
 ### 5. Multi-System Management
 
