@@ -123,7 +123,7 @@ The `RenSprite` class extends the standard Ren'Py `Sprite` with additional field
 
 ### 5. Multi-System Management
 
-Use `RenParticleFastGroup` to sync multiple systems.
+You can create multiple systems in one and create inter-system interaction.
 
 ```python
 # Create a group of systems
