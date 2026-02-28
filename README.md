@@ -1,6 +1,12 @@
 # RenParticles
 
+---
+
 RenParticles is a high-performance, ATL-like DSL (Domain Specific Language) for creating complex particle systems in Ren'Py. It allows developers to define particle behavior using a declarative syntax while maintaining the efficiency of low-level Python execution.
+
+![what you can create](gif_examples/what_you_can_create.gif)
+
+---
 
 ## Installation
 

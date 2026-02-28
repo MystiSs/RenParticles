@@ -5,6 +5,7 @@ init -555 python in renparticles:
             "repulsor_event": RepulsorEvent,
 
             "auto_expire": LifetimeDeltaDecreaser,
+            "bounds_killer": BoundsKiller,
 
             "simple_move": SimpleMove,
             "move": Move,
@@ -31,7 +32,9 @@ init -555 python in renparticles:
                 "interval_spray": IntervalSprayPreset,
 
                 "repulsor": RepulsorPreset,
+
                 "auto_expire": AutoExpirePreset,
+                "bounds_killer": BoundsKillerPreset,
 
                 "orbit_mouse": OrbitMousePreset
             },

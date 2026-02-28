@@ -233,8 +233,53 @@ rparticles define multiple "projectile":
 Automatically decreases lifetime and removes particles:
 
 ```renpy
-auto_expire
+on update:
+    auto_expire
 ```
+or
+```renpy
+preset auto_expire
+```
+
+---
+
+### Handler: `bounds_killer` or preset: `bounds_killer`
+
+A handler for forcibly destroying particles that move beyond the visible screen area or specified boundaries. Unlike `auto_expire`, which is time-based, this handler operates based on spatial coordinates.
+
+**Usage Example:**
+
+```renpy
+on update:
+    bounds_killer:
+        margin 50
+        only_if_completely True
+
+```
+or
+```renpy
+preset bounds_killer:
+    margin 50
+    only_if_completely True
+
+```
+
+**Parameters:**
+
+* **`margin`** (number, list, or tuple) — The "buffer" zone outside the screen in pixels. Default is `32`.
+    * `margin 100` — The particle will be destroyed if it moves more than 100 pixels beyond the screen edges on any side.
+    * `margin (100, 200)` — 100px horizontal margin, 200px vertical margin.
+    * `margin (50, 100, 50, 150)` — Individual margins (Left, Top, Right, Bottom).
+
+
+* **`only_if_completely`** (bool) — The boundary check mode.
+* `False` (default) — The particle is destroyed as soon as its **center** (pivot point) crosses the boundary.
+* `True` — The particle is destroyed only when it is **completely** hidden behind the boundary (takes sprite size into account). Recommended for large objects to prevent sudden snapping out of existence.
+
+
+* **`safe_zone`** (float) — An internal "safe zone" from the screen edges. If a particle is inside this zone, the boundary checks are ignored. This is useful for optimizing logic in highly complex systems.
+
+> **Performance Tip**: Always use `bounds_killer` in systems with infinite lifetimes or fast-moving particles (`move`) to prevent "ghost" particles from accumulating off-screen and slowing down the game over time.
 
 ---
 
@@ -466,6 +511,8 @@ Where $A$ is the amplitude, $f$ is the frequency, $t$ is the accumulated lifetim
 ## Handler: orbit_mouse or preset orbit_mouse
 
 The `orbit_mouse` behavior makes particles strive for a circular orbit around the current mouse position and rotate along it. Due to application the `pull_strength` parameter, particles can gently fly towards the cursor from any point on the screen, creating an effect of organic attraction.
+
+![ehehehe](../gif_examples/orbit_mouse.gif)
 
 ### Parameters for the `orbit_mouse` block:
 

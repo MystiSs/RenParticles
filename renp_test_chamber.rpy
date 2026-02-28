@@ -53,6 +53,24 @@ init 100:
 
             preset dynamic_preset_test
 
+    # -------------------------------------------------------------------------------------------------------------
+
+    rparticles define "rparticles_mouse_orbit_simple":
+        redraw asap
+        sprite expr Solid("#e7a900", xysize=(24, 24))
+
+        preset spray:
+            amount 10
+
+        preset orbit_mouse:
+            speed 5.0
+            speed_variance 0.5
+        
+        on update:
+            rotate:
+                speed 60.0
+                phase_range 360.0
+
 label renp_test_chamber:
     $ st_chmbr_test = False
 
