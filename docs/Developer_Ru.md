@@ -1,5 +1,7 @@
 # RenParticles - Руководство разработчика
 
+---
+
 ## Архитектура системы
 
 RenParticles построен на трех уровнях:
@@ -7,6 +9,8 @@ RenParticles построен на трех уровнях:
 1. **DSL Parser** (`01renparticles_cds.rpy`) — парсит декларативный синтаксис
 2. **Core Engine** (`renparticles_fast.rpy`) — управляет частицами и рендерингом
 3. **Behaviors & Emitters** — расширяемые компоненты поведения
+
+---
 
 ## Структура модулей
 
@@ -25,6 +29,8 @@ RenParticles построен на трех уровнях:
         ├── mouse_orbiting.rpy     # Взаимодействие с курсором
         └── ...
 ```
+
+---
 
 ## Базовые классы
 
@@ -63,6 +69,8 @@ class Emitter(_Behavior):
     pass
 ```
 
+---
+
 ## Контексты выполнения
 
 ### RenpFContext
@@ -88,6 +96,8 @@ class EventContext(RenpFContext):
     y = None           # Y координата события
     event = None       # Объект события Ren'Py
 ```
+
+---
 
 ## Создание собственного поведения
 
@@ -351,7 +361,7 @@ init python in renparticles:
     # Регистрация эмиттера (должно наследоваться от Emitter или _Behavior)
     add_shortcut("spark_emitter", SparkEmitter, is_emitter=True)
     
-    # Регистрация пресета (должно наследоваться от _RFDynamicBehaviorPreset)
+    # Регистрация пресета (должно наследоваться от _RFDynamicBehaviorPreset или от _RFBehaviorPreset)
     # preset_type может быть "general" или "inner"
     add_preset("magic_circle", MagicPreset, preset_type="general")
 
@@ -370,22 +380,6 @@ init python in renparticles:
 * **Ядро системы**: `init -1337` (определяет функции регистрации).
 * **Статические шорткаты**: `init -555` (базовый набор движка).
 * **Пользовательские компоненты**: Рекомендуется использовать `init` без индекса или выше `-555`, чтобы гарантировать, что словари шорткатов уже созданы.
-
----
-
-### Динамическая регистрация
-
-```python
-init python in renparticles:
-    # Регистрация поведения
-    add_shortcut("my_behavior", MyCustomBehavior, is_emitter=False)
-    
-    # Регистрация эмиттера
-    add_shortcut("my_emitter", MyEmitter, is_emitter=True)
-    
-    # Регистрация пресета
-    add_preset("my_preset", MyPreset, preset_type="general")
-```
 
 ---
 
@@ -503,6 +497,8 @@ class ParticlesData:
 
 **Важно для разработчика:**
 Используйте словарь `particles_properties` для хранения любых специфических данных частицы (например, её текущий вектор скорости или фазу анимации). При смерти частицы система автоматически очищает этот словарь, предотвращая утечки памяти.
+
+---
 
 ## Множественные системы
 
