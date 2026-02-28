@@ -20,16 +20,12 @@ RenParticles is a ATL-like DSL (Domain Specific Language) for creating complex p
 1. Download the `00RenParticles` folder.
 2. Place it inside your project's `game/` directory.
 
----
-
 # Documentation
 
 Detailed manuals are available in the [docs](docs/) folder:
 
 * **[User Guide (DSL Syntax)](docs/DSL_En.md)** — Everything you need to know to start creating particles in your game.
 * **[Developer Guide](docs/Developer_En.md)** — Deep dive into the engine's architecture and creating custom behaviors.
-
----
 
 # Quick Start (DSL Example)
 
@@ -54,8 +50,6 @@ rparticles show magic_circles:
         amount 10
 
 ```
-
----
 
 # Developer Guide
 
@@ -147,20 +141,14 @@ rparticles show fire_effect multiple:
 
 ```
 
----
-
 # Performance Tips
 
 * **Use Lazy Rendering in your own transform behaviors**: Avoid direct manipulation of `Transform` objects. Use `particle.queue_transform()` or `particle.queue_transform_additive()` instead.
-
----
 
 # Disclaimer
 
 This particle system was developed purely out of enthusiasm and is provided "as is", without any warranties of perfect performance. Bugs may occur :)
 If you encounter any issues, feel free to report them. Your feedback or contribution is appreciated!
-
----
 
 # License
 
