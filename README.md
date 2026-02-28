@@ -26,8 +26,11 @@ Ver. ¯\\_(ツ)_/¯
 
 Detailed manuals are available in the [docs](docs/) folder:
 
-* **[User Guide (DSL Syntax)](docs/DSL_En.md)** — Everything you need to know to start creating particles in your game.
-* **[Developer Guide](docs/Developer_En.md)** — Deep dive into the engine's architecture and creating custom behaviors.
+* **[User Guide (DSL Syntax) EN ver.](docs/DSL_En.md)** — Everything you need to know to start creating particles in your game.
+* **[User Guide (DSL Syntax) RU ver.](docs/DSL_Ru.md)**
+
+* **[Developer Guide EN ver.](docs/Developer_En.md)** — Deep dive into the engine's architecture and creating custom behaviors.
+* **[Developer Guide RU ver.](docs/Developer_Ru.md)**
 
 # Quick Start (DSL Example)
 
