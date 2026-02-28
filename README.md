@@ -38,6 +38,10 @@ Detailed manuals are available in the [docs](docs/) folder:
 ```renpy
 rparticles show magic_circles:
     on update:
+       # Define how particles are spawned
+       emitter spray:
+           amount 10
+
         # Using built-in move behavior
         move:
             velocity [0, -100]
@@ -50,10 +54,6 @@ rparticles show magic_circles:
                 start_value 1.0
                 end_value 0.0
                 warper "linear"
-
-    # Define how particles are spawned
-    emitter spray:
-        amount 10
 
 ```
 
