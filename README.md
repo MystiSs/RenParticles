@@ -13,7 +13,12 @@ RenParticles is a ATL-like DSL (Domain Specific Language) for creating complex p
 
 ---
 
-Detailed manuals are in the **docs** folder.
+## Documentation
+
+Detailed manuals are available in the [docs](docs/) folder:
+
+* **[User Guide (DSL Syntax)](docs/DSL_En.md)** — Everything you need to know to start creating particles in your game.
+* **[Developer Guide](docs/Developer_En.md)** — Deep dive into the engine's architecture and creating custom behaviors.
 
 ---
 
