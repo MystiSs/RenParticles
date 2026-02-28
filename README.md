@@ -26,8 +26,7 @@ rparticles show magic_circles:
         # Using tween for animation
         tween:
             time 2.0
-            block:
-                property "alpha"
+            block "alpha":
                 range (0.0, 1.0)
                 warper "linear"
 
