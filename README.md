@@ -49,6 +49,10 @@ label start:
 | :---: | :---: | :---: |
 | ![wiggle-wiggle](gif_examples/wiggle_wiggle.gif) | ![snowfall](gif_examples/snowfall.gif) | ![fireflies](gif_examples/fireflies.gif) |
 
+| Sparkles v2 |
+| :---: |
+| ![sparkles_v2](gif_examples/sparkles_v2.gif) |
+
 # Documentation
 
 Detailed manuals are available in the [docs](docs/) folder:

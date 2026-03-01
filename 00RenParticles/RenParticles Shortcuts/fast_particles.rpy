@@ -17,12 +17,16 @@ init -555 python in renparticles:
             "friction": Friction,
             "bounce": Bounce,
             "attractor": Attractor,
+            "turbulence": Turbulence,
 
             "orbit_mouse": OrbitCursorUpdate,
             "orbit_point": OrbitPoint,
 
             "tween": PropertyTween,
+            "color_curve": ColorCurve,
+
             "rotate": RotateBehavior,
+            "face_velocity": FaceVelocity,
             "flicker": FlickerBehavior,
 
             "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn

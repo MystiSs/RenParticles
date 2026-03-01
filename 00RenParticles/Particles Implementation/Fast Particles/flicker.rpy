@@ -23,10 +23,12 @@ init -1115 python in renparticles:
             particle = context.particle
             system = context.system
             delta = context.delta
+            props = system.particles_data.particles_properties
+
+            if particle not in props:
+                return UpdateState.Pass
             
-            particles_props = system.particles_data.particles_properties
-            particle_data = particles_props.setdefault(particle, {})
-            
+            particle_data = props[particle]
             if self._RENP_FLICKER not in particle_data:
                 particle_data[self._RENP_FLICKER] = {"timer": 0.0, "last_val": 0.0}
             

@@ -376,7 +376,7 @@ init -1115 python in renparticles:
             particle = context.particle
             delta = context.delta
             
-            particle_data = system.particles_data.particles_properties.get(particle, None)
+            particle_data = context.system.particles_data.particles_properties.get(particle, None)
             if particle_data is None:
                 return UpdateState.Pass
                         
@@ -667,3 +667,62 @@ init -1115 python in renparticles:
                 particle.y = max(2, min(system.height - 2, particle.y))
             
             return UpdateState.Pass
+
+    class Turbulence(_UpdateBehavior):
+        amount = [20.0, 20.0]
+        frequency = 1.0
+        smoothness = 0.5
+        
+        _NOISE_SIZE = 512
+        _RAW_X = [random.uniform(-1.0, 1.0) for _ in range(512)]
+        _RAW_Y = [random.uniform(-1.0, 1.0) for _ in range(512)]
+        
+        _NOISE_TABLE_X = []
+        _NOISE_TABLE_Y = []
+
+        _RENP_TURB_DATA = "_turb_data"
+        _COUNTER = 0
+
+        def __init__(self):
+            self._RENP_TURB_DATA = "{}_{}".format(self._RENP_TURB_DATA, self._COUNTER)
+            self._COUNTER += 1
+
+        @classmethod
+        def precompute(cls):
+            for i in range(cls._NOISE_SIZE):
+                prev_i = (i - 1) % cls._NOISE_SIZE
+                next_i = (i + 1) % cls._NOISE_SIZE
+                cls._NOISE_TABLE_X.append((cls._RAW_X[prev_i] + cls._RAW_X[i] + cls._RAW_X[next_i]) / 3.0)
+                cls._NOISE_TABLE_Y.append((cls._RAW_Y[prev_i] + cls._RAW_Y[i] + cls._RAW_Y[next_i]) / 3.0)
+
+        def __call__(self, context):
+            particle = context.particle
+            delta = context.delta
+            props = context.system.particles_data.particles_properties[particle]
+
+            if self._RENP_TURB_DATA not in props:
+                props[self._RENP_TURB_DATA] = [random.randint(0, self._NOISE_SIZE - 1), 0.0, 0.0]
+
+            data = props[self._RENP_TURB_DATA]
+            
+            data[0] = (data[0] + self.frequency * delta * 100) % self._NOISE_SIZE
+            
+            idx = int(data[0])
+            target_x = self._NOISE_TABLE_X[idx] * self.amount[0]
+            target_y = self._NOISE_TABLE_Y[idx] * self.amount[1]
+
+            lerp_factor = 1.0 - pow(self.smoothness, delta * 60)
+            
+            if self.smoothness <= 0:
+                data[1], data[2] = target_x, target_y
+            else:
+                data[1] += (target_x - data[1]) * lerp_factor
+                data[2] += (target_y - data[2]) * lerp_factor
+
+            particle.x += data[1] * delta * 10.0
+            particle.y += data[2] * delta * 10.0
+
+            return UpdateState.Pass
+
+    Turbulence.precompute()
+

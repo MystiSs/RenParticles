@@ -1,43 +1,30 @@
 init 100:
     rparticles define "renparticles_test_model":
         redraw asap
-        sprite expr Solid("#fdfdfdc2", xysize=(8, 8))
-        lifetime constant 2.0
+        sprite expr Solid("#e7a900", xysize=(6, 12)); expr Solid("#e7a900", xysize=(2, 8))
+        lifetime range random (1.0, 2.0)
+
+        preset interval_spray:
+            amount "infinite"
+            per_amount 2
+            interval 0.125
+            area (960, 540, 0, 0)
 
         on update:
-            simple_move:
-                velocity [0.0, 0.0]
-                velocity_range [30.0, 30.0]
+            move id "move":
+                velocity [0, -200]
+                velocity_range [250, 75]
+                acceleration [0, 600]
 
-            attractor:
-                target (960, 540)
-                falloff 0.25
-                strength 10000
-            
-            tween:
-                block "alpha":
-                    mode "lifetime"
-                    from_end True
-                    time 0.5
-                    start_value 1.0
-                    end_value 0.0
-                block "zoom":
-                    mode "lifetime"
-                    time 0.5
-                    start_value 1.5
-                    end_value 0.5
-                    warper "ease"
-            
-            rotate:
-                speed 180.0
-                phase_range 360.0
-            
+            color_curve:
+                colors ["#ffffff", "#ffcc00", "#ff4400", "#33333300"]
+                warper "easein_quad"
+
+            face_velocity:
+                target_behavior_id "move"
+                base_angle 90
+
             auto_expire
-
-        on event:
-            emitter mouse_interval_spray:
-                amount "infinite"
-                interval 0.075
 
 label renp_test_chamber:
     $ st_chmbr_test = False
@@ -46,7 +33,7 @@ label renp_test_chamber:
     scene black
     with dspr
 
-    #jump renparticles_choice
+    jump renparticles_choice
 
     "RenParticles"
 

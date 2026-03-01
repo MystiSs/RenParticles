@@ -14,10 +14,12 @@
     * [on event](#on-event)
     * [on particle dead](#on-particle-dead)
 * [Emitters](#emitters)
-    * [Emitter: spray](#handler-spray)
-    * [Emitter: interval_spray](#handler-interval_spray)
-    * [Emitter: interval_spray](#emitter-mouse_interval)
-* [Handler-Emitter: fragmentation (interval_fragmentation_per_particle)](#handler-fragmentation-interval_fragmentation_per_particle)
+---
+* [Emitter: spray](#handler-spray)
+* [Emitter: interval_spray](#handler-interval_spray)
+* [Emitter: interval_spray](#emitter-mouse_interval)
+* [Handler-Emitter: fragmentation (interval_fragmentation_per_particle)](#handler-emitter-fragmentation-interval_fragmentation_per_particle)
+---
 * [Particle Behaviors](#particle-behaviors)
     * [What Are They?](#what-are-they)
     * [Behavior Identifiers (id)](#behavior-identifiers-id)
@@ -28,7 +30,9 @@
 * [Handler: simple_move](#handler-simple_move)
 * [Handler: friction](#handler-friction)
 * [Handler: bounce](#handler-bounce)
+* [Handler: turbulence](#handler-turbulence)
 * [Handler: rotate](#handler-rotate)
+* [Handler: face_velocity](#handler-face_velocity)
 * [Handler: flicker](#handler-flicker)
 * [Handler: oscillate](#handler-oscillate)
 * [Handler: orbit_mouse](#handler-orbit_mouse-or-preset-orbit_mouse)
@@ -36,6 +40,7 @@
 * [Handler: attractor](#handler-attractor)
 * [Handler: repulsor](#handler-repulsor)
 * [Handler: tween](#handler-tween)
+* [Handler: color_curve](#handler-color_curve)
 ---
 * [Presets](#presets)
     * [Built-in Presets](#built-in-presets)
@@ -389,7 +394,7 @@ on update:
 ```
 
 > **Note:** The ID system is especially useful when combining behaviors that modify each other (e.g., `friction`, `bounce` bound to a specific movement).
-```
+
 
 ---
 
@@ -584,6 +589,36 @@ on update:
         friction 5.0
         min_speed 0.1
 ```
+
+---
+
+## Handler: `turbulence`
+
+Adds organic, chaotic movement to particles, simulating wind gusts, air swirls, or Brownian motion.
+
+Unlike simple sine waves, this handler utilizes a **LUT (Lookup Table)** with precomputed smoothed noise. Each particle is assigned a random entry point into the table, ensuring a unique movement pattern for every particle in the system.
+
+**Parameters:**
+
+* **`amount`** (list/tuple) — Maximum displacement amplitude along `[x, y]` axes. Default is `[20.0, 20.0]`.
+* **`frequency`** (float) — The frequency (speed) of traversing the noise table. Higher values result in faster direction changes. Default is `1.0`.
+* **`smoothness`** (float) — Smoothing factor from `0.0` to `1.0`.
+* `0.0` — Instant vector change (jittery/sharp).
+* `0.5` — Balanced, natural movement.
+* `0.9+` — High inertia, viscous drifting.
+
+**Usage Example:**
+
+```renpy
+on update:
+    # Firefly-like erratic movement
+    turbulence:
+        amount (100, 100)
+        frequency 0.8
+        smoothness 0.4
+
+```
+
 ---
 
 ## Handler: `bounce`
@@ -616,7 +651,7 @@ on update:
 
 ---
 
-## Handler: rotate
+## Handler: `rotate`
 
 The `rotate` handler controls the rotation of particle sprites. It allows setting both the initial rotation angle (phase) and a constant rotation speed, with the possibility of randomization for each individual particle.
 
@@ -671,7 +706,38 @@ Using `phase_range 360.0` is the simplest and most effective way to eliminate vi
 
 ---
 
-## Handler: flicker
+## Handler: `face_velocity`
+
+Automatically rotates the sprite of the particle so that it is always directed in the direction of its movement.
+
+| Example |
+| :---: |
+| ![sparkles](../gif_examples/sparkles.gif) |
+
+**Parameters:**
+
+* **`target_behavior_id`** (str, **required**) is the ID of the behavior whose speed we are monitoring (for example, `move`).
+* **`base_angle`** (float) — Additional rotation of the sprite in degrees. If the sprite is "looking" in the wrong direction, use this value for correction.
+* **`invert`** (bool) — Expand the particle in the opposite direction from the direction of flight.
+* **`mode`** (str) — `"absolute"` (replaces rotation) or `"additive"` (adds to an existing one).
+
+**Example:**
+
+```renpy
+on update:
+    simple_move:
+        id "spark_move"
+        velocity (500, 200)
+    
+    face_velocity:
+        target_behavior_id "spark_move"
+        base_angle 90.0 # If the source sprite is pointing upwards
+
+```
+
+---
+
+## Handler: `flicker`
 Adds a random "flicker" effect to a property value every frame. It works additively, meaning it adds to existing transformations (like transparency animations) without overriding them.
 
 ### Parameters for the `flicker` block:
@@ -695,7 +761,7 @@ on update:
 
 ---
 
-## Handler: oscillate
+## Handler: `oscillate`
 
 The `oscillate` handler adds an oscillatory component based on a sine function to the particle's current coordinates. This motion is layered on top of any other movement (e.g., `move` or `simple_move`).
 
@@ -880,7 +946,7 @@ on update:
 
 ---
 
-## Handler: repulsor
+## Handler: `repulsor`
 
 *This functionality is based on the classic example from Ren'Py documentation but adapted to the RenParticles architecture with a split into update (update) and event handling.*
 
@@ -967,7 +1033,7 @@ rparticles define system "my_system":
 
 ---
 
-## Handler: tween
+## Handler: `tween`
 
 The `tween` handler is designed for smoothly changing a sprite's transformation properties (alpha, zoom, rotate, etc.) over time. It supports both fixed time intervals and dynamic binding to the particle's lifecycle.
 
@@ -977,11 +1043,14 @@ The `tween` handler is designed for smoothly changing a sprite's transformation 
 * **`start_value`** (float): The initial value of the property.
 * **`end_value`** (float): The final value of the property.
 * **`warper`** (string): The interpolation function (names of standard [Ren'Py warpers](https://www.renpy.org/doc/html/transforms.html#warpers): `"linear"`, `"ease"`, `"easein_expo"`, `"easein_circ"`, etc.). Default `"linear"`.
+* **`from_end`** (bool): If `True`, the animation will start at the end of the particle's life, finishing exactly at the moment of its disappearance.
 * **`mode`** (string): Time calculation mode:
   * `"absolute"` (default): `time` is treated as a fixed time in seconds.
   * `"lifetime"`: `time` is treated as a fraction of the particle's total lifetime.
-
-* **`from_end`** (bool): If `True`, the animation will start at the end of the particle's life, finishing exactly at the moment of its disappearance.
+* **`animation_mode`** (string): Playback mode:
+    - `"once"` (default): Plays once and freezes at the final value.
+    - `"loop"`: When completed, it instantly jumps to the beginning and repeats.
+    - `ping-pong"`: Reaches the end, smoothly returns to the beginning, and so on in a circle.
 
 ### Usage Examples
 
@@ -1045,6 +1114,45 @@ on update:
 **Available Properties:** alpha, zoom, xzoom, yzoom, rotate, xpos, ypos, and other `Transform` properties.
 
 > **Important Note**: Keep in mind that property transformation is a relatively expensive operation for RenPy, so using a `tween` handler significantly burdens the CPU. However, increasing the number of `tween` blocks has a relatively minor impact on performance because **RenParticles** uses **Lazy Rendering** and `tween` leverages this mechanism. All `tween` blocks merely send a new transformation to a queue, and the engine applies them all at once at the end of the frame. More details in Developer_En.md (section *Visualization Management*)
+
+---
+
+## Handler: `color_curve`
+
+| Example |
+| :---: |
+| ![sparkles_v2](../gif_examples/sparkles_v2.gif) |
+
+Allows a particle to change color during its life cycle.
+
+**Parameters:**
+
+* **"colors"** (list of colors) — answers to these questions (strings "#hex", "tuples" (r,g,b) or the notation "Color"). There must be at least 2 colors for animation.
+* **`warper`** (string): The interpolation function (names of standard [Ren'Py warpers](https://www.renpy.org/doc/html/transforms.html#warpers): `"linear"`, `"ease"`, `"easein_expo"`, `"easein_circ"`, etc.). Default `"linear"`.
+
+**Example (Cooling spark effect):**
+
+```renpy
+on update:
+    move id "move":
+        velocity [0, -200]
+        velocity_range [250, 75]
+        acceleration [0, 600]
+
+    # Imitation of a "cooling" spark
+    color_curve:
+        colors ["#ffffff", "#ffcc00", "#ff4400", "#33333300"]
+        warper "easein_quad"
+
+    face_velocity:
+        target_behavior_id "move"
+        base_angle
+
+    auto_expire
+
+```
+
+>**Important**: You must set the lifetime of the particles. Otherwise, you will get an error when you try to display the particle system on the screen.
 
 ---
 
