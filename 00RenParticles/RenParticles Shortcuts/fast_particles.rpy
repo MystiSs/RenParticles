@@ -14,8 +14,12 @@ init -555 python in renparticles:
             "simple_move": SimpleMove,
             "move": Move,
             "oscillate": OscillateMove,
+            "friction": Friction,
+            "bounce": Bounce,
+            "attractor": Attractor,
 
             "orbit_mouse": OrbitCursorUpdate,
+            "orbit_point": OrbitPoint,
 
             "tween": PropertyTween,
             "rotate": RotateBehavior,

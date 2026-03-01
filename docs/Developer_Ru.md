@@ -462,6 +462,11 @@ class RenSprite(Sprite):
     def queue_transform_additive(self, **properties):
         """Складывает новые свойства с уже стоящими в очереди."""
         # Поддерживает числа (int/float) и векторы (list/tuple)
+        ...
+
+    def get_transform_from_queue(self, property_key):
+        """Попытка найти свойство в очереди трансформаций."""
+            return self.queued_transforms.get(property_key, None)
 
 ```
 

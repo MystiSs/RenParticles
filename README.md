@@ -6,7 +6,7 @@ Ver. ¯\\_(ツ)_/¯
 
 | What you can create |
 | :---: |
-| ![what you can create](gif_examples/what_you_can_create.gif) |
+| ![what you can create](gif_examples/attractor.gif) |
 
 # Table of Contents
 

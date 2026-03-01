@@ -7,19 +7,7 @@ init -1115 python in renparticles:
     import random
 
 
-    class OrbitCursorUpdate(_Behavior):
-        """
-        Behavior that makes particles orbit around the cursor position.
-        
-        Parameters:
-            radius: optimal orbit radius (default 100)
-            speed: rotation speed (default 2.0)
-            speed_variance: speed variation (default 0.5) - each particle has its own speed
-            pull_strength: orbit attraction strength (default 0.1)
-            clockwise: rotation direction (default True)
-            screen_bounds: whether to keep particles within screen bounds (default False)
-        """
-        
+    class OrbitCursorUpdate(_Behavior):    
         radius = 100.0
         speed = 10.0
         speed_variance = 0.5
@@ -94,6 +82,72 @@ init -1115 python in renparticles:
                     particle.y = 2
                 elif particle.y > system.height - 2:
                     particle.y = system.height - 2
+            
+            return UpdateState.Pass
+    
+    class OrbitPoint(_UpdateBehavior):        
+        center = _RequiredField()
+        radius = 100.0
+        speed = 10.0
+        speed_variance = 0.5
+        pull_strength = 0.5
+        clockwise = True
+        screen_bounds = True
+        
+        _RENP_ORBIT = "_orbit_speed"
+        _COUNTER = 0
+        
+        def __init__(self):
+            self._RENP_ORBIT = "{}_{}".format(self._RENP_ORBIT, self._COUNTER)
+            self._COUNTER += 1
+        
+        def __call__(self, context):
+            particle = context.particle
+            delta = context.delta
+            particles_props = context.system.particles_data.particles_properties
+            
+            center_x, center_y = self.center
+            
+            particle_data = particles_props[particle]
+            
+            if self._RENP_ORBIT not in particle_data:
+                variance_factor = random.uniform(1.0 - self.speed_variance, 1.0 + self.speed_variance)
+                particle_data[self._RENP_ORBIT] = self.speed * variance_factor
+            
+            particle_speed = particle_data[self._RENP_ORBIT]
+            
+            dx = particle.x - center_x
+            dy = particle.y - center_y
+            distance = math.hypot(dx, dy)
+            
+            if distance < 1:
+                angle = random.uniform(0, 2 * math.pi)
+                particle.x = center_x + math.cos(angle) * self.radius
+                particle.y = center_y + math.sin(angle) * self.radius
+                return UpdateState.Pass
+            
+            nx = dx / distance
+            ny = dy / distance
+            
+            dir_sign = 1 if self.clockwise else -1
+            
+            perp_x = -ny * dir_sign
+            perp_y = nx * dir_sign
+            
+            target_x = center_x + nx * self.radius
+            target_y = center_y + ny * self.radius
+            
+            rotation_offset = particle_speed * delta * self.radius
+            target_x += perp_x * rotation_offset
+            target_y += perp_y * rotation_offset
+            
+            particle.x += (target_x - particle.x) * self.pull_strength
+            particle.y += (target_y - particle.y) * self.pull_strength
+            
+            if self.screen_bounds:
+                system = context.system
+                particle.x = max(2, min(system.width - 2, particle.x))
+                particle.y = max(2, min(system.height - 2, particle.y))
             
             return UpdateState.Pass
     

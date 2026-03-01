@@ -45,6 +45,7 @@ python early:
 
         SYSTEM_ID = "system_id"
         TARGET_SYSTEM = "renp_target_system"
+        BEHAVIOR_ID = "renp_behavior_id"
 
         SPRITE = "sprite"
         IMAGES = "images"
@@ -70,6 +71,8 @@ python early:
         ON_PARTICLE_DEAD = "on particle dead"
 
         PRESET_TYPE = "type"
+
+        BEHAVIOR_ID = "id"
 
         EMITTER = "emitter"
 
@@ -97,6 +100,8 @@ python early:
         "fastest",
         "fast"
     }
+
+    renp_renpy_reserved_words = { "move" }
 
     def renp_parse_fast_particles_show(lexer):
         data = {
@@ -451,7 +456,7 @@ python early:
             result = [_renp_eval_props(item) for item in props_raw]
             return type(props_raw)(result)
         
-        elif isinstance(props_raw, basestring):
+        elif isinstance(props_raw, basestring) and props_raw not in renp_renpy_reserved_words:
             try:
                 return eval(props_raw)
             except:
@@ -502,9 +507,9 @@ python early:
 
     def _renp_parse_custom_keyword(lexer, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
         func = lexer.simple_expression()
-        properties = { _RenPKeywords.ONESHOT: "False" }
+        properties = { _RenPKeywords.ONESHOT: "False", _RenPKeywords.BEHAVIOR_ID: None }
 
-        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False }
+        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False, _RenPKeywords.BEHAVIOR_ID: False }
         
         was_delim = False
         while not lexer.eol():
@@ -521,6 +526,13 @@ python early:
 
                 properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
                 seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
+            
+            elif lexer.keyword(_RenPLexerKeywords.BEHAVIOR_ID):
+                if seen[_RenPKeywords.BEHAVIOR_ID]:
+                    lexer.error("only one behavior 'id' instruction allowed")
+
+                properties[_RenPKeywords.BEHAVIOR_ID] = lexer.string()
+                seen[_RenPKeywords.BEHAVIOR_ID] = True
 
             elif lexer.match(':'):
                 lexer.expect_eol()
@@ -536,9 +548,9 @@ python early:
 
     def _renp_parse_shortcut(lexer, what_block=_RenPKeywords.BEHAVIORS, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
         shortcut = lexer.word()
-        properties = { _RenPKeywords.ONESHOT: "False" }
+        properties = { _RenPKeywords.ONESHOT: "False", _RenPKeywords.BEHAVIOR_ID: None }
 
-        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False }
+        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False, _RenPKeywords.BEHAVIOR_ID: False }
 
         was_delim = False
         while not lexer.eol():
@@ -555,6 +567,13 @@ python early:
 
                 properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
                 seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
+            
+            elif lexer.keyword(_RenPLexerKeywords.BEHAVIOR_ID):
+                if seen[_RenPKeywords.BEHAVIOR_ID]:
+                    lexer.error("only one behavior 'id' instruction allowed")
+
+                properties[_RenPKeywords.BEHAVIOR_ID] = lexer.string()
+                seen[_RenPKeywords.BEHAVIOR_ID] = True
 
             elif lexer.match(':'):
                 lexer.expect_eol()
@@ -566,7 +585,11 @@ python early:
         if expect_eol:
             lexer.expect_eol()
 
-        return {_RenPKeywords.SHORTCUT: shortcut, _RenPKeywords.SHORTCUTS_BLOCK: what_block, _RenPKeywords.PROPERTIES: properties, _RenPKeywords.TYPE: _RenParserType.Shortcut}
+        return {_RenPKeywords.SHORTCUT: shortcut,
+                _RenPKeywords.SHORTCUTS_BLOCK: what_block,
+                _RenPKeywords.PROPERTIES: properties,
+                _RenPKeywords.TYPE: _RenParserType.Shortcut
+                }
 
     def _renp_parse_preset(lexer, what_type=_RenParserType.GeneralPreset):
         shortcut_data = _renp_parse_shortcut(lexer, _RenPKeywords.PRESETS, False)

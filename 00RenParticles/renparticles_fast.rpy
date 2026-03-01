@@ -134,14 +134,20 @@ init -1337 python in renparticles:
             self.particles_data = particles_data
             self.redraw = redraw
 
-            self._set_on_update(on_update)
-            self._set_on_update_emitters_from_update_list()
-            self._set_on_event(on_event)
-            self._set_on_particle_dead(on_particle_dead)
+            self.behaviors_by_id = { }
+
+            self.on_update = [ ]
+            self.on_event = [ ]
+            self.on_particle_dead = [ ]
             self.oneshotted_on_update = [ ]
             self.oneshotted_on_update_emitters = [ ]
             self.oneshotted_on_event = [ ]
             self.oneshotted_on_dead = [ ]
+            self._set_on_update(on_update)
+            self._set_on_update_emitters_from_update_list()
+            self._set_on_event(on_event)
+            self._set_on_particle_dead(on_particle_dead)
+
 
             self.on_update_raw = on_update
             self.on_event_raw = on_event
@@ -155,6 +161,9 @@ init -1337 python in renparticles:
             self._frozen = False
 
             self._init_contexts()
+
+        def get_behavior_by_id(self, behavior_id):
+            return self.behaviors_by_id.get(behavior_id, None)
 
         def get_info(self):
             lines = ['\n']
@@ -208,13 +217,28 @@ init -1337 python in renparticles:
             self._event_ctx = EventContext(self._update_ctx)
             self._particle_dead_ctx = ParticleDeadContext(self._update_ctx)
 
-        def _set_on_update(self, on_update):
-            if on_update is None:
-                self.on_update = []
-            elif callable(on_update):
-                self.on_update = [(on_update, {"oneshot": False})]
+        def _process_behavior_list(self, source, target_list):
+            if source is None:
+                return []
+            elif callable(source) and issubclass(source, _Behavior):
+                return [(source, {"oneshot": False})]
             else:
-                self.on_update = [(func, props) for func, props in on_update]
+                result = [ ]
+                for func, props in source:
+                    behavior_id = props.get("renp_behavior_id")
+                    if behavior_id is not None:
+                        self.behaviors_by_id[behavior_id] = func
+                    result.append((func, props))
+                return result
+
+        def _set_on_update(self, on_update):
+            self.on_update = self._process_behavior_list(on_update, self.on_update)
+
+        def _set_on_event(self, on_event):
+            self.on_event = self._process_behavior_list(on_event, self.on_event)
+
+        def _set_on_particle_dead(self, on_particle_dead):
+            self.on_particle_dead = self._process_behavior_list(on_particle_dead, self.on_particle_dead)
 
         def _set_on_update_emitters_from_update_list(self):
             new_on_update = []
@@ -228,22 +252,6 @@ init -1337 python in renparticles:
 
             self.on_update = new_on_update
             self.on_update_emitters = emitters
-
-        def _set_on_event(self, on_event):
-            if on_event is None:
-                self.on_event = []
-            elif callable(on_event):
-                self.on_event = [(on_event, {"oneshot": False})]
-            else:
-                self.on_event = [(func, props) for func, props in on_event]
-
-        def _set_on_particle_dead(self, on_particle_dead):
-            if on_particle_dead is None:
-                self.on_particle_dead = []
-            elif callable(on_particle_dead):
-                self.on_particle_dead = [(on_particle_dead, {"oneshot": False})]
-            else:
-                self.on_particle_dead = [(func, props) for func, props in on_particle_dead]
 
         def _get_lifetime(self):
             if self.particles_data is None or self.particles_data.lifetime_type is None or self.particles_data.lifetime_timings is None:
@@ -268,6 +276,7 @@ init -1337 python in renparticles:
             self.destroy_all()
             self.particles_queue.clear()
 
+            self.behaviors_by_id.clear()
             self._set_on_update(self.on_update_raw)
             self._set_on_update_emitters_from_update_list()
             self._set_on_event(self.on_event_raw)
@@ -296,6 +305,9 @@ init -1337 python in renparticles:
             s.set_child(d)
 
             self.particles_queue.append(s)
+
+            #Логично же. Чего я об этом не додумался -_-#
+            self.particles_data.particles_properties[s] = { }
 
             return s
 

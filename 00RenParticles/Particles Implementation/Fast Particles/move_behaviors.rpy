@@ -4,6 +4,8 @@
 
 init -1115 python in renparticles:
     import random
+    import math
+    from builtins import min, max
 
 
     class SimpleMove(_Behavior):
@@ -19,6 +21,9 @@ init -1115 python in renparticles:
             self.velocity_range = SimpleMove.velocity_range[:]
             self._RENP_VEL = "{}_{}".format(Move._RENP_VEL, self._RENP_ACC)
             Move._RENP_ACC += 1
+
+        def get_key(self):
+            return self._RENP_VEL
 
         @property
         def xspeed(self):
@@ -81,7 +86,10 @@ init -1115 python in renparticles:
             particle = context.particle
             delta = context.delta
 
-            particle_data = context.system.particles_data.particles_properties.setdefault(particle, {})
+            particle_data = context.system.particles_data.particles_properties.get(particle, None)
+            if particle_data is None:
+                return UpdateState.Pass
+
             if self._RENP_VEL not in particle_data:
                 particle_data[self._RENP_VEL] = self._get_velocity()
             velocity = particle_data[self._RENP_VEL]
@@ -171,7 +179,9 @@ init -1115 python in renparticles:
             delta = context.delta
             particles_props = context.system.particles_data.particles_properties
 
-            particle_data = particles_props.setdefault(particle, {})
+            particle_data = particles_props.get(particle, None)
+            if particle_data is None:
+                return UpdateState.Pass
 
             if self._RENP_VEL not in particle_data:
                 particle_data[self._RENP_VEL] = self._get_velocity()
@@ -365,10 +375,11 @@ init -1115 python in renparticles:
         def __call__(self, context):
             particle = context.particle
             delta = context.delta
-            particles_props = context.system.particles_data.particles_properties
             
-            particle_data = particles_props.setdefault(particle, {})
-            
+            particle_data = system.particles_data.particles_properties.get(particle, None)
+            if particle_data is None:
+                return UpdateState.Pass
+                        
             if self._RENP_OSC_DATA not in particle_data:
                 particle_data[self._RENP_OSC_DATA] = self._get_osc_data()
             
@@ -380,5 +391,279 @@ init -1115 python in renparticles:
             
             particle.x += dx * delta
             particle.y += dy * delta
+            
+            return UpdateState.Pass
+
+    class Friction(_UpdateBehavior):     
+        target_behavior_id = _RequiredField()
+        friction = 0.1
+        per_axis = True
+        min_speed = 0.01
+
+        _key_cached = None
+        
+        _RENP_FRICTION = "_renp_friction"
+        _COUNTER = 0
+        
+        def __init__(self):
+            self._RENP_FRICTION = "{}_{}".format(self._RENP_FRICTION, self._COUNTER)
+            self._COUNTER += 1
+            self._target_behavior = None
+        
+        def _get_target_behavior(self, system):
+            if self._target_behavior is None and self.target_behavior_id:
+                self._target_behavior = system.get_behavior_by_id(self.target_behavior_id)
+            return self._target_behavior
+        
+        def __call__(self, context):
+            particle = context.particle
+            delta = context.delta
+            system = context.system
+
+            particle_data = system.particles_data.particles_properties.get(particle, None)
+            if particle_data is None:
+                return UpdateState.Pass
+            
+            if self._target_behavior is None and self.target_behavior_id:
+                self._target_behavior = system.get_behavior_by_id(self.target_behavior_id)
+            
+            target = self._target_behavior
+            if target is None:
+                return UpdateState.Pass
+                        
+            if self._key_cached is None:
+                if hasattr(target, "get_key"):
+                    self._key_cached = target.get_key()
+            
+            vel_key = self._key_cached
+            if not vel_key or vel_key not in particle_data:
+                return UpdateState.Pass
+            
+            vel = particle_data[vel_key]
+            factor = 1.0 - self.friction * delta
+            
+            if self.per_axis:
+                x, y = vel
+                new_vel = [x * factor, y * factor]
+            else:
+                speed = math.hypot(vel[0], vel[1])
+                if speed > self.min_speed:
+                    new_speed = max(0, speed - self.friction * speed * delta)
+                    if new_speed > 0:
+                        ratio = new_speed / speed
+                        x, y = vel
+                        new_vel = [x * ratio, y * ratio]
+                    else:
+                        new_vel = [0.0, 0.0]
+                else:
+                    new_vel = [0.0, 0.0]
+            
+            particle_data[vel_key] = new_vel
+            
+            return UpdateState.Pass
+
+    class Bounce(_UpdateBehavior):        
+        target_behavior_id = _RequiredField()
+        restitution = 0.8
+        margin = 0
+        bounce_axes = "both"
+        
+        _RENP_BOUNCE = "_renp_bounce"
+        _COUNTER = 0
+        
+        def __init__(self):
+            self._RENP_BOUNCE = "{}_{}".format(self._RENP_BOUNCE, self._COUNTER)
+            self._COUNTER += 1
+            self._target_behavior = None
+            self._key_cached = None
+            self._sprite_size = None
+        
+        def _get_margins(self, system):
+            if isinstance(self.margin, (int, float)):
+                return (self.margin, self.margin, self.margin, self.margin)
+            elif isinstance(self.margin, (list, tuple)):
+                if len(self.margin) == 2:
+                    h, v = self.margin
+                    return (h, v, h, v)
+                elif len(self.margin) == 4:
+                    return tuple(self.margin)
+            return (0, 0, 0, 0)
+        
+        def _get_sprite_size(self, particle):
+            if self._sprite_size is None and particle.cache and particle.cache.render:
+                w, h = particle.cache.render.get_size()
+                self._sprite_size = (w, h)
+            return self._sprite_size or (0, 0)
+        
+        def _check_bounds(self, x, y, w, h, system, margins):
+            left = margins[0]
+            top = margins[1]
+            right = system.width - margins[2]
+            bottom = system.height - margins[3]
+            
+            hit_x = False
+            hit_y = False
+            
+            if self.bounce_axes in ("both", "x"):
+                if x - w/2 < left:
+                    x = left + w/2
+                    hit_x = True
+                elif x + w/2 > right:
+                    x = right - w/2
+                    hit_x = True
+            
+            if self.bounce_axes in ("both", "y"):
+                if y - h/2 < top:
+                    y = top + h/2
+                    hit_y = True
+                elif y + h/2 > bottom:
+                    y = bottom - h/2
+                    hit_y = True
+            
+            return x, y, hit_x, hit_y
+        
+        def _apply_bounce_to_velocity(self, vel, hit_x, hit_y):
+            new_vel = list(vel)
+            if hit_x:
+                new_vel[0] = -new_vel[0] * self.restitution
+            if hit_y:
+                new_vel[1] = -new_vel[1] * self.restitution
+            
+            return new_vel
+        
+        def __call__(self, context):
+            particle = context.particle
+            delta = context.delta
+            system = context.system
+            props = system.particles_data.particles_properties
+            
+            if self._target_behavior is None and self.target_behavior_id:
+                self._target_behavior = system.get_behavior_by_id(self.target_behavior_id)
+            
+            target = self._target_behavior
+            if target is None:
+                return UpdateState.Pass
+            
+            particle_data = props.get(particle, None)
+            if particle_data is None:
+                return UpdateState.Pass
+            
+            if self._key_cached is None:
+                if hasattr(target, "get_key"):
+                    self._key_cached = target.get_key()
+            
+            vel_key = self._key_cached
+            if not vel_key or vel_key not in particle_data:
+                return UpdateState.Pass
+            
+            vel = particle_data[vel_key]
+            
+            w, h = self._get_sprite_size(particle)
+            margins = self._get_margins(system)
+            
+            new_x, new_y, hit_x, hit_y = self._check_bounds(
+                particle.x, particle.y, w, h, system, margins
+            )
+            
+            if hit_x or hit_y:
+                particle.x = new_x
+                particle.y = new_y
+                
+                new_vel = self._apply_bounce_to_velocity(vel, hit_x, hit_y)
+                particle_data[vel_key] = new_vel
+            
+            return UpdateState.Pass
+
+    class Attractor(_UpdateBehavior):      
+        target = _RequiredField()
+        strength = 500.0
+        radius = 0.0
+        falloff = 1.0
+        min_distance = 5.0
+        max_speed = 1000.0
+        screen_bounds = True
+        
+        _RENP_ATTRACTOR = "_attractor_vel"
+        _COUNTER = 0
+        
+        def __init__(self):
+            self._RENP_ATTRACTOR = "{}_{}".format(self._RENP_ATTRACTOR, self._COUNTER)
+            self._COUNTER += 1
+        
+        def _get_target_position(self):
+            if self.target == "mouse":
+                return renpy.get_mouse_pos()
+            else:
+                return self.target
+        
+        def _calculate_force(self, dx, dy, distance):
+            if distance < self.min_distance:
+                return (0, 0)
+            
+            nx = dx / distance
+            ny = dy / distance
+            
+            if self.radius > 0 and distance > self.radius:
+                return (0, 0)
+            
+            if self.falloff == 0:
+                force = self.strength
+            elif self.falloff == 1:
+                if self.radius > 0:
+                    t = 1.0 - (distance / self.radius)
+                    force = self.strength * t
+                else:
+                    force = self.strength / max(distance, self.min_distance)
+            else:
+                force = self.strength / (distance ** self.falloff)
+            
+            return nx * force, ny * force
+        
+        def __call__(self, context):
+            particle = context.particle
+            delta = context.delta
+            system = context.system
+            props = system.particles_data.particles_properties
+
+            if particle not in props:
+                return UpdateState.Pass
+            
+            target_pos = self._get_target_position()
+            if target_pos is None:
+                return UpdateState.Pass
+            
+            tx, ty = target_pos
+            
+            if tx < 0 or ty < 0:
+                return UpdateState.Pass
+            
+            particle_data = props[particle]
+            
+            if self._RENP_ATTRACTOR not in particle_data:
+                particle_data[self._RENP_ATTRACTOR] = [0.0, 0.0]
+            
+            vel = particle_data[self._RENP_ATTRACTOR]
+            
+            dx = tx - particle.x
+            dy = ty - particle.y
+            distance = math.hypot(dx, dy)
+            
+            fx, fy = self._calculate_force(dx, dy, distance)
+            
+            vel[0] += fx * delta
+            vel[1] += fy * delta
+            
+            speed = math.hypot(vel[0], vel[1])
+            if speed > self.max_speed:
+                ratio = self.max_speed / speed
+                vel[0] *= ratio
+                vel[1] *= ratio
+            
+            particle.x += vel[0] * delta
+            particle.y += vel[1] * delta
+            
+            if self.screen_bounds:
+                particle.x = max(2, min(system.width - 2, particle.x))
+                particle.y = max(2, min(system.height - 2, particle.y))
             
             return UpdateState.Pass

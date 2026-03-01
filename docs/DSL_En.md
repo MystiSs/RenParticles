@@ -19,16 +19,24 @@
     * [Emitter: interval_spray](#emitter-mouse_interval)
 * [Handler-Emitter: fragmentation (interval_fragmentation_per_particle)](#handler-fragmentation-interval_fragmentation_per_particle)
 * [Particle Behaviors](#particle-behaviors)
-    * [Handler: auto_expire](#handler-auto_expire-or-preset-auto_expire)
-    * [Handler: `bounds_killer`](#handler-bounds_killer-or-preset-bounds_killer)
-    * [Handler: move](#handler-move)
-    * [Handler: simple_move](#handler-simple_move)
-    * [Handler: rotate](#handler-rotate)
-    * [Handler: flicker](#handler-flicker)
-    * [Handler: oscillate](#handler-oscillate)
-    * [Handler: orbit_mouse](#handler-orbit_mouse-or-preset-orbit_mouse)
-    * [Handler: repulsor](#handler-repulsor)
-    * [Handler: tween](#handler-tween)
+    * [What Are They?](#what-are-they)
+    * [Behavior Identifiers (id)](#behavior-identifiers-id)
+---
+* [Handler: auto_expire](#handler-auto_expire-or-preset-auto_expire)
+* [Handler: bounds_killer](#handler-bounds_killer-or-preset-bounds_killer)
+* [Handler: move](#handler-move)
+* [Handler: simple_move](#handler-simple_move)
+* [Handler: friction](#handler-friction)
+* [Handler: bounce](#handler-bounce)
+* [Handler: rotate](#handler-rotate)
+* [Handler: flicker](#handler-flicker)
+* [Handler: oscillate](#handler-oscillate)
+* [Handler: orbit_mouse](#handler-orbit_mouse-or-preset-orbit_mouse)
+* [Handler: orbit_point](#handler-orbit_point)
+* [Handler: attractor](#handler-attractor)
+* [Handler: repulsor](#handler-repulsor)
+* [Handler: tween](#handler-tween)
+---
 * [Presets](#presets)
     * [Built-in Presets](#built-in-presets)
     * [Creating Custom Presets](#creating-custom-presets)
@@ -163,7 +171,7 @@ on particle dead:
 
 Emitters create new particles.
 
-### Emitter: spray
+### Emitter: `spray`
 
 Creates particles all at once:
 
@@ -177,7 +185,7 @@ emitter spray oneshot:
 - `amount` — number of particles (required)
 - `area` — generation area `(x1, y1, width, height)` (defaults to the entire screen)
 
-### Emitter: interval_spray
+### Emitter: `interval_spray`
 
 Creates particles at intervals:
 
@@ -222,7 +230,7 @@ rparticles as cursor_trail:
 
 ---
 
-## Handler-Emitter: fragmentation (interval_fragmentation_per_particle)
+## Handler-Emitter: `fragmentation (interval_fragmentation_per_particle)`
 
 This handler allows one system (the donor) to create particles in another system (the receiver). It is used for creating trails, cascading explosions, or complex weather effects.
 
@@ -238,9 +246,11 @@ interval_fragmentation_per_particle system "target_system_id":
 
 ### Parameters:
 
-* **`system "id"`** (string): The unique identifier of the target system where new particles will be born.
+* **`system "id"`** (string): The unique identifier of the target system where new particles will be born. Optional parameter.
+>If you set an invalid `id`, the system will create particles in the current system.
 * **`amount`** (integer): How many particles are created at once when the interval triggers.
 * **`interval`** (float): The delay between generation cycles.
+* **`fallback_position`** (2 numbers): The particle creation position, if the emitter is specified using the keyword `emitter`.
 
 ### Operational Nuances and Architecture
 
@@ -299,6 +309,90 @@ rparticles define multiple "projectile":
 ---
 
 ## Particle Behaviors
+
+### What Are They?
+
+**Behaviors** are the building blocks of logic that create particle effects.
+
+They work as **commands for each particle**:
+- `move` — controls physics-based movement
+- `rotate` — rotates the sprite
+- `attractor` — attracts to a point
+- `friction` — slows down movement
+- `tween` — smoothly animates properties
+
+```renpy
+on update:
+    move:                 # movement behavior
+        velocity [100, 0]
+    
+    rotate:               # rotation behavior
+        speed 360
+    
+    attractor:            # attraction behavior
+        target mouse
+        strength 500
+```
+
+### Behavior Identifiers (id)
+
+Each behavior can be assigned a unique identifier using the `id` keyword on the same line:
+
+```renpy
+on update:
+    move id "player_movement":
+        velocity [100, 0]
+        acceleration [0, 200]
+    
+    friction:
+        target_behavior_id "player_movement"
+        friction 0.3
+    
+    rotate id "spin":
+        speed 360
+        phase_range 360
+```
+
+**Why Use IDs:**
+
+1. **Inter-Behavior Communication**: One behavior can reference another via `target_behavior_id`. For example, `friction` slows down a specific movement, not all at once.
+
+2. **Debugging and Control**: Easily identify specific behaviors within the system.
+
+3. **Code Readability**: Names make the code self-documenting.
+
+4. **Extensibility**: Enables complex interaction chains between independent behaviors.
+
+**How It Works:**
+- ID must be unique within a single particle system
+- Set immediately after the behavior name, before the parameter block
+- Case-sensitive
+- Can contain letters, numbers, and underscores
+
+**Example with Multiple IDs:**
+
+```renpy
+on update:
+    simple_move id "bullet_motion":
+        velocity [500, 0]
+    
+    attractor id "gravity_well":
+        target (960, 540)
+        strength 3000
+    
+    friction id "air_resistance":
+        target_behavior_id "bullet_motion"  # References the simple_move behavior
+        friction 0.1
+    
+    rotate id "tumble":
+        speed 720
+        phase_range 360
+```
+
+> **Note:** The ID system is especially useful when combining behaviors that modify each other (e.g., `friction`, `bounce` bound to a specific movement).
+```
+
+---
 
 ### Handler: auto_expire or preset: auto_expire
 
@@ -454,14 +548,72 @@ on update:
 3.  **State Preservation**: The velocity vector is stored in `particles_properties` under the unique key `_renp_simple_vel_<id>`. This ensures that even if the system is `freeze`d or paused, the particle will continue moving along the same trajectory when resumed.
 4.  **Delta-time**: The position is updated using the frame time (`delta`), ensuring consistent movement speed at both 30 FPS and 144 FPS.
 
-### Comparison with Move:
+### Comparison with `move`:
 
-| Feature | Move | SimpleMove |
+| Feature | move | simple_move |
 | --- | --- | --- |
 | **Acceleration** | Supported | No |
 | **Trajectory** | Parabolic (curved) | Straight line |
 | **Load** | Medium | Low |
 | **Application** | Gravity, physics, smoke | Precipitation, bullets, simple backgrounds |
+
+---
+
+## Handler: `friction`
+
+Simulates friction or air resistance by gradually slowing down a particle. Instead of moving the particle itself, it directly modifies the velocity vector of another behavior (like `move` or `simple_move`).
+
+**Parameters:**
+
+* **`target_behavior_id`** (string, **required**) — The `id` of the behavior whose velocity should be dampened.
+> The handler by `id` must have the `.get_key()` method. The system handlers `move` and `simple_move` have this method by default. If there is no such method, then `friction` will not do anything.
+* **`friction`** (float) — Friction strength. Higher values lead to faster deceleration. Default is `0.1`.
+* **`per_axis`** (boolean) — If `True`, friction is applied to each axis independently. If `False`, it dampens the overall speed vector. Default is `True`.
+* **`min_speed`** (float) — The speed threshold below which the particle is considered stopped. Default is `0.01`.
+
+**Usage Example:**
+
+```renpy
+on update:
+    # Define movement with a specific ID
+    simple_move id "bullet_speed":
+        velocity [1000, 200]
+    
+    # Apply friction to that movement
+    friction:
+        target_behavior_id "bullet_speed"
+        friction 5.0
+        min_speed 0.1
+```
+---
+
+## Handler: `bounce`
+
+Enables particles to bounce off screen boundaries or custom margins. It requires a movement behavior (e.g., `move`) to function properly.
+
+**Parameters:**
+
+* **`target_behavior_id`** (string, **required**) — The ID of the movement behavior whose velocity will be inverted upon impact.
+* **`restitution`** (float) — Energy recovery coefficient (`0.0` to `1.0`).
+* * `1.0`: Perfectly elastic bounce (no speed loss).
+* * `0.0`: Particle "sticks" to the boundary.
+* **`margin`** (float/tuple) — Screen boundary offsets.
+* * Single number: uniform margin for all sides.
+* * List `[left, top, right, bottom]`: unique offsets for each side.
+* **`bounce_axes`** (string) — Axis to bounce on: `"both"`, `"x"`, or `"y"`.
+
+**Usage Example:**
+
+```renpy
+on update:
+    simple_move id "projectile":
+        velocity [500, 500]
+    
+    bounce:
+        target_behavior_id "projectile"
+        restitution 0.9
+        bounce_axes "both"
+```
 
 ---
 
@@ -664,6 +816,68 @@ on update:
 ### Developer Note:
 
 This handler works best as the **sole** position controller. If you add `move` or `oscillate` in the same `on update` block, particles may behave unpredictably (shake or spiral away), as `orbit_mouse` constantly overwrites the `particle.x/y` coordinates, trying to return them to the orbit. However, experimentation is not forbidden :).
+
+---
+
+## Handler: `orbit_point`
+
+Functionally similar to `orbit_mouse`, but uses a static screen coordinate as its anchor. Particles gravitate toward a defined radius and rotate around the center point.
+
+**Parameters:**
+
+* **`center`** (2D tuple, **required**) — The orbit center coordinates `(x, y)`.
+* **`radius`** (float) — Target orbit radius in pixels. Default is `100.0`.
+* **`speed`** (float) — Base rotation speed. Default is `10.0`.
+* **`speed_variance`** (float) — Speed variation per particle (from 0.0 to 1.0). Default is `0.5`.
+* **`pull_strength`** (float) — "Gravity" strength toward the radius (from 0.0 to 1.0). Controls how fast particles snap to the circle. Default is `0.5`.
+* **`clockwise`** (boolean) — Rotation direction. `True` for clockwise. Default is `True`.
+* **`screen_bounds`** (boolean) — Keep particles within screen limits. Default is `True`.
+
+**Usage Example:**
+
+```renpy
+on update:
+    orbit_point:
+        center (1280, 720)
+        radius 150
+        speed 20.0
+        clockwise False
+```
+
+---
+
+## Handler: `attractor`
+
+Creates a point of attraction (or repulsion) that influences particles using force-based physics. Unlike `orbit`, it applies acceleration, resulting in natural inertial movement.
+
+| Example |
+| :---: |
+| ![attractor-center](../gif_examples/attractor.gif) |
+
+**Parameters:**
+
+* **`target`** ("mouse"/tuple, **required**) — Attraction point. Either `"mouse"` or a coordinate tuple `(x, y)`.
+* **`strength`** (float) — Attraction force. Positive attracts, negative repels. Default is `500.0`.
+* **`radius`** (float) — Effective radius. `0.0` means it affects the entire screen. Default is `0.0`.
+* **`falloff`** (float) — How the force diminishes over distance:
+* * `0.0`: Constant force regardless of distance.
+* * `1.0`: Linear falloff (like gravity).
+* * `2.0+`: Exponential falloff (like magnetic force).
+
+* **`max_speed`** (float) — Velocity cap to prevent particles from accelerating to infinity. Default is `1000.0`.
+* **`screen_bounds`** (boolean) — Keep particles within screen limits. Default is `True`.
+
+**Usage Example:**
+
+```renpy
+on update:
+    # Magnetic cursor effect
+    attractor:
+        target "mouse"
+        strength 1500.0
+        radius 400.0
+        falloff 1.5
+```
 
 ---
 

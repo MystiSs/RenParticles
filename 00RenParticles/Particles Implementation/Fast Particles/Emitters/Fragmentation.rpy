@@ -29,6 +29,7 @@ init -1115 python in renparticles:
     class EmitterIntervalRemoteSpawn(_Behavior):
             per_amount = 1
             interval = 0.0
+            fallback_position = (0, 0)
 
             _RENP_INT_REM_EM = "_renp_int_rem_em"        
             _RENP_INT_REM_EM_COUNTER = 0
@@ -74,8 +75,8 @@ init -1115 python in renparticles:
 
                 target_system = self.get_system(context, self.renp_target_system)
 
-                spawn_x = particle.x if particle else 0
-                spawn_y = particle.y if particle else 0
+                spawn_x = particle.x if particle else self.fallback_position[0]
+                spawn_y = particle.y if particle else self.fallback_position[1]
                 images = target_system.particles_data.images
 
                 for i in range(self.per_amount):

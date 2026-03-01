@@ -1,27 +1,43 @@
 init 100:
-    rparticles define multiple "renparticles_test_model":
+    rparticles define "renparticles_test_model":
         redraw asap
+        sprite expr Solid("#fdfdfdc2", xysize=(8, 8))
+        lifetime constant 2.0
 
-        system id "orbit":
-            sprite expr Solid("#e7a900", xysize=(24, 24)); expr Solid("#160094", xysize=(24, 24))
+        on update:
+            simple_move:
+                velocity [0.0, 0.0]
+                velocity_range [30.0, 30.0]
 
-            preset spray:
-                amount 3
-            preset orbit_mouse:
-                speed 10.0
-
-            on update:
-                interval_fragmentation_per_particle system "rain":
-                    amount 1
-                    interval 0.2
-        
-        system id "rain":
-            sprite expr Solid("#0064e7ab", xysize=(24, 24)); expr Solid("#001694ad", xysize=(24, 24))
-            lifetime constant 1.0
+            attractor:
+                target (960, 540)
+                falloff 0.25
+                strength 10000
             
-            preset auto_expire
+            tween:
+                block "alpha":
+                    mode "lifetime"
+                    from_end True
+                    time 0.5
+                    start_value 1.0
+                    end_value 0.0
+                block "zoom":
+                    mode "lifetime"
+                    time 0.5
+                    start_value 1.5
+                    end_value 0.5
+                    warper "ease"
+            
+            rotate:
+                speed 180.0
+                phase_range 360.0
+            
+            auto_expire
 
-            preset dynamic_preset_test
+        on event:
+            emitter mouse_interval_spray:
+                amount "infinite"
+                interval 0.075
 
 label renp_test_chamber:
     $ st_chmbr_test = False
@@ -30,7 +46,7 @@ label renp_test_chamber:
     scene black
     with dspr
 
-    jump renparticles_choice
+    #jump renparticles_choice
 
     "RenParticles"
 
