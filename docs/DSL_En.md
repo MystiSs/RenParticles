@@ -320,6 +320,7 @@ They work as **commands for each particle**:
 - `attractor` — attracts to a point
 - `friction` — slows down movement
 - `tween` — smoothly animates properties
+- etc.
 
 ```renpy
 on update:
@@ -358,8 +359,6 @@ on update:
 1. **Inter-Behavior Communication**: One behavior can reference another via `target_behavior_id`. For example, `friction` slows down a specific movement, not all at once.
 
 2. **Debugging and Control**: Easily identify specific behaviors within the system.
-
-3. **Code Readability**: Names make the code self-documenting.
 
 4. **Extensibility**: Enables complex interaction chains between independent behaviors.
 
