@@ -18,7 +18,6 @@ Here is the `Table of Contents` for your `Developer_En.md` file.
 * [Creating Emitters](#creating-emitters)
     * [1. Standard Emitter (`Emitter` Class)](#1-standard-emitter-emitter-class)
     * [2. Streaming Emitter (`_Behavior` Class)](#2-streaming-emitter-_behavior-class)
-    * [Comparison of Emitter Types](#comparison-of-emitter-types)
 * [Creating Presets](#creating-presets)
     * [1. Basic Preset Architecture](#1-basic-preset-architecture)
     * [2. Preset Creation Example (`RepulsorPreset`)](#2-preset-creation-example-repulsorpreset)
@@ -31,7 +30,7 @@ Here is the `Table of Contents` for your `Developer_En.md` file.
     * [3. Technical Registration Nuances](#3-technical-registration-nuances)
     * [4. Initialization Order (Priorities)](#4-initialization-order-priorities)
 * [Working with Particles](#working-with-particles)
-    * [RenSprite](#rensprite)
+    * [RenParticle](#rensprite)
     * [Visualization Management](#visualization-management)
     * [Practical Example: Creation and Configuration](#practical-example-creation-and-configuration)
     * [Nuance with `set_child`](#nuance-with-set_child)
@@ -51,7 +50,6 @@ Here is the `Table of Contents` for your `Developer_En.md` file.
     * [Output System Information](#output-system-information)
     * [Checking Particle State](#checking-particle-state)
 * [Advanced Patterns](#advanced-patterns)
-    * [Particle Pool](#particle-pool)
     * [Behavior Chains](#behavior-chains)
     * [Conditional Behaviors](#conditional-behaviors)
 * [API Reference](#api-reference)
@@ -260,7 +258,7 @@ class MyEmitter(Emitter):
             sprite.x = random.randint(self.spawn_area[0], self.spawn_area[2])
             sprite.y = random.randint(self.spawn_area[1], self.spawn_area[3])
             
-            # Set technical sprite properties (RenSprite)
+            # Set technical sprite properties (RenParticle)
             sprite.zorder = i
         
         return UpdateState.Pass
@@ -301,16 +299,6 @@ class MyEmitterPerParticle(_Behavior): # Streaming emitter
         particle = context.particle # Context is guaranteed to have a reference to the current particle
         ...
 ```
-
-### Comparison of Emitter Types
-
-| Feature | Standard (`Emitter`) | Streaming (`_Behavior`) |
-| --- | --- | --- |
-| **DSL Keyword** | `emitter <name>` | `<name>` |
-| **Loop Location** | Outside particle loop (separate list) | Inside particle loop |
-| **Access to `context.particle`** | **No** (`None`) | **Yes** (current particle) |
-| **Primary Use** | Global spawn, rain, explosions | Trails, sparks from particles, splitting |
-| **CPU Impact** | Minimal (called once per frame) | Depends on particle count (N calls) |
 
 ---
 
@@ -447,12 +435,12 @@ For registration to work correctly, use the following `init` levels:
 
 ## Working with Particles
 
-### RenSprite
+### RenParticle
 
-`RenSprite` is an extended class of the standard `Sprite` from the Ren'Py engine. It supports deferred application of transformations.
+`RenParticle` is an extended class of the standard `Sprite` from the Ren'Py engine. It supports deferred application of transformations.
 
 ```python
-class RenSprite(Sprite):
+class RenParticle(Sprite):
     lifetime = 0.0          # Current remaining lifetime
     lifetime_max = 0.0      # Initial lifetime (set by the engine)
     _base_image = None      # Original image without transformations
@@ -485,7 +473,7 @@ class RenSprite(Sprite):
 
 ### Visualization Management
 
-The system uses **Lazy Rendering**. Instead of redrawing the `Transform` on every change to `alpha` or `zoom`, `RenSprite` accumulates changes.
+The system uses **Lazy Rendering**. Instead of redrawing the `Transform` on every change to `alpha` or `zoom`, `RenParticle` accumulates changes.
 
 #### Transformation Methods:
 
@@ -503,7 +491,7 @@ def __call__(self, context):
     system = context.system
     
     # 1. Create a particle from the pool of available images
-    # system.create returns a RenSprite instance
+    # system.create returns a RenParticle instance
     sprite = system.create(random.choice(system.particles_data.images))
     
     # 2. Direct control over position and state
@@ -543,6 +531,7 @@ This is the main managing class, inherited from `SpriteManager`. It coordinates 
 * **Creation Queue**: The `create()` method does not add the sprite to the main list immediately but places it in `particles_queue`. This ensures the stability of the iteration loop during updates.
 * **Automatic Redraw**: If the `redraw` parameter is set, the system itself requests a redraw via `renpy.redraw`.
 * **Time Management**: Using `delta` (the difference between the current and previous frame) ensures particle speed is independent of FPS.
+* **Particle Pool**: For all systems, a "pool" of particles is predefined, from which the systems take instances of particles (or put them back). By default, the number of such instances is `2500` for all systems.
 
 **Main Methods:**
 
@@ -740,35 +729,6 @@ class DebugBehavior(_UpdateBehavior):
 ---
 
 ## Advanced Patterns
-
-### Particle Pool
-
-```python
-class ParticlePool:
-    def __init__(self, system, size=100):
-        self.system = system
-        self.pool = []
-        self.active = []
-        
-        # Pre-create particles
-        for i in range(size):
-            sprite = system.create(system.particles_data.images[0])
-            sprite.live = False
-            self.pool.append(sprite)
-    
-    def acquire(self):
-        if self.pool:
-            sprite = self.pool.pop()
-            sprite.live = True
-            self.active.append(sprite)
-            return sprite
-        return None
-    
-    def release(self, sprite):
-        sprite.live = False
-        self.active.remove(sprite)
-        self.pool.append(sprite)
-```
 
 ### Behavior Chains
 

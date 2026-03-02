@@ -9,6 +9,10 @@ init -1337 python in renparticles:
     _fast_particles_entries = { }
     _fast_particles_models = { }
 
+    _particles_pool = RenParticlesPool()
+    _particles_pool.reserve()
+    _pool_stats = False
+
     def add_shortcut(tag, behavior, is_emitter=False):
         if not issubclass(behavior, _Behavior):
             error_msg = (

@@ -38,6 +38,7 @@
 * [Handler: orbit_mouse](#handler-orbit_mouse-or-preset-orbit_mouse)
 * [Handler: orbit_point](#handler-orbit_point)
 * [Handler: attractor](#handler-attractor)
+* [Handler: rotate](#handler-rotate)
 * [Handler: repulsor](#handler-repulsor)
 * [Handler: tween](#handler-tween)
 * [Handler: color_curve](#handler-color_curve)
@@ -552,15 +553,6 @@ on update:
 3.  **State Preservation**: The velocity vector is stored in `particles_properties` under the unique key `_renp_simple_vel_<id>`. This ensures that even if the system is `freeze`d or paused, the particle will continue moving along the same trajectory when resumed.
 4.  **Delta-time**: The position is updated using the frame time (`delta`), ensuring consistent movement speed at both 30 FPS and 144 FPS.
 
-### Comparison with `move`:
-
-| Feature | move | simple_move |
-| --- | --- | --- |
-| **Acceleration** | Supported | No |
-| **Trajectory** | Parabolic (curved) | Straight line |
-| **Load** | Medium | Low |
-| **Application** | Gravity, physics, smoke | Precipitation, bullets, simple backgrounds |
-
 ---
 
 ## Handler: `friction`
@@ -652,6 +644,7 @@ on update:
 ---
 
 ## Handler: `rotate`
+> The `rotate` handler uses `Transform`, which requires additional computing resources. This should be taken into account when working with a large number of particles.
 
 The `rotate` handler controls the rotation of particle sprites. It allows setting both the initial rotation angle (phase) and a constant rotation speed, with the possibility of randomization for each individual particle.
 
@@ -738,6 +731,8 @@ on update:
 ---
 
 ## Handler: `flicker`
+> The `flicker` handler uses `Transform`, which requires additional computing resources. This should be taken into account when working with a large number of particles.
+
 Adds a random "flicker" effect to a property value every frame. It works additively, meaning it adds to existing transformations (like transparency animations) without overriding them.
 
 ### Parameters for the `flicker` block:
@@ -1034,6 +1029,7 @@ rparticles define system "my_system":
 ---
 
 ## Handler: `tween`
+> The `tween` handler uses `Transform`, which requires additional computing resources. This should be taken into account when working with a large number of particles.
 
 The `tween` handler is designed for smoothly changing a sprite's transformation properties (alpha, zoom, rotate, etc.) over time. It supports both fixed time intervals and dynamic binding to the particle's lifecycle.
 
@@ -1113,11 +1109,10 @@ on update:
 
 **Available Properties:** alpha, zoom, xzoom, yzoom, rotate, xpos, ypos, and other `Transform` properties.
 
-> **Important Note**: Keep in mind that property transformation is a relatively expensive operation for RenPy, so using a `tween` handler significantly burdens the CPU. However, increasing the number of `tween` blocks has a relatively minor impact on performance because **RenParticles** uses **Lazy Rendering** and `tween` leverages this mechanism. All `tween` blocks merely send a new transformation to a queue, and the engine applies them all at once at the end of the frame. More details in Developer_En.md (section *Visualization Management*)
-
 ---
 
 ## Handler: `color_curve`
+> The `color_curve` handler uses `Transform`, which requires additional computing resources. This should be taken into account when working with a large number of particles.
 
 | Example |
 | :---: |

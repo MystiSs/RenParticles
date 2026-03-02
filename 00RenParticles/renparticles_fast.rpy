@@ -4,6 +4,7 @@
 
 init -1337 python in renparticles:
     import random
+    from collections import deque
     from renpy.store import SpriteManager, Sprite
     from renpy.display.particle import SpriteCache
     from renpy.store import Transform
@@ -58,7 +59,62 @@ init -1337 python in renparticles:
     class ParticleDeadContext(RenpFContext):
         pass
 
-    class RenSprite(Sprite):
+    class RenParticlesPool:
+        _stock = None
+
+        _BASE_AMOUNT = 2500
+
+        def __init__(self, reserved_amount=None):
+            self._stock = deque(maxlen=reserved_amount or self._BASE_AMOUNT)
+
+            self._hits = 0
+            self._misses = 0
+            self._total_created = 0
+
+        def reserve(self):
+            self._stock.extend([RenParticle() for _i in range(self._stock.maxlen)])
+
+        def get(self):
+            if self._stock:
+                self._hits += 1
+                return self._stock.popleft()
+            
+            self._misses += 1
+            self._total_created += 1
+            return RenParticle()
+        
+        def put(self, particle):
+            if len(self._stock) < self._stock.maxlen:
+                self._stock.append(particle)
+        
+        def __len__(self):
+            return len(self._stock)
+
+        @property
+        def stats(self):
+            total = self._hits + self._misses
+            hit_rate = (self._hits / total * 100) if total > 0 else 0
+            
+            return (
+                "Particle Pool Statistics:\n"
+                "  Pool ID: {}\n"
+                "  Current size: {}\n"
+                "  Capacity: {}\n"
+                "  Hits (cache): {}\n"
+                "  Misses (new): {}\n"
+                "  Hit rate: {:.1f}%\n"
+                "  Total created: {}"
+            ).format(
+                id(self),
+                len(self._stock),
+                self._stock.maxlen,
+                self._hits,
+                self._misses,
+                hit_rate,
+                self._total_created
+            )
+        
+    class RenParticle(Sprite):
         lifetime = 0.0
         lifetime_max = 0.0
 
@@ -93,7 +149,6 @@ init -1337 python in renparticles:
                 else:
                     self.queued_transforms[key] = value
 
-
         def apply_transforms(self):
             if not self.queued_transforms:
                 return
@@ -119,7 +174,7 @@ init -1337 python in renparticles:
             self.queued_transforms.clear()
 
         def set_child(self, d):
-            super(RenSprite, self).set_child(d)
+            super(RenParticle, self).set_child(d)
             self._base_image = None
     
     class RenParticlesFast(SpriteManager):
@@ -269,7 +324,7 @@ init -1337 python in renparticles:
 
         def reset(self):
             particles_properties = self.particles_data.particles_properties
-            to_remove = [item for item in particles_properties.keys() if isinstance(item, RenSprite)]
+            to_remove = [item for item in particles_properties.keys() if isinstance(item, RenParticle)]
             for item in to_remove:
                 particles_properties.pop(item)
 
@@ -291,7 +346,7 @@ init -1337 python in renparticles:
                 renpy.redraw(self, 0.0)
 
         def create(self, d):
-            s = RenSprite()
+            s = _particles_pool.get()
             s.x = 0
             s.y = 0
             s.zorder = 0
@@ -301,6 +356,7 @@ init -1337 python in renparticles:
             s.lifetime_max = lifetime
             s.manager = self
             s.events = False
+            s.queued_transforms.clear()
 
             s.set_child(d)
 
@@ -373,6 +429,8 @@ init -1337 python in renparticles:
                                     new_on_particle_dead.append((behavior_func, props))
 
                         self.particles_data.particles_properties.pop(particle, None)
+                        _particles_pool.put(particle)
+
                     else:
                         live_children.append(particle)
                         #<Scheduled transforms>#
@@ -435,6 +493,10 @@ init -1337 python in renparticles:
 
             for i in caches:
                 i.render = None
+
+            if _pool_stats:
+                particle_pool_stats = renpy.store.Text(_particles_pool.stats, size=16)
+                rv.place(particle_pool_stats)
 
             return rv
 
