@@ -49,6 +49,7 @@
 * [Multiple Systems](#multiple-systems)
 * [Models (Templates)](#models-templates)
     * [Using models in screens](#using-models-in-screens)
+    * [Redefining handler properties](#redefining-handler-properties)
 * [System Management](#system-management)
     * [Control Commands](#control-commands)
 * [Advanced Features](#advanced-features)
@@ -1286,7 +1287,7 @@ label game:
 
 ---
 
-## Using models in screens
+### Using models in screens
 
 You can run the model in Ren'Py screens:
 ```renpy
@@ -1313,6 +1314,59 @@ label renparticles_test:
     with Dissolve(0.1)
 
 ```
+
+---
+
+### Redefining handler properties
+
+The **RenParticles** system allows you to use existing models as flexible templates. You can call a model and change the parameters of any of its handlers on the fly, if this handler has a unique `id` (for more information, see [Behavior Identifiers](#behavior-identifiers-id)).
+
+#### Redefinition syntax
+
+To redefine the properties, add a colon `:` after calling the model, create a nested block. Inside the block, specify the string `ID` of the handler and the new values of its properties.
+
+```renpy
+rparticles model "model_name":
+    "handler id":
+    parameter_1 value
+            parameter_2 value
+
+```
+
+#### A practical example
+
+Let's say we have a basic mouse tracking model `rparticles_mouse_trail`, where a handler with the `id "move_handler"` is responsible for movement, and a handler with the `id "tweener"` is responsible for animations.
+
+**1. A regular call:**
+
+```renpy
+# Standard model
+rparticles model "rparticles_mouse_trail" as _renp_demo_displ
+
+```
+
+**2. Parameterized call:**
+Here we change the speed range and redefine the animation block for scaling, without changing the model itself in the definition file.:
+
+```renpy
+rparticles model "rparticles_mouse_trail_demo" as _renp_demo_displ:
+    "move_handler":
+        velocity_range [30.0, 90.0]
+    "tweener":
+        block "zoom":
+            mode "lifetime"
+            time 0.5
+            start_value 5.5
+            end_value 0.5
+            warper "ease"
+
+```
+
+#### Rules and restrictions
+
+* **ID**: You can redefine only those handlers (behaviors) that were explicitly assigned an `id` when creating the model.
+* **Duplicates**: The system will give an error if you try to redefine the same `id` twice in the same block.
+* **Optional**: You do not need to redefine all properties. If the parameter is not specified in the override block, the value from the original model will be used.
 
 ---
 

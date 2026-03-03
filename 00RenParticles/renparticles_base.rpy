@@ -19,10 +19,14 @@ init -2448 python in renparticles:
         m_properties = None
 
         def inject_properties(self, **properties):
-            self.m_properties = { }
+            self.m_properties = {}
+            
             for key, value in properties.items():
-                setattr(self, key, value)
-                self.m_properties[key] = value
+                if key == "dynamic" and hasattr(self, "dynamic") and self.dynamic is not None:
+                    self.dynamic.update(value)
+                else:
+                    setattr(self, key, value)
+                    self.m_properties[key] = value
 
     class _RequiredField(object):
         pass

@@ -47,6 +47,8 @@ python early:
         TARGET_SYSTEM = "renp_target_system"
         BEHAVIOR_ID = "renp_behavior_id"
 
+        REDEFENITION = "redefenition"
+
         SPRITE = "sprite"
         IMAGES = "images"
 
@@ -121,17 +123,19 @@ python early:
 
             while not lexer.eol():
                 if lexer.match(':'):
-                    renpy.error("rparticles model show mode does not support redefining properties. Sub-block there is not allowed")
+                    data[_RenPKeywords.REDEFENITION] = _renp_parse_redefinition_in_model(lexer.subblock_lexer())
+                    # renpy.error("<rparticles>: rparticles model show mode does not support redefining properties. Sub-block there is not allowed")
+                    lexer.expect_eol()
+                    break
 
                 elif lexer.keyword(_RenPLexerKeywords.WITH):
                     if data[_RenPLexerKeywords.WITH] != "None":
-                        renpy.error("There can only be one 'with' statement")
+                        renpy.error("<rparticles>: there can only be one 'with' statement")
                     data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
 
                 data.update(_renp_try_parse_show_data_component(lexer))
 
             return data
-
         
         while not lexer.match(':'):
             show_component = _renp_parse_show_data_component(lexer)
@@ -144,15 +148,36 @@ python early:
 
             elif lexer.keyword(_RenPLexerKeywords.WITH):
                 if data[_RenPLexerKeywords.WITH] != "None":
-                    renpy.error("There can only be one 'with' statement")
+                    renpy.error("<rparticles>: there can only be one 'with' statement")
                 data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
             
             if lexer.eol():
-                renpy.error("rparticles: subblock required")
+                renpy.error("<rparticles>: subblock required")
 
         lexer.expect_eol()
         subblock = lexer.subblock_lexer()
         _renp_parse_renparticles_system_subblock(subblock, data)
+
+        return data
+
+    def _renp_parse_redefinition_in_model(subblock):
+        data = { }
+        seen = set()
+        was_at_least_one_block = False
+
+        while subblock.advance():
+            behavior_id = subblock.require(subblock.string, "handler ID is required as a string")
+            if behavior_id in seen:
+                renpy.error("<rparticles>: duplicate handler ID found: {}".format(behavior_id))
+
+            subblock.require(':')
+            data[behavior_id] = _renp_parse_properties(subblock)
+
+            seen.add(behavior_id)
+            was_at_least_one_block = True
+
+        if not was_at_least_one_block:
+            renpy.error("<rparticles>: at least one behavior handler must be redefined or don't open redefenition block")
 
         return data
 
@@ -313,14 +338,16 @@ python early:
         if is_model:
             model_name = data[_RenPKeywords.MODEL_NAME]
             model_data = renparticles._fast_particles_models.get(model_name, None)
+            #redefinition_data = data.get(_RenPKeywords.REDEFENITION, None) or {}
             if model_data is None:
                 renpy.error("the rparticles model named '{}' does not exist\n"
-                            "Available static preset shortcuts: {}".format(model_name, renparticles._fast_particles_models.keys())
+                            "Available models: {}".format(model_name, renparticles._fast_particles_models.keys())
                             )
                 return
             
             data = data.copy()
             data.update(model_data)
+            #data.update(redefinition_data)
 
         tag = data.get(_RenPKeywords.TAG, None)
         layer = data[_RenPKeywords.LAYER]
@@ -333,6 +360,9 @@ python early:
         else:
             displayable = _renp_eval_system(data)
 
+        if is_model and _RenPKeywords.REDEFENITION in data:
+            _renp_try_redefine_properties_in_handlers(displayable, data[_RenPKeywords.REDEFENITION])
+
         #print(displayable.get_info())
         
         true_tag = tag or _RenPKeywords.BASE_NAME
@@ -343,6 +373,17 @@ python early:
         with_statement = eval(data[_RenPLexerKeywords.WITH])
         if with_statement:
             renpy.with_statement(with_statement)
+
+    def _renp_try_redefine_properties_in_handlers(system, redef_properties):
+        evaluated_props = _renp_eval_props(redef_properties)
+        
+        for behavior_id, properties in evaluated_props.items():
+            behavior = system.get_behavior_by_id(behavior_id)
+            
+            if behavior is None:
+                renpy.error("<rparticles>: cannot redefine properties for unknown behavior ID '{}'".format(behavior_id))
+            
+            behavior.inject_properties(**properties)
 
     def _renp_instantiate_system_displayable(data, redraw=0.0, layer=None):
         if data[_RenPKeywords.MULTIPLE]:

@@ -215,11 +215,11 @@ init 100:
         lifetime constant 0.5
 
         on update:
-            simple_move:
+            simple_move id "move_handler":
                 velocity [0.0, 0.0]
                 velocity_range [30.0, 30.0]
             
-            tween:
+            tween id "tweener":
                 block "alpha":
                     mode "lifetime"
                     from_end True
@@ -316,7 +316,9 @@ label renparticles_orbit_mouse_and_rotate:
     jump renparticles_choice
 
 label renparticles_mouse_trail_demo:
-    rparticles model "rparticles_mouse_trail_demo" as _renp_demo_displ
+    rparticles model "rparticles_mouse_trail_demo" as _renp_demo_displ:
+        "move_handler":
+            velocity_range [30.0, 90.0]
     with Dissolve(0.1)
     "Executed"
 
