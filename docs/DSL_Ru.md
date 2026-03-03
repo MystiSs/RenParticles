@@ -47,6 +47,7 @@
     * [Создание собственных пресетов](#создание-собственных-пресетов)
 * [Множественные системы](#множественные-системы)
 * [Модели (шаблоны)](#модели-шаблоны)
+    * [Использование моделей в экранах](#использование-моделей-в-экранах)
 * [Управление системами](#управление-системами)
     * [Команды управления](#команды-управления)
 * [Продвинутые возможности](#продвинутые-возможности)
@@ -90,7 +91,7 @@ rparticles as my_particles onlayer master zorder 1:
 ### Объявление системы частиц
 
 ```renpy
-rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multiple]:
+rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multiple] [with transition]:
     # содержимое системы
 ```
 
@@ -100,6 +101,7 @@ rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multip
 - `onlayer layer_name` — слой отображения (по умолчанию `master`)
 - `zorder z` — порядок отрисовки (по умолчанию `0`)
 - `multiple` — создать группу из нескольких подсистем
+- `with transition` – показать с переходом `transition`
 
 ### Спрайты частиц
 
@@ -1284,6 +1286,36 @@ init:
 label game:
     # Использование модели
     rparticles model "explosion_effect" as explosion1
+```
+
+---
+
+## Использование моделей в экранах
+
+Вы можете запустить модель в Ren'Py экранах:
+```renpy
+screen _renp_rparticles_test_sc(tag): # Объявляем экран, например такой
+        rparticles tag
+
+...
+
+label renparticles_test:
+    show screen _renp_rparticles_test_sc("my_incredible_renparticle_model") # Показываем экран, в котором есть система частиц RenParticles
+    with Dissolve(0.1)
+
+```
+
+>Можно задать имя модели напрямую
+```renpy
+screen _renp_rparticles_test_sc(): # Объявляем экран, например такой
+        rparticles "my_incredible_renparticle_model"
+
+...
+
+label renparticles_test:
+    show screen _renp_rparticles_test_sc # Показываем экран, в котором есть система частиц RenParticles
+    with Dissolve(0.1)
+
 ```
 
 ---

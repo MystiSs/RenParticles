@@ -48,6 +48,7 @@
     * [Creating Custom Presets](#creating-custom-presets)
 * [Multiple Systems](#multiple-systems)
 * [Models (Templates)](#models-templates)
+    * [Using models in screens](#using-models-in-screens)
 * [System Management](#system-management)
     * [Control Commands](#control-commands)
 * [Advanced Features](#advanced-features)
@@ -91,7 +92,7 @@ This code will create 100 red square particles with a random lifetime between 1 
 ### Declaring a Particle System
 
 ```renpy
-rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multiple]:
+rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multiple] [with transition]:
     # system contents
 ```
 
@@ -101,6 +102,7 @@ rparticles [model "model_name"] [as tag] [onlayer layer_name] [zorder z] [multip
 - `onlayer layer_name` — display layer (default `master`)
 - `zorder z` — drawing order (default `0`)
 - `multiple` — create a group of several subsystems
+- `with transition` – show with transition `transition`
 
 ### Particle Sprites
 
@@ -1280,6 +1282,36 @@ init:
 label game:
     # Using the model
     rparticles model "explosion_effect" as explosion1
+```
+
+---
+
+## Using models in screens
+
+You can run the model in Ren'Py screens:
+```renpy
+screen _renp_rparticles_test_sc(tag): # Declare a screen like this
+        rparticles tag
+
+...
+
+label renparticles_test:
+    show screen _renp_rparticles_test_sc("my_incredible_renparticle_model") # Showing a screen that has a RenParticles particle system
+    with Dissolve(0.1)
+
+```
+
+>You can set the model name directly
+```renpy
+screen _renp_rparticles_test_sc(): # Declaring a screen like this
+        rparticles "my_incredible_renparticle_model"
+
+...
+
+label renparticles_test:
+    show screen _renp_rparticles_test_sc # Show a screen that has a RenParticles particle system.
+    with Dissolve(0.1)
+
 ```
 
 ---

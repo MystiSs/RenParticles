@@ -65,6 +65,8 @@ python early:
         ZORDER = "zorder"
         MULTIPLE = "multiple"
 
+        WITH = "with"
+
         PRESET = "preset"
         ON_UPDATE = "on update"
         ON_EVENT = "on event"
@@ -101,7 +103,7 @@ python early:
         "fast"
     }
 
-    renp_renpy_reserved_words = { "move" }
+    renp_renpy_reserved_words = { "move", "dissolve", "dspr" }
 
     def renp_parse_fast_particles_show(lexer):
         data = {
@@ -110,7 +112,8 @@ python early:
             _RenPKeywords.ZORDER: "0", 
             _RenPKeywords.MULTIPLE: False, 
             _RenPKeywords.SUBSYSTEMS: [], 
-            _RenPKeywords.REDRAW: "None"
+            _RenPKeywords.REDRAW: "None",
+            _RenPLexerKeywords.WITH: "None"
         }
 
         if lexer.keyword(_RenPLexerKeywords.MODEL):
@@ -119,16 +122,30 @@ python early:
             while not lexer.eol():
                 if lexer.match(':'):
                     renpy.error("rparticles model show mode does not support redefining properties. Sub-block there is not allowed")
+
+                elif lexer.keyword(_RenPLexerKeywords.WITH):
+                    if data[_RenPLexerKeywords.WITH] != "None":
+                        renpy.error("There can only be one 'with' statement")
+                    data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
+
                 data.update(_renp_try_parse_show_data_component(lexer))
+
             return data
 
+        
         while not lexer.match(':'):
             show_component = _renp_parse_show_data_component(lexer)
 
             if show_component:
                 data.update(show_component)
+
             elif lexer.keyword(_RenPLexerKeywords.MULTIPLE):
                 data[_RenPKeywords.MULTIPLE] = True
+
+            elif lexer.keyword(_RenPLexerKeywords.WITH):
+                if data[_RenPLexerKeywords.WITH] != "None":
+                    renpy.error("There can only be one 'with' statement")
+                data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
             
             if lexer.eol():
                 renpy.error("rparticles: subblock required")
@@ -316,12 +333,22 @@ python early:
         else:
             displayable = _renp_eval_system(data)
 
-        print(displayable.get_info())
+        #print(displayable.get_info())
         
         true_tag = tag or _RenPKeywords.BASE_NAME
         renparticles._fast_particles_entries[true_tag] = displayable
 
         renpy.show(name=_RenPKeywords.BASE_NAME, tag=tag, what=displayable, layer=layer, zorder=zorder)
+
+        with_statement = eval(data[_RenPLexerKeywords.WITH])
+        if with_statement:
+            renpy.with_statement(with_statement)
+
+    def _renp_instantiate_system_displayable(data, redraw=0.0, layer=None):
+        if data[_RenPKeywords.MULTIPLE]:
+            subsystems = [_renp_eval_system(system) for system in data[_RenPKeywords.SUBSYSTEMS]]
+            return renparticles.RenParticleFastGroup(subsystems, redraw, layer)
+        return _renp_eval_system(data)
 
     def _renp_eval_system(system):
         on_update = [ ]
@@ -899,6 +926,7 @@ python early:
         data = {_RenPKeywords.TAG: None,
                 _RenPKeywords.LAYER: None, 
                 _RenPKeywords.ZORDER: "0",
+                _RenPLexerKeywords.WITH: "None"
                 }
 
         if lexer.eol():
@@ -914,6 +942,10 @@ python early:
         elif lexer.keyword(_RenPLexerKeywords.ZORDER):
             data[_RenPKeywords.ZORDER] = lexer.integer()
             was_show_component_keyword = True
+        elif lexer.keyword(_RenPLexerKeywords.WITH):
+            if data[_RenPLexerKeywords.WITH] != "None":
+                renpy.error("There can only be one 'with' statement")
+            data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
         
         if was_show_component_keyword:
             while not lexer.eol():
@@ -936,6 +968,10 @@ python early:
                 data[_RenPKeywords.LAYER] = lexer.simple_expression()
             elif lexer.keyword(_RenPLexerKeywords.ZORDER):
                 data[_RenPKeywords.ZORDER] = lexer.require(lexer.integer, "integer expected")
+            elif lexer.keyword(_RenPLexerKeywords.WITH):
+                if data[_RenPLexerKeywords.WITH] != "None":
+                    renpy.error("There can only be one 'with' statement")
+                data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
             else:
                     renpy.error("unknown show component\ngot: {}".format(lexer.rest()))
 
@@ -952,7 +988,18 @@ python early:
             system.layer = layer
             zorder = eval(data[_RenPKeywords.ZORDER])
             renpy.show(_RenPKeywords.BASE_NAME, what=system, layer=layer, tag=tag, zorder=zorder)
+            with_statement = eval(data[_RenPLexerKeywords.WITH])
+            if with_statement:
+                renpy.with_statement(with_statement)
 
     renpy.register_statement("rparticles continue", renp_parse_fast_particles_continue, None, renp_execute_fast_particles_continue)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
+    def _renp_sl_displayable_early_wrapper(tag, **properties):
+        return renparticles.instantiate_model(tag)
+
+    renpy.register_sl_displayable("rparticles", _renp_sl_displayable_early_wrapper, "default", 0) \
+    .add_positional("child")
 
 # -------------------------------------------------------------------------------------------------------------------------------

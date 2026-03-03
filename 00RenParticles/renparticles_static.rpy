@@ -66,6 +66,12 @@ init -1337 python in renparticles:
         
         dynamic_shortcuts["presets"][preset_type][tag] = preset_behavior
 
+    def instantiate_model(tag):
+        model = _fast_particles_models.get(tag, None)
+        if model is None:
+            renpy.error("there is no model named '{}'\navailable models: {}".format(tag, ",".join(_fast_particles_models.keys())))
+        return renpy.store._renp_instantiate_system_displayable(model)
+
     def _renp_lerp(start, end, t):
         return start + (end - start) * t
 

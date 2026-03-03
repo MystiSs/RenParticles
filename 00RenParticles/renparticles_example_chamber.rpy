@@ -2,6 +2,10 @@
 # Copyright (c) 2026 MystiSs
 # Licensed under the MIT License.
 
+init 200:
+    screen _renp_rparticles_test_sc(tag):
+        rparticles tag
+
 init 100:
     rparticles define "rparticles_mouse_orbit_simple":
         redraw asap
@@ -297,6 +301,8 @@ label renparticles_choice:
             jump renparticles_fireflies_demo
         "Sparkles v2.0":
             jump renparticles_sparkles_v2_demo
+        "_Screen Test":
+            jump renparticles_screen_test_demo
 
 label renparticles_orbit_mouse_and_rotate:
     rparticles model "rparticles_mouse_orbit_simple" as _renp_demo_displ
@@ -375,11 +381,20 @@ label renparticles_fireflies_demo:
     jump renparticles_choice
 
 label renparticles_sparkles_v2_demo:
-    rparticles model "renparticles_sparkles_v2_demo" as _renp_demo_displ
+    rparticles model "renparticles_sparkles_v2_demo" as _renp_demo_displ with Dissolve(0.1)
+    "Executed In Screen"
+
+    hide _renp_demo_displ with Dissolve(0.1)
+    "Hided"
+
+    jump renparticles_choice
+
+label renparticles_screen_test_demo:
+    show screen _renp_rparticles_test_sc("rparticles_mouse_trail_demo")
     with Dissolve(0.1)
     "Executed"
 
-    hide _renp_demo_displ
+    hide screen _renp_rparticles_test_sc
     with Dissolve(0.1)
     "Hided"
 
