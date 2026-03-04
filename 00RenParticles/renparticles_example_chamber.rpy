@@ -68,7 +68,7 @@ init 100:
 
             on update:
                 interval_fragmentation_per_particle system "rain":
-                    amount 1
+                    per_amount 1
                     interval 0.2
         
         system id "rain":

@@ -6,6 +6,9 @@ init -1115 python in renparticles:
     class EmitterRemoteSpawn(Emitter):
             amount = _RequiredField()
 
+            _check_is_valid = True
+            _valid = { "amount" }
+
             def __call__(self, context):
                 target_system = context.system
                 
@@ -30,6 +33,9 @@ init -1115 python in renparticles:
             per_amount = 1
             interval = 0.0
             fallback_position = (0, 0)
+
+            _check_is_valid = True
+            _valid = { "fallback_position",  "interval", "per_amount" }
 
             _RENP_INT_REM_EM = "_renp_int_rem_em"        
             _RENP_INT_REM_EM_COUNTER = 0

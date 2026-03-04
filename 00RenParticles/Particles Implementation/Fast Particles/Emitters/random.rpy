@@ -10,6 +10,9 @@ init -1115 python in renparticles:
     class EmitterRandom(Emitter):
         amount = _RequiredField()
         area = (0, 0, config.screen_width, config.screen_height)
+
+        _check_is_valid = True
+        _valid = { "area", "amount" }
         
         def __call__(self, context):
             system = context.system
@@ -27,9 +30,11 @@ init -1115 python in renparticles:
         interval = 0.0
         per_amount = 1
         kill_on_finish = True
-        infinite = False
 
         area = (0, 0, config.screen_width, config.screen_height)
+
+        _check_is_valid = True
+        _valid = { "area", "amount",  "interval", "per_amount", "kill_on_finish" }
 
         def __init__(self):
             self.remaining = None

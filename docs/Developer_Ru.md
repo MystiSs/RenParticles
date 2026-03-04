@@ -103,7 +103,17 @@ class _Behavior(_InjectPropertiesMixin, _CheckInitialisedMixin, _TryGetOtherSyst
 ```
 
 **Миксины:**
-- `_InjectPropertiesMixin` — внедрение свойств через `inject_properties(**props)`
+- `_InjectPropertiesMixin` — внедрение свойств через `inject_properties(**props)`, а также проверка на допустимые свойства через атрибуты `_check_is_valid` и `_valid`.
+Пример:
+```python
+class _UpdateBehavior(_Behavior): # _Behavior использует миксин _InjectPropertiesMixin
+    _check_is_valid = True # Включаем проверку на допустимые свойства
+    _valid = { ... } # Множество допустимых свойств
+
+    ... # Остальная логика обработчика
+
+```
+
 - `_CheckInitialisedMixin` — проверка обязательных полей через `_RequiredField()`
 - `_TryGetOtherSystemMixin` — доступ к другим системам через `get_system(context, id)`
 

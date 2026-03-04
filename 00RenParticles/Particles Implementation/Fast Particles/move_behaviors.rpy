@@ -14,6 +14,12 @@ init -1115 python in renparticles:
         xvelocity_range = None
         yvelocity_range = None
 
+        _check_is_valid = True
+        _valid = { 
+                "velocity", "velocity_range", "xvelocity_range", "yvelocity_range",
+                "xspeed", "yspeed", "xvel_range", "yvel_range"
+                }
+
         _RENP_VEL = "_renp_simple_vel"
         _RENP_ACC = 0
 
@@ -103,6 +109,14 @@ init -1115 python in renparticles:
         velocity = [0.0, 0.0]
         acceleration = [0.0, 0.0]
         acceleration_range = [None, None]
+
+        _check_is_valid = True
+        _valid = { 
+                "velocity", "velocity_range", "xvelocity_range", "yvelocity_range",
+                "acceleration", "acceleration_range",
+                "xspeed", "yspeed", "xvel_range", "yvel_range",
+                "xacceleration", "yacceleration", "xacc_range", "yacc_range"
+                }
 
         _RENP_VEL = "_renp_vel"
         _RENP_ACCL = "_renp_acc" 
@@ -207,6 +221,13 @@ init -1115 python in renparticles:
         amplitudes_range = [None, None]
         frequencies_range = [None, None]
         phases_range = [None, None]
+
+        _check_is_valid = True
+        _valid = { 
+                "amplitudes", "frequencies", "phases", "amplitudes_range", "frequencies_range", "phases_range",
+                "xamplitude", "yamplitude", "xamp_range", "yamp_range", "xfrequency", "yfrequency",
+                "xfreq_range", "yfreq_range", "xphase", "yphase", "xphase_range", "yphase_range"
+                }
         
         _RENP_OSC_DATA = "_renp_osc_data"
         _RENP_ACC_OSC = 0
@@ -400,6 +421,9 @@ init -1115 python in renparticles:
         per_axis = True
         min_speed = 0.01
 
+        _check_is_valid = True
+        _valid = { "target_behavior_id", "friction", "per_axis", "min_speed" }
+
         _key_cached = None
         
         _RENP_FRICTION = "_renp_friction"
@@ -467,6 +491,9 @@ init -1115 python in renparticles:
         restitution = 0.8
         margin = 0
         bounce_axes = "both"
+
+        _check_is_valid = True
+        _valid = { "target_behavior_id", "restitution", "margin", "bounce_axes" }
         
         _RENP_BOUNCE = "_renp_bounce"
         _COUNTER = 0
@@ -582,6 +609,9 @@ init -1115 python in renparticles:
         min_distance = 5.0
         max_speed = 1000.0
         screen_bounds = True
+
+        _check_is_valid = True
+        _valid = { "target", "strength", "radius", "falloff", "min_distance", "max_speed", "screen_bounds" }
         
         _RENP_ATTRACTOR = "_attractor_vel"
         _COUNTER = 0
@@ -672,6 +702,9 @@ init -1115 python in renparticles:
         amount = [20.0, 20.0]
         frequency = 1.0
         smoothness = 0.5
+
+        _check_is_valid = True
+        _valid = { "amount", "frequency", "smoothness" }
         
         _NOISE_SIZE = 512
         _RAW_X = [random.uniform(-1.0, 1.0) for _ in range(512)]

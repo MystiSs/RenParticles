@@ -7,6 +7,9 @@ init -1115 python in renparticles:
         margin = 32
         only_if_completely = False
         safe_zone = 0.0
+
+        _check_is_valid = True
+        _valid = { "margin",  "only_if_completely", "safe_zone" }
         
         def __init__(self):
             super(BoundsKiller, self).__init__()

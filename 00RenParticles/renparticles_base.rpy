@@ -17,11 +17,18 @@ init -2448 python in renparticles:
 
     class _InjectPropertiesMixin:
         m_properties = None
+        _renp_always = { "oneshot", "renp_behavior_id", "renp_target_system" }
+        _valid = set()
+        _check_is_valid = False
 
         def inject_properties(self, **properties):
             self.m_properties = {}
+            valid = self._valid.union(self._renp_always)
             
             for key, value in properties.items():
+                if self._check_is_valid and key not in valid:
+                    renpy.error("invalid property '{}' for {}\nlist of acceptable properties: {}".format(key, type(self), ", ".join(valid)))
+
                 if key == "dynamic" and hasattr(self, "dynamic") and self.dynamic is not None:
                     self.dynamic.update(value)
                 else:

@@ -4,6 +4,8 @@
 
 init -1115 python in renparticles:
     class LifetimeDeltaDecreaser(_UpdateBehavior):
+        _check_is_valid = True
+
         def __call__(self, context):
             particle = context.particle
 

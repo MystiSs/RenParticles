@@ -14,6 +14,9 @@ init -1115 python in renparticles:
         pull_strength = 0.5
         clockwise = True
         screen_bounds = True
+
+        _check_is_valid = True
+        _valid = { "radius", "speed", "speed_variance", "pull_strength", "clockwise", "screen_bounds" }
         
         _RENP_MORBIT = "_orbit_speed"
         _RENP_ACC = 0
@@ -93,6 +96,9 @@ init -1115 python in renparticles:
         pull_strength = 0.5
         clockwise = True
         screen_bounds = True
+
+        _check_is_valid = True
+        _valid = { "center", "radius", "speed", "speed_variance", "pull_strength", "clockwise", "screen_bounds" }
         
         _RENP_ORBIT = "_orbit_speed"
         _COUNTER = 0

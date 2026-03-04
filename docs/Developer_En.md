@@ -105,7 +105,16 @@ class _Behavior(_InjectPropertiesMixin, _CheckInitialisedMixin, _TryGetOtherSyst
 ```
 
 **Mixins:**
-- `_InjectPropertiesMixin` — property injection via `inject_properties(**props)`
+- `_InjectPropertiesMixin` — embedding properties through `inject_properties(**props)`, as well as checking for valid properties through the attributes `_check_is_valid` and `_valid`.
+Example:
+```python
+class _UpdateBehavior(_Behavior): # _Behavior uses the _InjectPropertiesMixin mixin
+    _check_is_valid = True # Enabling verification for valid properties
+    _valid = { ... } # Set of valid properties
+
+    ... # The rest of the handler logic
+
+```
 - `_CheckInitialisedMixin` — validation of required fields using `_RequiredField()`
 - `_TryGetOtherSystemMixin` — access to other systems via `get_system(context, id)`
 

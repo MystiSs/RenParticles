@@ -13,6 +13,9 @@ init -1115 python in renparticles:
         radius = 150.0
         clamp_margin = 2.0
 
+        _check_is_valid = True
+        _valid = { "repulsor_pos", "strength", "radius", "clamp_margin" }
+
         def __call__(self, context):
             system = context.system
             particles_data = system.particles_data

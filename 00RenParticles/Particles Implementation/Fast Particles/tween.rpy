@@ -20,6 +20,10 @@ init -1115 python in renparticles:
         animation_mode = "once" 
 
         dynamic = None
+
+        _check_is_valid = True
+        _valid = { "property", "time", "start_value", "end_value", "warper", "mode", "from_end", "animation_mode", "dynamic" }
+
         _RENP_TWEEN = "_renp_tween"
         _RENP_TWEEN_COUNTER = 0
         

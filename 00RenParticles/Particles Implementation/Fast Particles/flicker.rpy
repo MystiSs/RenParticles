@@ -12,6 +12,9 @@ init -1115 python in renparticles:
         mode = "add"
         interval = 0.1
 
+        _check_is_valid = True
+        _valid = { "property", "base_value", "range", "mode", "interval" }
+
         _RENP_FLICKER = "_renp_flicker"
         _RENP_FLICKER_COUNTER = 0
 

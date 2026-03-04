@@ -9,6 +9,9 @@ init -1115 python in renparticles:
         per_amount = 1
         offset = (0, 0)
         kill_on_finish = False
+
+        _check_is_valid = True
+        _valid = { "offset", "amount",  "interval", "per_amount", "kill_on_finish" }
         
         def __init__(self):
             self._last_spawn = 0

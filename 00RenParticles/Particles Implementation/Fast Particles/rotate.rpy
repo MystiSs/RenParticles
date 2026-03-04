@@ -12,6 +12,9 @@ init -1115 python in renparticles:
         speed_range = 0.0
         phase = 0.0
         phase_range = 0.0
+
+        _check_is_valid = True
+        _valid = { "speed", "speed_range", "phase", "phase_range" }
         
         _RENP_ROTATE = "_renp_rotate"
         _RENP_ROTATE_COUNTER = 0
@@ -59,6 +62,9 @@ init -1115 python in renparticles:
         base_angle = 0.0
         mode = "absolute" # "absolute" | "additive"
         invert = False
+
+        _check_is_valid = True
+        _valid = { "target_behavior_id", "base_angle", "mode", "invert" }
 
         def __init__(self):
             self._target_behavior = None

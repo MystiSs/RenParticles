@@ -8,6 +8,9 @@ init -1115 python in renparticles:
     class ColorCurve(_UpdateBehavior):
         colors = ["#ffffff"] 
         warper = "linear"
+
+        _check_is_valid = True
+        _valid = { "colors",  "warper" }
         
         _RENP_CURVE_DATA = "_color_curve_state"
         _COUNTER = 0
