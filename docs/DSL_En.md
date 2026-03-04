@@ -15,9 +15,11 @@
     * [on particle dead](#on-particle-dead)
 * [Emitters](#emitters)
 ---
-* [Emitter: spray](#handler-spray)
-* [Emitter: interval_spray](#handler-interval_spray)
-* [Emitter: interval_spray](#emitter-mouse_interval)
+* [Emitter: spray](#emitter-spray)
+* [Emitters: radial_spray / ring_spray](#emitters-radial_spray--ring_spray)
+* [Emitter: interval_spray](#emitter-interval_spray)
+* [Emitters: radial_interval_spray / ring_interval_spray](#emitters-radial_interval_spray--ring_interval_spray)
+* [Emitter: mouse_interval](#emitter-mouse_interval)
 * [Handler-Emitter: fragmentation (interval_fragmentation_per_particle)](#handler-emitter-fragmentation-interval_fragmentation_per_particle)
 ---
 * [Particle Behaviors](#particle-behaviors)
@@ -194,6 +196,34 @@ emitter spray oneshot:
 - `amount` — number of particles (required)
 - `area` — generation area `(x1, y1, width, height)` (defaults to the entire screen)
 
+---
+
+### Emitters `radial_spray` / `ring_spray`
+
+Generate a set number of particles **instantly** (in one frame), but the generation area is in polar coordinates.
+* `spray_radial`: Fills **the entire area** of the circle.
+* `spray_ring`: Creates particles only **around the perimeter** (taking into account the `width`).
+
+**Parameters:**
+
+* **`amount`** (int) — The number of created particles.
+* **`radius`** (int) — The radius of a circle or ring. The default value is `100'.
+* **`center`** (2D tuple/string) — Coordinates of the center `(x, y)` or string `"mouse"`. If set as `"mouse"`, then the coordinates of the mouse position are used.
+* **`width`** (int) — *(Only for `ring_spray`)* The width of the "wall" of the ring. If '0`, the particles will appear strictly on the circle line.
+
+**Example:**
+
+```renpy
+on entry:
+    emitter spray_radial:
+        amount 50
+        radius 150
+        center (640, 360)
+
+```
+
+---
+
 ### Emitter: `interval_spray`
 
 Creates particles at intervals:
@@ -211,6 +241,37 @@ emitter interval_spray:
 - `interval` — interval between generations (seconds)
 - `per_amount` — particles per batch (default 1)
 - `kill_on_finish` — delete the emitter after completion (default True)
+
+---
+
+### Emitters `radial_interval_spray` / `ring_interval_spray`
+
+Particles are generated **gradually** at a given interval, but the generation area is in polar coordinates.
+* `radial_interval_spray`: Fills **the entire area** of the circle.
+* `ring_interval_spray`: Creates particles only **around the perimeter** (taking into account the `width`).
+
+**Parameters:**
+
+* **`interval`** (float) — The pause between the spawn in seconds. The default is `0.0' (every frame).
+* **`per_amount`** (int) — How many particles are created in one clock cycle of the interval.
+* **`amount`** (int/str) — The total number of particles. You can specify `"infinite"` for an infinite stream.
+* **`kill_on_finish`** (bool) — Whether to remove the emitter after the 'amount` limit is exhausted.
+* **`radius`** (int) — The radius of a circle or ring. The default value is `100'.
+* **`center`** (2D tuple/string) — Coordinates of the center `(x, y)` or string `"mouse"`. If set as `"mouse"`, then the coordinates of the mouse position are used.
+* **`width`** (int) — *(Only for `ring_interval_spray`)* The width of the "wall" of the ring. If '0`, the particles will appear strictly on the circle line.
+
+**Example:**
+
+```renpy
+on update:
+    emitter interval_spray_ring:
+        amount "infinite"
+        interval 0.05
+        radius 200
+        width 20
+        center "mouse" # Center – cursor position
+
+```
 
 ---
 

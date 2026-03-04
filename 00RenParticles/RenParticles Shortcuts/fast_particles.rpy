@@ -34,7 +34,11 @@ init -555 python in renparticles:
 
         "emitters": {
             "spray": EmitterRandom,
+            "radial_spray": SprayRadialEmitter,
+            "ring_spray": SprayRingEmitter,
             "interval_spray": IntervalSprayEmitter,
+            "radial_interval_spray": IntervalSprayRadialEmitter,
+            "ring_interval_spray": IntervalSprayRingEmitter,
             "mouse_interval_spray": MouseIntervalSpawner,
             "fragmentation": EmitterRemoteSpawn,
             "interval_fragmentation": EmitterIntervalRemoteSpawn

@@ -166,13 +166,14 @@ init 100:
         sprite expr Solid("#ffff99", xysize=(5, 5))
         lifetime range random (3.0, 6.0)
 
-        preset interval_spray:
-            amount 25
-            interval 0.5
-            per_amount 2
-            area (200, 200, config.screen_width-200, config.screen_height-200)
-
         on update:
+            emitter radial_interval_spray:
+                amount 25
+                interval 0.5
+                per_amount 2
+                center "mouse"
+                radius 100
+
             oscillate:
                 amplitudes [20.0, 20.0]
                 amplitudes_range [15.0, 15.0]
