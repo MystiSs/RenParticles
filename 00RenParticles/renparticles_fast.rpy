@@ -491,8 +491,8 @@ init -1337 python in renparticles:
                 else:
                     rv.subpixel_blit(r, (i.x - r_size_half[0], i.y - r_size_half[1]))
 
-            for i in caches:
-                i.render = None
+            # for i in caches:
+            #     i.render = None
 
             if _pool_stats:
                 particle_pool_stats = renpy.store.Text(_particles_pool.stats, size=16)
