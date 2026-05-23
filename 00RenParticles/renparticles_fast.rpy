@@ -113,8 +113,41 @@ init -1337 python in renparticles:
                 hit_rate,
                 self._total_created
             )
-        
-    class RenParticle(Sprite):
+    
+    class RenSpriteCache(SpriteCache):
+        nosave = ["st", "render"]
+
+        child = None
+        child_copy = None
+        st = None
+        render = None
+        fast = False
+
+    class RenSprite(Sprite):
+        def set_child(self, d):
+            id_d = id(d)
+
+            sc = self.manager.displayable_map.get(id_d, None)
+            if sc is None:
+                d = renpy.easy.displayable(d)
+
+                sc = RenSpriteCache()
+                sc.render = None
+                sc.child = d
+                sc.st = None
+
+                if d._duplicatable:
+                    sc.child_copy = d._duplicate(None)
+                    sc.child_copy._unique()
+                else:
+                    sc.child_copy = d
+                    self.manager.displayable_map[id_d] = sc
+
+            self.cache = sc
+
+    class RenParticle(RenSprite):
+        nosave = ["render"]
+
         lifetime = 0.0
         lifetime_max = 0.0
 
@@ -157,7 +190,7 @@ init -1337 python in renparticles:
             if self._base_image is None:
                 self._base_image = self.cache.child_copy
             
-            cache = SpriteCache()
+            cache = RenSpriteCache()
             transformed_image = Transform(self._base_image, **self.queued_transforms)
 
             cache.render = None
@@ -178,7 +211,10 @@ init -1337 python in renparticles:
             self._base_image = None
     
     class RenParticlesFast(SpriteManager):
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, **properties):
+        _BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
+        _BUFFER_AMOUNT_DELTAS = [0.0167, 0.0170, 0.0175, 0.0180, 0.0190, 0.0200, 0.0220, 0.0250, 0.0300]
+
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=False, **properties):
             super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
             self.layer = layer
 
@@ -210,10 +246,18 @@ init -1337 python in renparticles:
 
             self._old_st = 0.0
             self._dtime = 0.0
+            self._prev_dtime = 0.0
 
             self.system_id = None
 
             self._frozen = False
+
+            self._transform_acceleration = transform_acceleration
+            self._buffer_offset = 0
+            self._buffer_index = 0
+            self._buffer_amount = RenParticlesFast._BUFFER_AMOUNT[0]
+            # self._last_adjustment_time = 0.0
+            # self._cooldown = 5.0
 
             self._init_contexts()
 
@@ -322,6 +366,28 @@ init -1337 python in renparticles:
 
             return _lifetime_getters[lifetime_type](*lifetime_timings)
 
+        def _adjust_buffer_amount(self):
+            smoothed_dtime = (self._dtime + self._prev_dtime) * 0.5
+            margin = 0.003
+            
+            current_idx = self._buffer_index
+            target_idx = current_idx
+            
+            if smoothed_dtime > RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx]:
+                if current_idx < len(RenParticlesFast._BUFFER_AMOUNT) - 1:
+                    target_idx = current_idx + 1
+                    
+            elif current_idx > 0:
+                if smoothed_dtime < (RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
+                    target_idx = current_idx - 1
+                    
+            if current_idx != target_idx:
+                self._buffer_index = target_idx
+                self._buffer_amount = RenParticlesFast._BUFFER_AMOUNT[target_idx]
+                self._buffer_offset = 0
+                
+                #self._last_adjustment_time = self._old_st
+
         def reset(self):
             particles_properties = self.particles_data.particles_properties
             to_remove = [item for item in particles_properties.keys() if isinstance(item, RenParticle)]
@@ -375,7 +441,8 @@ init -1337 python in renparticles:
                 self.children.extend(self.particles_queue)
                 self.particles_queue = []
                 renpy.redraw(self, 0.0)
-
+            
+            self._prev_dtime = self._dtime
             self._dtime = max(0.0, st - self._old_st)
             self._old_st = st
 
@@ -406,7 +473,7 @@ init -1337 python in renparticles:
             live_children = []
 
             if not self._frozen:
-                for particle in self.children:
+                for particle_idx, particle in enumerate(self.children):
                     self._update_ctx.particle = particle
                     self._particle_dead_ctx.particle = particle
 
@@ -434,7 +501,13 @@ init -1337 python in renparticles:
                     else:
                         live_children.append(particle)
                         #<Scheduled transforms>#
-                        particle.apply_transforms()
+                        if not self._transform_acceleration or (particle_idx % self._buffer_amount == self._buffer_offset):
+                            particle.apply_transforms()
+
+                #<Transform Acceleration>#
+                if self._transform_acceleration:
+                    self._adjust_buffer_amount()
+                    self._buffer_offset = (self._buffer_offset + 1) % self._buffer_amount
 
                 self.on_update = [item for item in new_on_update if item not in oneshotted_update]
                 self.oneshotted_on_update.extend(oneshotted_update)
@@ -495,7 +568,7 @@ init -1337 python in renparticles:
             #     i.render = None
 
             if _pool_stats:
-                particle_pool_stats = renpy.store.Text(_particles_pool.stats, size=16)
+                particle_pool_stats = renpy.store.Text("".join(_particles_pool.stats) + "\n Acceleration buffer amount: {}\n Acceleration buffer offset: {}".format(self._buffer_amount, self._buffer_offset), size=16)
                 rv.place(particle_pool_stats)
 
             return rv

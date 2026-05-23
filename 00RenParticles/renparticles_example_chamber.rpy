@@ -136,11 +136,12 @@ init 100:
     rparticles define "rparticles_snowfall_demo":
         redraw asap
         sprite expr Solid("#ffffff", xysize=(8, 8))
+        accelerate transforming
 
         preset interval_spray:
             amount "infinite"
             per_amount 1
-            interval 0.1
+            interval 0.0005
             area (0, -50, config.screen_width - 32, 0)
 
         on update:
@@ -251,11 +252,12 @@ init 100:
         redraw asap
         sprite expr Solid("#e7a900", xysize=(4, 12)); expr Solid("#e7a900", xysize=(2, 8)); expr Solid("#e7a900", xysize=(1, 7))
         lifetime range random (1.0, 2.0)
+        accelerate transforming
 
         preset interval_spray:
             amount "infinite"
             per_amount 2
-            interval 0.125
+            interval 0.0025
             area (960, 540, 0, 0)
 
         on update:

@@ -60,6 +60,8 @@ python early:
         TYPE = "type"
         ZORDER = "zorder"
 
+        TRANSFORM_ACCELERATION = "transform_acceleration"
+
         POSSIBLE = "possible"
 
     class _RenPLexerKeywords:
@@ -93,6 +95,8 @@ python early:
         AS = "as"
 
         MODEL = "model"
+
+        TRANSFORM_ACCELERATION = "accelerate transforming"
 
         PROP_BLOCK = "block"
 
@@ -240,6 +244,7 @@ python early:
             _RenPKeywords.ON_PARTICLE_DEAD: False,
             _RenPKeywords.REDRAW: False,
             _RenPKeywords.CACHE: False,
+            _RenPKeywords.TRANSFORM_ACCELERATION: False
         }
 
         while subblock.advance():
@@ -288,6 +293,12 @@ python early:
                     subblock.error("only one 'on particle dead' block allowed")
                 data[_RenPKeywords.ON_PARTICLE_DEAD] = _renp_parse_on_block(subblock)
                 seen[_RenPKeywords.ON_PARTICLE_DEAD] = True
+
+            elif subblock.match(_RenPLexerKeywords.TRANSFORM_ACCELERATION):
+                if seen[_RenPKeywords.TRANSFORM_ACCELERATION]: 
+                    subblock.error("only one 'accelerate transforming' instruction allowed")
+                data[_RenPKeywords.TRANSFORM_ACCELERATION] = "True"
+                seen[_RenPKeywords.TRANSFORM_ACCELERATION] = True
             
             else:
                 return False
@@ -423,7 +434,8 @@ python early:
                                                         particles_data,
                                                         eval(system.get(_RenPKeywords.CACHE, "False")),
                                                         eval(system.get(_RenPKeywords.REDRAW, "None")),
-                                                        system.get(_RenPKeywords.LAYER, None)
+                                                        system.get(_RenPKeywords.LAYER, None),
+                                                        eval(system.get(_RenPKeywords.TRANSFORM_ACCELERATION, "False"))
                                                         )
         system_instance.system_id = system.get(_RenPKeywords.SYSTEM_ID, None)
 

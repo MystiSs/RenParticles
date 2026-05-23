@@ -9,6 +9,7 @@
     * [Particle Sprites](#particle-sprites)
     * [Particle Lifetime](#particle-lifetime)
     * [Update Frequency](#update-frequency)
+    * [Optimization of transformations](#optimization-of-transformations)
 * [Behavior Blocks](#behavior-blocks)
     * [on update](#on-update)
     * [on event](#on-event)
@@ -141,6 +142,21 @@ redraw None         # default update
 ```
 
 A smaller value means smoother animation but higher load.
+
+---
+
+### Optimization of transformations
+
+```renpy
+accelerate transforming          # Mode is enabled. If you do not write accelerate transforming, it will be disabled accordingly
+```
+
+If the load on the system increases, the engine automatically distributes the transformation calculations over several frames. This protects the game from FPS "drawdowns" in heavy particle systems.
+
+
+- This instruction is only useful for particle systems that use Transform processors;
+- The price of optimization is to reduce the smoothness of animation transformations. The maximum number of processing "splits" is every 16th frame. If the engine decides to work in this mode, it will be noticeable;  
+- The instruction has no parameters: it is enough to simply add the line accelerate transforming to the description of the particle system.
 
 ---
 
