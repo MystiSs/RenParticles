@@ -232,11 +232,10 @@ emitter spray oneshot:
 **Пример:**
 
 ```renpy
-on entry:
-    emitter spray_radial:
-        amount 50
-        radius 150
-        center (640, 360)
+emitter spray_radial:
+    amount 50
+    radius 150
+    center (640, 360)
 
 ```
 
