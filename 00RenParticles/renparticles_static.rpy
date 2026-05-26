@@ -11,7 +11,7 @@ init -1337 python in renparticles:
 
     _particles_pool = RenParticlesPool()
     _particles_pool.reserve()
-    _debug_stats = True
+    _debug_stats = False
 
     def add_shortcut(tag, behavior, is_emitter=False):
         if not issubclass(behavior, _Behavior):
