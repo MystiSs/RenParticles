@@ -212,9 +212,12 @@ init -1337 python in renparticles:
     
     class RenParticlesFast(SpriteManager):
         _BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
-        _BUFFER_AMOUNT_DELTAS = [0.0167, 0.0170, 0.0175, 0.0180, 0.0190, 0.0200, 0.0220, 0.0250, 0.0300]
+        _BUFFER_AMOUNT_DELTAS = [0.017, 0.0175, 0.0179, 0.01825, 0.0191, 0.0200, 0.0220, 0.0250, 0.0300]
 
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=False, **properties):
+        _UPDATE_BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
+        _UPDATE_BUFFER_AMOUNT_DELTAS = [0.01725, 0.018, 0.020, 0.022, 0.025, 0.028, 0.033, 0.040, 0.050]
+
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=False, particles_listening_events=False, update_fidelity=None, update_acceleration=False, **properties):
             super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
             self.layer = layer
 
@@ -252,12 +255,24 @@ init -1337 python in renparticles:
 
             self._frozen = False
 
+            self._smoothed_dtime = 0.0
+
             self._transform_acceleration = transform_acceleration
             self._buffer_offset = 0
             self._buffer_index = 0
             self._buffer_amount = RenParticlesFast._BUFFER_AMOUNT[0]
-            # self._last_adjustment_time = 0.0
-            # self._cooldown = 5.0
+
+            self._update_acceleration = update_acceleration
+            self._update_buffer_offset = 0
+            self._update_buffer_index = 0
+            self._update_buffer_amount = RenParticlesFast._UPDATE_BUFFER_AMOUNT[0]
+
+            self._update_fidelity = update_fidelity or 1
+            self._update_delay_counter = 0
+            self._update_fidelity_delta_accumulator = 0.0
+            self._update_fidelity_delta_accumulator_debug_last = 0.0
+
+            self._particles_listening_events = particles_listening_events
 
             self._init_contexts()
 
@@ -366,27 +381,73 @@ init -1337 python in renparticles:
 
             return _lifetime_getters[lifetime_type](*lifetime_timings)
 
+        def _calculate_smoothed_dtime(self):
+            self._smoothed_dtime = (self._update_fidelity_delta_accumulator / self._update_fidelity + self._prev_dtime) * 0.5
+
         def _adjust_buffer_amount(self):
-            smoothed_dtime = (self._dtime + self._prev_dtime) * 0.5
             margin = 0.003
             
             current_idx = self._buffer_index
             target_idx = current_idx
             
-            if smoothed_dtime > RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx]:
+            if self._smoothed_dtime > RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx]:
                 if current_idx < len(RenParticlesFast._BUFFER_AMOUNT) - 1:
                     target_idx = current_idx + 1
                     
             elif current_idx > 0:
-                if smoothed_dtime < (RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
+                if self._smoothed_dtime < (RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
                     target_idx = current_idx - 1
                     
             if current_idx != target_idx:
                 self._buffer_index = target_idx
                 self._buffer_amount = RenParticlesFast._BUFFER_AMOUNT[target_idx]
                 self._buffer_offset = 0
-                
-                #self._last_adjustment_time = self._old_st
+
+        def _adjust_update_buffer_amount(self):
+            margin = 0.003
+            
+            current_idx = self._update_buffer_index
+            target_idx = current_idx
+            
+            if self._smoothed_dtime > RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS[current_idx]:
+                if current_idx < len(RenParticlesFast._UPDATE_BUFFER_AMOUNT) - 1:
+                    target_idx = current_idx + 1
+                    
+            elif current_idx > 0:
+                if self._smoothed_dtime < (RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
+                    target_idx = current_idx - 1
+                    
+            if current_idx != target_idx:
+                self._update_buffer_index = target_idx
+                self._update_buffer_amount = RenParticlesFast._UPDATE_BUFFER_AMOUNT[target_idx]
+                self._update_buffer_offset = 0
+
+        def _get_system_debug_stats(self):
+            stats = [
+                "    --- Optimization Stats ---",
+                "    Acceleration buffer: {} (offset: {})",
+                "    Update buffer:       {} (offset: {})",
+                "    Update fidelity:     {}",
+                "    Update delay count:  {}",
+                "    Current dtime:       {:.4f}",
+                "    Delta accumulator:   {:.4f}",
+                "    --------------------------"
+            ]
+
+            debug_data = "\n".join(stats).format(
+                self._buffer_amount,
+                self._buffer_offset,
+                self._update_buffer_amount,
+                self._update_buffer_offset,
+                self._update_fidelity,
+                self._update_delay_counter,
+                self._dtime,
+                self._update_fidelity_delta_accumulator_debug_last
+            )
+
+            print(debug_data)
+            
+            return debug_data
 
         def reset(self):
             particles_properties = self.particles_data.particles_properties
@@ -444,15 +505,22 @@ init -1337 python in renparticles:
             
             self._prev_dtime = self._dtime
             self._dtime = max(0.0, st - self._old_st)
+            self._update_fidelity_delta_accumulator += self._dtime
             self._old_st = st
 
             self.width = width
             self.height = height
 
             self._update_ctx.st = st
-            self._update_ctx.delta = self._dtime
             self._particle_dead_ctx.st = st
-            self._particle_dead_ctx.delta = self._dtime
+
+            if self._update_acceleration:
+                true_delta = self._update_fidelity_delta_accumulator * self._update_buffer_amount
+                self._update_ctx.delta = true_delta
+                self._particle_dead_ctx.delta = true_delta
+            else:
+                self._update_ctx.delta = self._update_fidelity_delta_accumulator
+                self._particle_dead_ctx.delta = self._update_fidelity_delta_accumulator
 
             if self.on_update_emitters and not self._frozen:
                 new_update_emitters = []
@@ -472,42 +540,58 @@ init -1337 python in renparticles:
 
             live_children = []
 
+            do_update = self._update_delay_counter % self._update_fidelity == 0
+
             if not self._frozen:
-                for particle_idx, particle in enumerate(self.children):
-                    self._update_ctx.particle = particle
-                    self._particle_dead_ctx.particle = particle
+                if do_update:
+                    for particle_idx, particle in enumerate(self.children):
+                        if not particle.live:
+                            for behavior_func, props in self.on_particle_dead:
+                                return_value = behavior_func(self._particle_dead_ctx)
+                                if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                                    if (behavior_func, props) not in oneshotted_dead:
+                                        oneshotted_dead.append((behavior_func, props))
+                                else:
+                                    if (behavior_func, props) not in new_on_particle_dead:
+                                        new_on_particle_dead.append((behavior_func, props))
+                            
+                            self.particles_data.particles_properties.pop(particle, None)
+                            _particles_pool.put(particle)
+                            continue
 
-                    #<On update part>#
-                    for update_func, props in new_on_update:
-                        return_value = update_func(self._update_ctx)
-                        if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                            if (update_func, props) not in oneshotted_update:
-                                oneshotted_update.append((update_func, props))
-
-                    #<On some particle dead part>#
-                    if self.dead_child and not particle.live:
-                        for behavior_func, props in self.on_particle_dead:
-                            return_value = behavior_func(self._particle_dead_ctx)
-                            if props.get("oneshot", False) or return_value == UpdateState.Kill:
-                                if (behavior_func, props) not in oneshotted_dead:
-                                    oneshotted_dead.append((behavior_func, props))
-                            else:
-                                if (behavior_func, props) not in new_on_particle_dead:
-                                    new_on_particle_dead.append((behavior_func, props))
-
-                        self.particles_data.particles_properties.pop(particle, None)
-                        _particles_pool.put(particle)
-
-                    else:
                         live_children.append(particle)
-                        #<Scheduled transforms>#
+
+                        if not self._update_acceleration or (particle_idx % self._update_buffer_amount == self._update_buffer_offset):
+                            self._update_ctx.particle = particle
+                            self._particle_dead_ctx.particle = particle
+                            
+                            for update_func, props in new_on_update:
+                                return_value = update_func(self._update_ctx)
+                                if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                                    if (update_func, props) not in oneshotted_update:
+                                        oneshotted_update.append((update_func, props))
+
                         if not self._transform_acceleration or (particle_idx % self._buffer_amount == self._buffer_offset):
                             particle.apply_transforms()
 
+                if self._transform_acceleration or self._update_acceleration:
+                    self._calculate_smoothed_dtime()
+                    
                 #<Transform Acceleration>#
-                if self._transform_acceleration:
+                if self._transform_acceleration and do_update:
                     self._adjust_buffer_amount()
                     self._buffer_offset = (self._buffer_offset + 1) % self._buffer_amount
+
+                #<Update Acceleration>#
+                if self._update_acceleration and do_update:
+                    self._adjust_update_buffer_amount()
+                    self._update_buffer_offset = (self._update_buffer_offset + 1) % self._update_buffer_amount
+
+                if self._update_delay_counter % self._update_fidelity == 0:
+                    if _debug_stats:
+                        self._update_fidelity_delta_accumulator_debug_last = self._update_fidelity_delta_accumulator
+                    self._update_fidelity_delta_accumulator = 0.0
+                self._update_delay_counter = (self._update_delay_counter + 1) % self._update_fidelity
 
                 self.on_update = [item for item in new_on_update if item not in oneshotted_update]
                 self.oneshotted_on_update.extend(oneshotted_update)
@@ -567,20 +651,21 @@ init -1337 python in renparticles:
             # for i in caches:
             #     i.render = None
 
-            if _pool_stats:
-                particle_pool_stats = renpy.store.Text("".join(_particles_pool.stats) + "\n Acceleration buffer amount: {}\n Acceleration buffer offset: {}".format(self._buffer_amount, self._buffer_offset), size=16)
+            if _debug_stats:
+                particle_pool_stats = renpy.store.Text("".join(_particles_pool.stats) + "\n{}".format(self._get_system_debug_stats()), size=16)
                 rv.place(particle_pool_stats)
 
             return rv
 
         def event(self, ev, x, y, st):
-            for i in range(len(self.children) - 1, -1, -1):
-                s = self.children[i]
+            if self._particles_listening_events:
+                for i in range(len(self.children) - 1, -1, -1):
+                    s = self.children[i]
 
-                if s.events:
-                    rv = s.cache.child.event(ev, x - s.x, y - s.y, st - s.cache.st)
-                    if rv is not None:
-                        return rv
+                    if s.events:
+                        rv = s.cache.child.event(ev, x - s.x, y - s.y, st - s.cache.st)
+                        if rv is not None:
+                            return rv
 
             if self.on_event:
                 new_on_event = []

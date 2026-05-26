@@ -115,11 +115,12 @@ init -1115 python in renparticles:
                 return UpdateState.Kill if self.kill_on_finish else UpdateState.Pass
 
             self.current_time += context.delta
-            if self.current_time >= self.interval:
+            while self.current_time >= self.interval and self.remaining > 0:
+                self.current_time -= self.interval
+                
                 system = context.system
                 images = system.particles_data.images
 
-                self.current_time = 0.0
                 amount_to_create = min(self.remaining, self.per_amount)
 
                 for i in range(amount_to_create):
@@ -128,6 +129,8 @@ init -1115 python in renparticles:
                     sprite.y = random.randint(0, self.area[3]) + self.area[1]
                 
                 self.remaining -= amount_to_create
+            
+            self.current_time = max(0.0, self.current_time)
             
             return UpdateState.Pass
 
@@ -171,11 +174,12 @@ init -1115 python in renparticles:
                 return UpdateState.Kill if self.kill_on_finish else UpdateState.Pass
 
             self.current_time += context.delta
-            if self.current_time >= self.interval:
+            while self.current_time >= self.interval and self.remaining > 0:
+                self.current_time -= self.interval
+
                 system = context.system
                 images = system.particles_data.images
 
-                self.current_time = 0.0
                 amount_to_create = min(self.remaining, self.per_amount)
 
                 for i in range(amount_to_create):
@@ -183,6 +187,8 @@ init -1115 python in renparticles:
                     sprite.x, sprite.y = self._get_position()
                 
                 self.remaining -= amount_to_create
+            
+            self.current_time = max(0.0, self.current_time)
             
             return UpdateState.Pass
 
@@ -233,11 +239,12 @@ init -1115 python in renparticles:
                 return UpdateState.Kill if self.kill_on_finish else UpdateState.Pass
 
             self.current_time += context.delta
-            if self.current_time >= self.interval:
+            while self.current_time >= self.interval and self.remaining > 0:
+                self.current_time -= self.interval
+
                 system = context.system
                 images = system.particles_data.images
 
-                self.current_time = 0.0
                 amount_to_create = min(self.remaining, self.per_amount)
 
                 for i in range(amount_to_create):
@@ -245,6 +252,8 @@ init -1115 python in renparticles:
                     sprite.x, sprite.y = self._get_ring_position()
                 
                 self.remaining -= amount_to_create
+
+            self.current_time = max(0.0, self.current_time)
             
             return UpdateState.Pass
 
