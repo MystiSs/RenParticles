@@ -1,3 +1,5 @@
+__OUTDATED__
+
 # RenParticles - Руководство разработчика по парсеру (DSL Parser)
 
 ## Введение

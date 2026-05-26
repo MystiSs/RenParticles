@@ -62,6 +62,7 @@ python early:
 
         TRANSFORM_ACCELERATION = "transform_acceleration"
         UPDATE_ACCELERATION = "update_acceleration"
+        ACCELERATION_TARGET_FPS = "acceleration_target_fps"
         UPDATE_FIDELITY = "update_fidelity"
         PARTICLE_EVENT_LISTENING = "particles_listening_events"
 
@@ -101,6 +102,7 @@ python early:
 
         TRANSFORM_ACCELERATION = "accelerate transforming"
         UPDATE_ACCELERATION = "accelerate update"
+        ACCELERATION_TARGET_FPS = "acceleration target fps"
         UPDATE_FIDELITY = "update fidelity"
         PARTICLE_EVENT_LISTENING = "particles listening events"
 
@@ -253,6 +255,7 @@ python early:
             _RenPKeywords.TRANSFORM_ACCELERATION: False,
             _RenPKeywords.UPDATE_ACCELERATION: False,
             _RenPKeywords.UPDATE_FIDELITY: False,
+            _RenPKeywords.ACCELERATION_TARGET_FPS: False,
             _RenPKeywords.PARTICLE_EVENT_LISTENING: False
         }
 
@@ -320,6 +323,12 @@ python early:
                     subblock.error("only one 'update fidelity' instruction allowed")
                 data[_RenPKeywords.UPDATE_FIDELITY] = subblock.integer()
                 seen[_RenPKeywords.UPDATE_FIDELITY] = True
+
+            elif subblock.match(_RenPLexerKeywords.ACCELERATION_TARGET_FPS):
+                if seen[_RenPKeywords.ACCELERATION_TARGET_FPS]: 
+                    subblock.error("only one 'acceleration target fps' instruction allowed")
+                data[_RenPKeywords.ACCELERATION_TARGET_FPS] = subblock.integer()
+                seen[_RenPKeywords.ACCELERATION_TARGET_FPS] = True
 
             elif subblock.match(_RenPLexerKeywords.PARTICLE_EVENT_LISTENING):
                 if seen[_RenPKeywords.PARTICLE_EVENT_LISTENING]: 
@@ -462,10 +471,11 @@ python early:
                                                         eval(system.get(_RenPKeywords.CACHE, "False")),
                                                         eval(system.get(_RenPKeywords.REDRAW, "None")),
                                                         system.get(_RenPKeywords.LAYER, None),
-                                                        eval(system.get(_RenPKeywords.TRANSFORM_ACCELERATION, "False")),
-                                                        eval(system.get(_RenPKeywords.PARTICLE_EVENT_LISTENING, "False")),
-                                                        _renp_eval_update_fidelity(system.get(_RenPKeywords.UPDATE_FIDELITY, "None")),
-                                                        eval(system.get(_RenPKeywords.UPDATE_ACCELERATION, "False"))
+                                                        eval(system.get(_RenPKeywords.TRANSFORM_ACCELERATION, "None")),
+                                                        eval(system.get(_RenPKeywords.PARTICLE_EVENT_LISTENING, "None")),
+                                                        _renp_eval_positive_integer(system.get(_RenPKeywords.UPDATE_FIDELITY, "None"), _RenPLexerKeywords.UPDATE_FIDELITY),
+                                                        eval(system.get(_RenPKeywords.UPDATE_ACCELERATION, "None")),
+                                                        _renp_eval_positive_integer(system.get(_RenPKeywords.ACCELERATION_TARGET_FPS, "None"), _RenPLexerKeywords.ACCELERATION_TARGET_FPS)
                                                         )
         system_instance.system_id = system.get(_RenPKeywords.SYSTEM_ID, None)
 
@@ -575,22 +585,22 @@ python early:
         else:
             return props_raw
 
-    def _renp_eval_update_fidelity(raw_data):
+    def _renp_eval_positive_integer(raw_data, instruction_name):
         if raw_data == "None":
             return None
 
         try:
             eval_data = eval(raw_data)
         except Exception as e:
-            renpy.error("incorrect value for 'update fidelity': '{}'. Parsing error: {}".format(raw_data, str(e)))
+            renpy.error("incorrect value for '{}': '{}'. Parsing error: {}".format(instruction_name, raw_data, str(e)))
             return None
 
         if not isinstance(eval_data, (int, float)):
-            renpy.error("update fidelity must be a number, received: {}".format(type(eval_data).__name__))
+            renpy.error("{} must be a number, received: {}".format(instruction_name, type(eval_data).__name__))
             return None
 
         if eval_data <= 0:
-            renpy.error("update fidelity must be a positive number greater than 0. Received: {}".format(eval_data))
+            renpy.error("{} must be a positive number greater than 0. Received: {}".format(instruction_name, eval_data))
             return None
 
         return eval_data

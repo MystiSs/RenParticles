@@ -9,7 +9,12 @@
     * [Particle Sprites](#particle-sprites)
     * [Particle Lifetime](#particle-lifetime)
     * [Update Frequency](#update-frequency)
+* [Optimization of particle system performance](#optimization-of-particle-system-performance)
     * [Optimization of transformations](#optimization-of-transformations)
+    * [Optimizing the update logic](#optimizing-the-update-logic)
+    * [Target FPS for adaptive optimizations](#target-fps-for-adaptive-optimizations)
+    * [Update accuracy](#update-accuracy)
+    * [Transmission of events to each particle from the system](#transmission-of-events-to-each-particle-from-the-system)
 * [Behavior Blocks](#behavior-blocks)
     * [on update](#on-update)
     * [on event](#on-event)
@@ -145,18 +150,77 @@ A smaller value means smoother animation but higher load.
 
 ---
 
+## Optimization of particle system performance
+
+The RenParticles engine supports several optimization systems. They allow you to maintain a high frame rate (FPS) even when displaying a large number of particles (within the RenPy engine), automatically distributing the computing load.
+
 ### Optimization of transformations
 
 ```renpy
-accelerate transforming          # Mode is enabled. If you do not write accelerate transforming, it will be disabled accordingly
+accelerate transforming     # Mode is enabled. If you do not write accelerate transforming, it will be disabled accordingly
 ```
 
 If the load on the system increases, the engine automatically distributes the transformation calculations over several frames. This protects the game from FPS "drawdowns" in heavy particle systems.
 
 
-- This instruction is only useful for particle systems that use Transform processors;
-- The price of optimization is to reduce the smoothness of animation transformations. The maximum number of processing "splits" is every 16th frame. If the engine decides to work in this mode, it will be noticeable;  
+- This instruction is only useful for particle systems that use `Transform` processors;
+- The price of optimization is to reduce the smoothness of animation transformations. The maximum number of processing "splits" is every 16th frame. If the engine decides to work in this mode, it will be noticeable;
+- Can work in conjunction with other enabled optimizations;
 - The instruction has no parameters: it is enough to simply add the line accelerate transforming to the description of the particle system.
+
+---
+
+### Optimizing the update logic
+
+```renpy
+accelerate update       # Mode is enabled. If you do not write accelerate update, it will be disabled accordingly
+```
+
+Enables an automatic buffer for update logic (on update). Allows you to "stretch" the calculation of particle behavior when performance drops.
+
+- Recommended for complex systems with a lot of script logic in the on update block and a lot of particles;
+- The price of optimization is to reduce the smoothness of processing. The maximum number of processing "splits" is every 16th frame. If the engine decides to work in this mode, it will be **very** noticeable. Starting from optimization, updating the logic every 4th frame will be noticeable;
+- Can work in conjunction with other enabled optimizations;
+- The instruction has no parameters: just add the accelerate update line to the description of the particle system.
+
+---
+
+### Target FPS for adaptive optimizations
+
+```renpy
+acceleration target fps 45      # accelerate update and accelerate transforming will aim to support 45 fps
+```
+
+Sets the FPS target value that the optimization system will aim for (60 by default).
+
+---
+
+### Update accuracy
+
+```renpy
+update fidelity 2       # Update occurs every 2nd frame
+```
+
+Sets the basic level of update accuracy. A value of 1 means updating every frame. Value 2 is updating via frame, etc.
+
+This is a "hard" restriction. If you have installed update `update fidelity 2', the system will update the particles 2 times less frequently, regardless of the current load. This is the easiest way to reduce the load on the CPU.
+
+- Requires a parameter in the form of an *integer*;
+- Recommended for complex systems with a lot of script logic in the on update block and a lot of particles;
+- The price of optimization is to reduce the smoothness of processing;
+- Can work in conjunction with other enabled optimizations.
+
+---
+
+### Transmission of events to each particle from the system
+
+```renpy
+particles listening events  # Event transmission is enabled. If you do not write particles listening events, then transmission will be disabled accordingly.
+```
+
+It enables the transmission of events that the particle system receives to the particles themselves. For example, the mouse movement event will be transmitted to all current live particles. It is useful if your particle images are complex custom `CDD`s or similar classes.
+
+- Enabling this option can **significantly** increase the load on the CPU if there are a huge number of particles in the system (300+). This will be noticeable when you start moving the mouse.
 
 ---
 

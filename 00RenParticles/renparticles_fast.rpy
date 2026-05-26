@@ -212,12 +212,12 @@ init -1337 python in renparticles:
     
     class RenParticlesFast(SpriteManager):
         _BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
-        _BUFFER_AMOUNT_DELTAS = [0.017, 0.0175, 0.0179, 0.01825, 0.0191, 0.0200, 0.0220, 0.0250, 0.0300]
+        _BUFFER_AMOUNT_DELTAS = [0.001, 0.0015, 0.0019, 0.00225, 0.0031, 0.004, 0.006, 0.009, 0.014]
 
         _UPDATE_BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
-        _UPDATE_BUFFER_AMOUNT_DELTAS = [0.01725, 0.018, 0.020, 0.022, 0.025, 0.028, 0.033, 0.040, 0.050]
+        _UPDATE_BUFFER_AMOUNT_DELTAS = [0.00125, 0.002, 0.004, 0.006, 0.009, 0.012, 0.017, 0.024, 0.034]
 
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=False, particles_listening_events=False, update_fidelity=None, update_acceleration=False, **properties):
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=None, particles_listening_events=None, update_fidelity=None, update_acceleration=None, acceleration_target_fps=None, **properties):
             super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
             self.layer = layer
 
@@ -257,22 +257,29 @@ init -1337 python in renparticles:
 
             self._smoothed_dtime = 0.0
 
-            self._transform_acceleration = transform_acceleration
+            self._transform_acceleration = transform_acceleration or get_default_system_parameter("transform_acceleration")
             self._buffer_offset = 0
             self._buffer_index = 0
             self._buffer_amount = RenParticlesFast._BUFFER_AMOUNT[0]
 
-            self._update_acceleration = update_acceleration
+            self._update_acceleration = update_acceleration or get_default_system_parameter("update_acceleration")
             self._update_buffer_offset = 0
             self._update_buffer_index = 0
             self._update_buffer_amount = RenParticlesFast._UPDATE_BUFFER_AMOUNT[0]
 
-            self._update_fidelity = update_fidelity or 1
+            self._update_fidelity = update_fidelity or get_default_system_parameter("update_fidelity")
             self._update_delay_counter = 0
             self._update_fidelity_delta_accumulator = 0.0
             self._update_fidelity_delta_accumulator_debug_last = 0.0
 
-            self._particles_listening_events = particles_listening_events
+            self._particles_listening_events = particles_listening_events or get_default_system_parameter("particles_listening_events")
+
+            if self._transform_acceleration or self._update_acceleration:
+                self._acceleration_target_fps = acceleration_target_fps or get_default_system_parameter("acceleration_target_fps")
+                self._acceleration_target_delta = self._get_acc_target_fps_delta()
+                self._acceleration_deltas_factor = get_default_system_parameter("acceleration_root_fps") / self._acceleration_target_fps
+                self._buffer_amount_deltas = [delta * self._acceleration_deltas_factor for delta in RenParticlesFast._BUFFER_AMOUNT_DELTAS]
+                self._update_buffer_amount_deltas = [delta * self._acceleration_deltas_factor for delta in RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS]
 
             self._init_contexts()
 
@@ -381,6 +388,9 @@ init -1337 python in renparticles:
 
             return _lifetime_getters[lifetime_type](*lifetime_timings)
 
+        def _get_acc_target_fps_delta(self):
+            return 1.0 / self._acceleration_target_fps 
+
         def _calculate_smoothed_dtime(self):
             self._smoothed_dtime = (self._update_fidelity_delta_accumulator / self._update_fidelity + self._prev_dtime) * 0.5
 
@@ -390,12 +400,12 @@ init -1337 python in renparticles:
             current_idx = self._buffer_index
             target_idx = current_idx
             
-            if self._smoothed_dtime > RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx]:
+            if self._smoothed_dtime > self._acceleration_target_delta + self._buffer_amount_deltas[current_idx]:
                 if current_idx < len(RenParticlesFast._BUFFER_AMOUNT) - 1:
                     target_idx = current_idx + 1
                     
             elif current_idx > 0:
-                if self._smoothed_dtime < (RenParticlesFast._BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
+                if self._smoothed_dtime < ((self._acceleration_target_delta + self._buffer_amount_deltas[current_idx - 1]) - margin):
                     target_idx = current_idx - 1
                     
             if current_idx != target_idx:
@@ -409,12 +419,12 @@ init -1337 python in renparticles:
             current_idx = self._update_buffer_index
             target_idx = current_idx
             
-            if self._smoothed_dtime > RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS[current_idx]:
+            if self._smoothed_dtime > self._acceleration_target_delta +  self._update_buffer_amount_deltas[current_idx]:
                 if current_idx < len(RenParticlesFast._UPDATE_BUFFER_AMOUNT) - 1:
                     target_idx = current_idx + 1
                     
             elif current_idx > 0:
-                if self._smoothed_dtime < (RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS[current_idx - 1] - margin):
+                if self._smoothed_dtime < ((self._acceleration_target_delta + self._update_buffer_amount_deltas[current_idx - 1]) - margin):
                     target_idx = current_idx - 1
                     
             if current_idx != target_idx:
@@ -445,7 +455,7 @@ init -1337 python in renparticles:
                 self._update_fidelity_delta_accumulator_debug_last
             )
 
-            print(debug_data)
+            #print(debug_data)
             
             return debug_data
 

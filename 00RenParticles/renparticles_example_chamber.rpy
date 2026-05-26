@@ -138,6 +138,7 @@ init 100:
         sprite expr Solid("#ffffff", xysize=(8, 8))
         accelerate transforming
         accelerate update
+        #acceleration target fps 30
         #update fidelity 2
         #particles listening events
 
@@ -253,11 +254,11 @@ init 100:
 
     rparticles define "renparticles_sparkles_v2_demo":
         redraw asap
-        sprite expr Solid("#e7a900", xysize=(4, 12)); expr Solid("#e7a900", xysize=(2, 8)); expr Solid("#e7a900", xysize=(1, 7))
+        sprite expr Solid("#e7a900", xysize=(1, 12)); expr Solid("#e7a900", xysize=(2, 8)); expr Solid("#e7a900", xysize=(1, 7)); expr Solid("#e7a900", xysize=(2, 9))
         lifetime range random (1.0, 2.0)
         accelerate transforming
         # accelerate update
-        # update fidelity 2
+        # update fidelity 4
 
         preset interval_spray:
             amount "infinite"
