@@ -47,6 +47,10 @@ python early:
         TARGET_SYSTEM = "renp_target_system"
         BEHAVIOR_ID = "renp_behavior_id"
 
+        SIMULATE_TIME = "simulate_time"
+        SIMULATE_WAIT = "wait"
+        SIMULATE_WAIT_STEP = "simulate_wait_step"
+
         REDEFENITION = "redefenition"
 
         SPRITE = "sprite"
@@ -95,6 +99,10 @@ python early:
         SYSTEM = "system"
         TARGET_SYSTEM = "system"
         SUBSYSTEM_ID = "id"
+
+        SIMULATE_TIME = "simulate_time"
+        SIMULATE_WAIT = "wait"
+        SIMULATE_WAIT_STEP = "simulate_wait_step"
 
         AS = "as"
 
@@ -1109,6 +1117,53 @@ python early:
 
 # -------------------------------------------------------------------------------------------------------------------------------
 
+    def renp_parse_fast_particles_simulate(lexer):
+        data = { _RenPKeywords.TAG: None,
+                _RenPLexerKeywords.SIMULATE_TIME: "None",
+                _RenPLexerKeywords.SIMULATE_WAIT: False,
+                _RenPLexerKeywords.SIMULATE_WAIT_STEP: "None"
+                }
+
+        data[_RenPKeywords.TAG] = lexer.string()
+        data[_RenPKeywords.SIMULATE_TIME] = lexer.simple_expression()
+        if lexer.match(_RenPKeywords.SIMULATE_WAIT):
+            data[_RenPKeywords.SIMULATE_WAIT] = True
+
+        if not lexer.eol():
+            data[_RenPKeywords.SIMULATE_WAIT_STEP] = lexer.simple_expression()
+
+        lexer.expect_eol()
+        return data
+
+    def renp_execute_fast_particles_simulate(data):
+        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
+        simulate_time = eval(data[_RenPKeywords.SIMULATE_TIME])
+        simulate_wait_step = eval(data[_RenPKeywords.SIMULATE_WAIT_STEP])
+
+        if not isinstance(simulate_time, (int, float)):
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_time), simulate_time))
+        if simulate_time < 0:
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' cannot be negative")
+
+        if simulate_wait_step is None:
+            pass
+        elif not isinstance(simulate_wait_step, (int, float)):
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_wait_step), simulate_wait_step))
+        elif simulate_wait_step < 0:
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' cannot be negative")
+
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if system is not None:
+            if data[_RenPKeywords.SIMULATE_WAIT]:
+                system.simulate_time = simulate_time
+                renpy.call("_renp_simulate_loop_label", system, simulate_wait_step)
+            else:
+                system.simulate(simulate_time)
+
+    renpy.register_statement("rparticles simulate", renp_parse_fast_particles_simulate, None, renp_execute_fast_particles_simulate)
+
+# -------------------------------------------------------------------------------------------------------------------------------
+
     def _renp_sl_displayable_early_wrapper(tag, **properties):
         return renparticles.instantiate_model(tag)
 
@@ -1116,3 +1171,4 @@ python early:
     .add_positional("child")
 
 # -------------------------------------------------------------------------------------------------------------------------------
+

@@ -137,7 +137,7 @@ init 100:
         redraw asap
         sprite expr Solid("#ffffff", xysize=(8, 8))
         accelerate transforming
-        accelerate update
+        #accelerate update
         #acceleration target fps 30
         #update fidelity 2
         #particles listening events
@@ -145,7 +145,7 @@ init 100:
         preset interval_spray:
             amount "infinite"
             per_amount 1
-            interval 0.025
+            interval 0.125
             area (0, -50, config.screen_width - 32, 0)
 
         on update:
@@ -263,7 +263,7 @@ init 100:
         preset interval_spray:
             amount "infinite"
             per_amount 2
-            interval 0.045
+            interval 0.145
             area (960, 540, 0, 0)
 
         on update:
@@ -374,6 +374,18 @@ label renparticles_snowfall_demo:
     with Dissolve(0.1)
     "Executed"
 
+    rparticles simulate "_renp_demo_displ" 1.0 # wait 0.0001
+    "Simulated +1 seconds"
+
+    rparticles simulate "_renp_demo_displ" 0.34
+    "Another +0.34 seconds"
+
+    rparticles simulate "_renp_demo_displ" 0.56
+    "Another +0.56 seconds"
+
+    rparticles simulate "_renp_demo_displ" 5.0 wait
+    "Another +5 seconds. Wait mode. Wait Mode Step 0.0005s"
+
     hide _renp_demo_displ
     with Dissolve(0.1)
     "Hided"
@@ -393,7 +405,10 @@ label renparticles_fireflies_demo:
 
 label renparticles_sparkles_v2_demo:
     rparticles model "renparticles_sparkles_v2_demo" as _renp_demo_displ with Dissolve(0.1)
-    "Executed In Screen"
+    "Executed"
+
+    rparticles simulate "_renp_demo_displ" 5.0
+    "Simulated +5 seconds"
 
     hide _renp_demo_displ with Dissolve(0.1)
     "Hided"

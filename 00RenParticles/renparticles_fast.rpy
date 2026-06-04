@@ -280,6 +280,8 @@ init -1337 python in renparticles:
                 self._acceleration_deltas_factor = get_default_system_parameter("acceleration_root_fps") / self._acceleration_target_fps
                 self._buffer_amount_deltas = [delta * self._acceleration_deltas_factor for delta in RenParticlesFast._BUFFER_AMOUNT_DELTAS]
                 self._update_buffer_amount_deltas = [delta * self._acceleration_deltas_factor for delta in RenParticlesFast._UPDATE_BUFFER_AMOUNT_DELTAS]
+            
+            self.simulate_time = 0.0
 
             self._init_contexts()
 
@@ -504,6 +506,67 @@ init -1337 python in renparticles:
 
             return s
 
+        def simulate_step(self, step=None):
+            step = step or get_default_system_parameter("simulate_step")
+            self.simulate_time -= step
+
+            oneshotted_update = []
+            oneshotted_dead = []
+            new_on_update = list(self.on_update)
+            new_on_particle_dead = []
+
+            live_children = []
+
+            self._update_ctx.delta = step
+            self._particle_dead_ctx.delta = step
+
+            for particle_idx, particle in enumerate(self.children):
+                #<Симулируем, что время течёт, потом всё равно станет истинным при рендеринге>#
+                self._update_ctx.st += step
+                self._particle_dead_ctx.st += step
+
+                self._particle_dead_ctx.particle = particle
+
+                if not particle.live:
+                    for behavior_func, props in self.on_particle_dead:
+                        return_value = behavior_func(self._particle_dead_ctx)
+                        if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                            if (behavior_func, props) not in oneshotted_dead:
+                                oneshotted_dead.append((behavior_func, props))
+                        else:
+                            if (behavior_func, props) not in new_on_particle_dead:
+                                new_on_particle_dead.append((behavior_func, props))
+                    
+                    self.particles_data.particles_properties.pop(particle, None)
+                    _particles_pool.put(particle)
+                    continue
+
+                live_children.append(particle)
+
+                self._update_ctx.particle = particle
+                
+                for update_func, props in new_on_update:
+                    return_value = update_func(self._update_ctx)
+                    if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                        if (update_func, props) not in oneshotted_update:
+                            oneshotted_update.append((update_func, props))
+            
+            self.on_update = [item for item in new_on_update if item not in oneshotted_update]
+            self.oneshotted_on_update.extend(oneshotted_update)
+
+            if self.dead_child:
+                self.children = live_children
+                self.on_particle_dead = new_on_particle_dead
+                self.oneshotted_on_dead.extend(oneshotted_dead)
+                self.dead_child = False
+
+        def simulate(self, simulate_time, step=None):
+            self.simulate_time = simulate_time
+            step = step or get_default_system_parameter("simulate_step")
+
+            while self.simulate_time >= step:
+                self.simulate_step(step)
+
         def render(self, width, height, st, at):
             if self.animation:
                 st = at
@@ -556,6 +619,8 @@ init -1337 python in renparticles:
                 if do_update:
                     for particle_idx, particle in enumerate(self.children):
                         if not particle.live:
+                            self._particle_dead_ctx.particle = particle
+
                             for behavior_func, props in self.on_particle_dead:
                                 return_value = behavior_func(self._particle_dead_ctx)
                                 if props.get("oneshot", False) or return_value == UpdateState.Kill:
@@ -573,7 +638,6 @@ init -1337 python in renparticles:
 
                         if not self._update_acceleration or (particle_idx % self._update_buffer_amount == self._update_buffer_offset):
                             self._update_ctx.particle = particle
-                            self._particle_dead_ctx.particle = particle
                             
                             for update_func, props in new_on_update:
                                 return_value = update_func(self._update_ctx)
@@ -710,6 +774,8 @@ init -1337 python in renparticles:
 
             self._link_systems_in_contexts()
 
+            self.simulate_time = 0.0
+
         def _create_systems_by_id_map(self):
             return { system.system_id: system for system in self.systems if system.system_id }
 
@@ -760,6 +826,23 @@ init -1337 python in renparticles:
         def visit(self):
             return self.systems[:]
         
+        def simulate_step(self, simulate_step=None):
+            step = step or get_default_system_parameter("simulate_step")
+            self.simulate_time -= step
+
+            for system in self.systems:
+                system.simulate_step(step)
+
+        def simulate(self, simulate_time, simulate_step=None):
+            self.simulate_time = simulate_time
+            step = step or get_default_system_parameter("simulate_step")
+
+            for system in self.systems:
+                system.simulate_time = self.simulate_time
+
+            while self.simulate_time >= step:
+                self.simulate_step(step)
+
         def render(self, width, height, st, at):
             main_render = renpy.Render(width, height)
 

@@ -60,6 +60,7 @@
     * [Redefining handler properties](#redefining-handler-properties)
 * [System Management](#system-management)
     * [Control Commands](#control-commands)
+* [Forced simulation](#forced-simulation)
 * [Advanced Features](#advanced-features)
     * [Custom Functions](#custom-functions)
     * [oneshot Modifier](#oneshot-modifier)
@@ -1543,6 +1544,60 @@ rparticles continue "particles" onlayer master zorder 1
 rparticles clear cache        # delete hidden systems
 rparticles clear cache deep   # delete all systems
 ```
+
+---
+
+## Forced simulation
+
+The `simulate` command allows you to force the particle system to run forward for a set number of seconds. This is useful for demonstrating the effect of the "maturation" of the system (for example, to show a steady flow of particles).
+
+```renpy
+rparticles simulate "tag" time [wait] [wait_step]
+```
+
+**Parameters:**
+
+* **`tag`** (string) is the tag (as tag) of the existing particle system that needs to be simulated. *Required* parameter.
+* **`time`** (positive number) — The number of seconds that must be forcibly simulated. *Required* parameter.
+* **`wait`** (flag) — *If * is specified, the game will pause and visually play the accelerated simulation with micro-pauses (in `wait_step` steps or if `wait_step` is not specified, the default is 0.0005 seconds).
+* **`wait_step`** (positive number) – If it is specified after the `wait` flag, it will be a step in visual simulation.
+
+**How it works:**
+- Simulation is applied instantly and does not require real waiting unless the wait flag is specified.
+- If wait is specified, Ren'Py temporarily enters a special service cycle, updating the particle system to visually monitor the fast simulation.
+
+**Usage examples:**
+
+- Fast simulation
+```renpy
+# Creating
+a particle system rparticles model "my_fire" as fire_system onlayer master
+
+# Instantly simulate 2 seconds
+of system life rparticles simulate "fire_system" 2.0
+"The system is simulated for 2 seconds. The fire has already started."
+```
+
+- Visual demonstration with expectation
+```renpy
+rparticles simulate "fire_system" 5.0 wait
+"5 seconds of simulation with visual steps have passed."
+```
+
+- Combination with the system display
+You can use it immediately after creating the system or showing the model for the first time.
+```renpy
+# Showing
+the rparticles show system as rparticles_test onlayer master:
+...
+
+# Immediately simulate 0.5 seconds so that the particles start moving
+rparticles simulate "rparticles_test" 0.5
+```
+
+**Nuances:**
+- Too long time values (for example, 1000 seconds) without wait can cause a short-term "freeze" of the engine due to the large number of calculations per frame. During this time, the system is not optimized in any way for accurate calculations.
+- If the system with the specified tag is not found, the `rparticles simulate` command will be ignored.
 
 ---
 

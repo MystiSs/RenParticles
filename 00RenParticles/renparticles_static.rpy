@@ -21,7 +21,10 @@ init -1337 python in renparticles:
 
         "particles_listening_events": False,
         "acceleration_target_fps": 60,
-        "acceleration_root_fps": 60.0
+        "acceleration_root_fps": 60.0,
+
+        "simulate_step": 0.016,
+        "sm_wait_mode": 0.00015
     }
 
     def get_default_system_parameter(key):
@@ -133,3 +136,13 @@ init -1337 python in renparticles:
             min_value, max_value = max_value, min_value
         
         return max(min_value, min(max_value, value))
+
+label _renp_simulate_loop_label(_renp_system, simulate_wait_step=None):
+    # $ _renp_before_simulating = renpy.checkpoint()
+    $ _renp_simulate_current_step = renparticles.get_default_system_parameter("simulate_step")
+    $ _renp_simulate_wait_step = simulate_wait_step or renparticles.get_default_system_parameter("sm_wait_mode")
+    while _renp_system.simulate_time >= _renp_simulate_current_step:
+        $ _renp_system.simulate_step(_renp_simulate_current_step)
+        pause _renp_simulate_wait_step
+
+    return
