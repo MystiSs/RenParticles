@@ -1549,7 +1549,7 @@ rparticles clear cache deep   # delete all systems
 
 ## Forced simulation
 
-The `simulate` command allows you to force the particle system to run forward for a set number of seconds. This is useful for demonstrating the effect of the "maturation" of the system (for example, to show a steady flow of particles).
+`rparticles simulate` Allows you to force the particle system to run forward for a set number of seconds.
 
 ```renpy
 rparticles simulate "tag" time [wait] [wait_step]
@@ -1596,7 +1596,7 @@ rparticles simulate "rparticles_test" 0.5
 ```
 
 **Nuances:**
-- Too long time values (for example, 1000 seconds) without wait can cause a short-term "freeze" of the engine due to the large number of calculations per frame. During this time, the system is not optimized in any way for accurate calculations.
+- Too long time values (for example, 1000 seconds) without `wait` can cause a short-term "freeze" of the engine due to the large number of calculations per frame. During this time, the system is not optimized in any way for accurate calculations.
 - If the system with the specified tag is not found, the `rparticles simulate` command will be ignored.
 
 ---
