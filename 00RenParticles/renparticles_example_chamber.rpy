@@ -211,7 +211,7 @@ init 100:
         on particle dead:
             emitter spray:
                 amount 1
-                area (200, 200, config.screen_width-200, config.screen_height-200)
+                area (0, -50, config.screen_width - 32, config.screen_height)
     
     # -------------------------------------------------------------------------------------------------------------
 
@@ -284,6 +284,56 @@ init 100:
 
     # -------------------------------------------------------------------------------------------------------------
 
+    rparticles define "rparticles_mouse_trail_to_center_attractor":
+        redraw asap
+        sprite expr Solid("#e7a900", xysize=(6, 6)); expr Solid("#ffffff", xysize=(4, 4))
+        lifetime range random (1.5, 3.0)
+
+        on event:
+            emitter mouse_interval_spray:
+                amount "infinite"
+                interval 0.075
+
+        on update:
+            simple_move id "base_move":
+                velocity [0.0, 0.0]
+                velocity_range [40.0, 40.0]
+
+            friction:
+                target_behavior_id "base_move"
+                friction 0.25
+
+            attractor:
+                target (960.0, 540.0)
+                strength 17500.0
+                radius 0.0
+                falloff 0.25
+                max_speed 1500.0
+                screen_bounds False
+
+            zone_enter:
+                x 960.0
+                y 540.0
+                width 15.0
+                shape "circle"
+                function renparticles.on_enter_zone_debug
+                once True
+
+            tween:
+                block "alpha":
+                    mode "lifetime"
+                    from_end True
+                    time 0.5
+                    start_value 1.0
+                    end_value 0.0
+                block "zoom":
+                    mode "lifetime"
+                    time 1.0
+                    start_value 1.2
+                    end_value 0.2
+                    warper "ease"
+
+            auto_expire
 
 label renparticles_choice:
     $ renpy.block_rollback()
@@ -310,6 +360,8 @@ label renparticles_choice:
             jump renparticles_fireflies_demo
         "Sparkles v2.0":
             jump renparticles_sparkles_v2_demo
+        "Black Hole on the center!":
+            jump renparticles_attractor_zone_demo
         "_Screen Test":
             jump renparticles_screen_test_demo
 
@@ -424,4 +476,13 @@ label renparticles_screen_test_demo:
     with Dissolve(0.1)
     "Hided"
 
+    jump renparticles_choice
+
+label renparticles_attractor_zone_demo:
+    rparticles model "rparticles_mouse_trail_to_center_attractor" as _renp_demo_displ
+    with Dissolve(0.1)
+    "Executed"
+
+    hide _renp_demo_displ with Dissolve(0.1)
+    "Hided"
     jump renparticles_choice

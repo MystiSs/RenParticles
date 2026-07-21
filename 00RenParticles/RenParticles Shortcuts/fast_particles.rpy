@@ -29,7 +29,12 @@ init -555 python in renparticles:
             "face_velocity": FaceVelocity,
             "flicker": FlickerBehavior,
 
-            "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn
+            "interval_fragmentation_per_particle": EmitterIntervalRemoteSpawn,
+
+            "zone_event": EventZone,
+            "zone_enter": EventZoneOnEnter,
+            "zone_exit": EventZoneOnExit,
+            "zone_while": EventZoneWhileIn,
         },
 
         "emitters": {

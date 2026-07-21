@@ -285,6 +285,10 @@ init -1337 python in renparticles:
 
             self._init_contexts()
 
+            self.dead_child = False
+
+            #self.cycle = 0
+
         def get_behavior_by_id(self, behavior_id):
             return self.behaviors_by_id.get(behavior_id, None)
 
@@ -611,14 +615,18 @@ init -1337 python in renparticles:
             new_on_update = list(self.on_update)
             new_on_particle_dead = []
 
+            #Почему-то dead_child из SpriteManager не работает корректно. Причину не нашёл. Делаем так#
+            has_death = False
             live_children = []
 
             do_update = self._update_delay_counter % self._update_fidelity == 0
 
+            #self.cycle += 1
             if not self._frozen:
                 if do_update:
                     for particle_idx, particle in enumerate(self.children):
                         if not particle.live:
+                            has_death = True
                             self._particle_dead_ctx.particle = particle
 
                             for behavior_func, props in self.on_particle_dead:
@@ -670,11 +678,12 @@ init -1337 python in renparticles:
                 self.on_update = [item for item in new_on_update if item not in oneshotted_update]
                 self.oneshotted_on_update.extend(oneshotted_update)
 
-                if self.dead_child:
+                if has_death:
                     self.children = live_children
                     self.on_particle_dead = new_on_particle_dead
                     self.oneshotted_on_dead.extend(oneshotted_dead)
-                    self.dead_child = False
+                    self.dead_child = False #Но на всякий случай делаем сброс этого атрибута#
+                    has_death = False
 
             if self.redraw is not None:
                 renpy.display.render.redraw(self, self.redraw)

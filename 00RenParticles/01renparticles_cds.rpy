@@ -20,203 +20,621 @@ python early:
 
         PresetsTypes = (GeneralPreset, InnerPreset)
 
-    class _RenPKeywords:
-        BEHAVIORS = "behaviors"
-        FUNC = "func"
-        LAYER = "layer"
-        LIFETIME = "lifetime"
-        MULTIPLE = "multiple"
-        ON_EVENT = "on_event"
-        ON_PARTICLE_DEAD = "on_particle_dead"
-        ON_UPDATE = "on_update"
-        ONESHOT = "oneshot"
-        PRESETS = "presets"
-        PROPERTIES = "properties"
-        REDRAW = "redraw"
-        CACHE = "cache"
-        SHORTCUT = "shortcut"
-        SHORTCUTS_BLOCK = "shortcuts_block"
-        GENERAL_SHORTCUTS = "general"
-        INNER_SHORTCUTS = "inner"
-
-        PRESET_NAME = "preset_name"
-        PRESET_TYPE = "preset_type"
-        PRESET_DEFINE_DATA = "preset_define_data"
-
-        SYSTEM_ID = "system_id"
-        TARGET_SYSTEM = "renp_target_system"
-        BEHAVIOR_ID = "renp_behavior_id"
-
-        SIMULATE_TIME = "simulate_time"
-        SIMULATE_WAIT = "wait"
-        SIMULATE_WAIT_STEP = "simulate_wait_step"
-
-        REDEFENITION = "redefenition"
-
-        SPRITE = "sprite"
-        IMAGES = "images"
-
-        SUBSYSTEMS = "subsystems"
-        TAG = "tag"
-        MODEL_NAME = "model_name"
-        BASE_NAME = "rparticles_displayable"
-        TIMINGS = "timings"
-        TYPE = "type"
-        ZORDER = "zorder"
-
-        TRANSFORM_ACCELERATION = "transform_acceleration"
-        UPDATE_ACCELERATION = "update_acceleration"
-        ACCELERATION_TARGET_FPS = "acceleration_target_fps"
-        UPDATE_FIDELITY = "update_fidelity"
-        PARTICLE_EVENT_LISTENING = "particles_listening_events"
-
-        POSSIBLE = "possible"
-
     class _RenPLexerKeywords:
+        # Ключевые слова показа
         ONLAYER = "onlayer"
         ZORDER = "zorder"
         MULTIPLE = "multiple"
-
         WITH = "with"
-
+        AS = "as"
+        MODEL = "model"
+        
+        # Ключевые слова системы
+        SYSTEM = "system"
+        SUBSYSTEM_ID = "id"
+        TARGET_SYSTEM = "system"
+        REDRAW = "redraw"
+        NOREDRAW = "noredraw"
+        CACHE = "cache"
+        DEEP = "deep"
+        
+        # Ключевые слова пресетов
         PRESET = "preset"
+        PRESET_TYPE = "type"
+        
+        # Ключевые слова событий
         ON_UPDATE = "on update"
         ON_EVENT = "on event"
         ON_PARTICLE_DEAD = "on particle dead"
-
-        PRESET_TYPE = "type"
-
+        
+        # Ключевые слова поведения
+        ONESHOT = "oneshot"
         BEHAVIOR_ID = "id"
-
         EMITTER = "emitter"
-
         CUSTOM = "custom"
-
+        
+        # Ключевые слова для значений
         RANDOM = "random"
         RANGE = "range"
         CONSTANT = "constant"
-
-        SYSTEM = "system"
-        TARGET_SYSTEM = "system"
-        SUBSYSTEM_ID = "id"
-
-        SIMULATE_TIME = "simulate_time"
-        SIMULATE_WAIT = "wait"
-        SIMULATE_WAIT_STEP = "simulate_wait_step"
-
-        AS = "as"
-
-        MODEL = "model"
-
+        
+        # Ключевые слова ускорения
         TRANSFORM_ACCELERATION = "accelerate transforming"
         UPDATE_ACCELERATION = "accelerate update"
         ACCELERATION_TARGET_FPS = "acceleration target fps"
         UPDATE_FIDELITY = "update fidelity"
         PARTICLE_EVENT_LISTENING = "particles listening events"
-
+        
+        # Ключевые слова симуляции
+        SIMULATE_TIME = "simulate_time"
+        SIMULATE_WAIT = "wait"
+        SIMULATE_WAIT_STEP = "simulate_wait_step"
+        
+        # Ключевые слова свойств
         PROP_BLOCK = "block"
+        
+        # Типы времени жизни
+        LIFETIME_CONSTANT = "constant"
+        LIFETIME_RANGE_RANDOM = "range-random"
 
-        NOREDRAW = "noredraw"
-        DEEP = "deep"
+    class _RenPKeys:
+        # Базовые ключи системы
+        TAG = "tag"
+        LAYER = "layer"
+        ZORDER = "zorder"
+        MULTIPLE = "multiple"
+        REDRAW = "redraw"
+        WITH = "with"
+        
+        # Ключи системы
+        SUBSYSTEMS = "subsystems"
+        SYSTEM_ID = "system_id"
+        TYPE = "type"
+        PRESETS = "presets"
+        LIFETIME = "lifetime"
 
-    redraw_asap_aliases = {
-        "asap",
-        "fastest",
-        "fast"
-    }
+        SPRITE = "sprite"
+        IMAGES = "images"
+        CACHE = "cache"
 
-    renp_renpy_reserved_words = { "move", "dissolve", "dspr" }
+        # Время жизни
+        TIMINGS = "timings"
+        
+        # Ключи событий
+        ON_UPDATE = "on_update"
+        ON_EVENT = "on_event"
+        ON_PARTICLE_DEAD = "on_particle_dead"
+        
+        # Ключи поведения
+        FUNC = "func"
+        BEHAVIORS = "behaviors"
+        ONESHOT = "oneshot"
+        BEHAVIOR_ID = "renp_behavior_id"
+        TARGET_SYSTEM = "renp_target_system"
+        PROPERTIES = "properties"
+        
+        # Ключи шорткатов
+        SHORTCUT = "shortcut"
+        SHORTCUTS_BLOCK = "shortcuts_block"
+        GENERAL_SHORTCUTS = "general"
+        INNER_SHORTCUTS = "inner"
+        
+        # Ключи моделей
+        MODEL_NAME = "model_name"
+        REDEFINITION = "redefinition"
+        PRESET_NAME = "preset_name"
+        PRESET_TYPE = "preset_type"
+        PRESET_DEFINE_DATA = "preset_define_data"
+        
+        # Ключи ускорения
+        TRANSFORM_ACCELERATION = "transform_acceleration"
+        UPDATE_ACCELERATION = "update_acceleration"
+        ACCELERATION_TARGET_FPS = "acceleration_target_fps"
+        UPDATE_FIDELITY = "update_fidelity"
+        PARTICLE_EVENT_LISTENING = "particles_listening_events"
+        
+        # Ключи симуляции
+        SIMULATE_TIME = "simulate_time"
+        SIMULATE_WAIT = "wait"
+        SIMULATE_WAIT_STEP = "simulate_wait_step"
+        
+        # Специальные ключи
+        BASE_NAME = "rparticles_displayable"
+        POSSIBLE = "possible"
+        PROPERTIES_DYNAMIC = "dynamic"
 
-    def renp_parse_fast_particles_show(lexer):
-        data = {
-            _RenPKeywords.TAG: None, 
-            _RenPKeywords.LAYER: "master", 
-            _RenPKeywords.ZORDER: "0", 
-            _RenPKeywords.MULTIPLE: False, 
-            _RenPKeywords.SUBSYSTEMS: [], 
-            _RenPKeywords.REDRAW: "None",
-            _RenPLexerKeywords.WITH: "None"
+    class _RenPLifetime:
+        Constant = "constant"
+        RangeRandom = "range-random"
+
+    REDRAW_ASAP_ALIASES = {"asap", "fastest", "fast"}
+    RENPY_RESERVED_WORDS = {"move", "dissolve", "dspr"}
+    BASE_LAYER = "master"
+    BASE_ZORDER = "0"
+    BASE_REDRAW = "None"
+    BASE_TRANSITION = "None"
+
+    RENP_PRESET_DEFAULT_TYPE = "general"
+
+    #-------------------FACTORIES---------------------
+
+    def _renp_create_base_data_dict():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.LAYER: BASE_LAYER,
+            _RenPKeys.ZORDER: BASE_ZORDER,
+            _RenPKeys.MULTIPLE: False,
+            _RenPKeys.SUBSYSTEMS: [],
+            _RenPKeys.REDRAW: BASE_REDRAW,
+            _RenPKeys.WITH: BASE_TRANSITION,
+            _RenPKeys.MODEL_NAME: None,
+            _RenPKeys.REDEFINITION: None,
         }
 
+    def _renp_create_system_data(system_type=_RenParserType.System):
+        return {
+            _RenPKeys.PRESETS: [],
+            _RenPKeys.ON_UPDATE: [],
+            _RenPKeys.ON_EVENT: [],
+            _RenPKeys.ON_PARTICLE_DEAD: [],
+            _RenPKeys.IMAGES: [],
+            _RenPKeys.LIFETIME: None,
+            _RenPKeys.TYPE: system_type,
+        }
+
+    def _renp_create_lifetime_data():
+        return {
+            _RenPKeys.TYPE: None,
+            _RenPKeys.TIMINGS: None,
+        }
+
+    def _renp_create_show_data():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.LAYER: BASE_LAYER,
+            _RenPKeys.ZORDER: BASE_ZORDER,
+        }
+
+    def _renp_create_preset_define_data():
+        return {
+            _RenPKeys.PRESET_NAME: None,
+            _RenPKeys.PRESET_TYPE: RENP_PRESET_DEFAULT_TYPE,
+            _RenPKeys.PRESET_DEFINE_DATA: {},
+        }
+
+    def _renp_create_shortcut_properties():
+        return {
+            _RenPKeys.ONESHOT: "False",
+            _RenPKeys.BEHAVIOR_ID: None,
+            _RenPKeys.TARGET_SYSTEM: None,
+        }
+
+    def _renp_create_show_component_keys():
+        return {
+            _RenPKeys.TAG,
+            _RenPKeys.LAYER,
+            _RenPKeys.ZORDER,
+        }
+
+    def _renp_create_system_content_flags():
+        return {
+            _RenPKeys.SPRITE: False,
+            _RenPKeys.LIFETIME: False,
+            _RenPKeys.ON_UPDATE: False,
+            _RenPKeys.ON_EVENT: False,
+            _RenPKeys.ON_PARTICLE_DEAD: False,
+            _RenPKeys.REDRAW: False,
+            _RenPKeys.CACHE: False,
+            _RenPKeys.TRANSFORM_ACCELERATION: False,
+            _RenPKeys.UPDATE_ACCELERATION: False,
+            _RenPKeys.UPDATE_FIDELITY: False,
+            _RenPKeys.ACCELERATION_TARGET_FPS: False,
+            _RenPKeys.PARTICLE_EVENT_LISTENING: False,
+        }
+
+    def _renp_create_preset_block_flags():
+        return {
+            _RenPKeys.ON_UPDATE: False,
+            _RenPKeys.ON_EVENT: False,
+            _RenPKeys.ON_PARTICLE_DEAD: False,
+        }
+
+    def _renp_create_simulate_data():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.SIMULATE_TIME: "None",
+            _RenPKeys.SIMULATE_WAIT: False,
+            _RenPKeys.SIMULATE_WAIT_STEP: "None",
+        }
+
+    def _renp_create_continue_data():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.LAYER: None,
+            _RenPKeys.ZORDER: "0",
+            _RenPKeys.WITH: "None",
+        }
+
+    def _renp_create_freeze_data():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.SYSTEM_ID: None,
+        }
+
+    def _renp_create_unfreeze_data():
+        return {
+            _RenPKeys.TAG: None,
+            _RenPKeys.SYSTEM_ID: None,
+            _RenPKeys.REDRAW: True,
+        }
+
+    def _renp_create_reset_data():
+        return {
+            _RenPKeys.TAG: None,
+        }
+
+    def _renp_create_clear_cache_data():
+        return {
+            _RenPLexerKeywords.DEEP: False,
+        }
+    
+    def _renp_create_define_particles_data():
+        return {
+            _RenPKeys.MODEL_NAME: None,
+            _RenPKeys.MULTIPLE: False,
+            _RenPKeys.SUBSYSTEMS: [],
+            _RenPKeys.REDRAW: BASE_REDRAW
+        }
+
+    #-------------------FACTORIES---------------------
+
+    #-------------------PARSERS---------------------
+
+    def _renp_is_show_component_keyword(lexer):
+        """Проверяет, является ли текущее ключевое слово компонентом показа."""
+        return (lexer.keyword(_RenPLexerKeywords.AS) or
+                lexer.keyword(_RenPLexerKeywords.ONLAYER) or
+                lexer.keyword(_RenPLexerKeywords.ZORDER))
+
+    def _renp_parse_show_component(lexer):
+        """Парсит один компонент показа."""
+        data = {}
+        
+        if lexer.keyword(_RenPLexerKeywords.AS):
+            data[_RenPKeys.TAG] = lexer.image_name_component()
+        elif lexer.keyword(_RenPLexerKeywords.ONLAYER):
+            data[_RenPKeys.LAYER] = lexer.simple_expression()
+        elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+            data[_RenPKeys.ZORDER] = lexer.simple_expression()
+        
+        return data
+
+    def _renp_parse_show_components(lexer, data):
+        seen_with = False
+        while not lexer.match(':') and not lexer.eol():
+            if _renp_is_show_component_keyword(lexer):
+                data.update(_renp_parse_show_component(lexer))
+            elif lexer.keyword(_RenPLexerKeywords.MULTIPLE):
+                data[_RenPKeys.MULTIPLE] = True
+            elif lexer.keyword(_RenPLexerKeywords.WITH):
+                if seen_with:
+                    lexer.error("there can only be one 'with' statement")
+                seen_with = True
+                data[_RenPKeys.WITH] = lexer.simple_expression()
+            else:
+                break
+        return data
+
+    def _renp_parse_redraw(lexer, was_redraw=False):
+        if was_redraw:
+            renpy.error("there can be only one 'redraw' instruction")
+        
+        for alias in REDRAW_ASAP_ALIASES:
+            if lexer.keyword(alias):
+                return "0.0"
+        return lexer.float()
+
+    def _renp_parse_sprites(lexer):
+        data = []
+        images = [img.strip() for img in lexer.rest().split(';')]
+        expr_pattern = re.compile(r'^(expression|expr)\s+(.*)$')
+        
+        for image in images:
+            match = expr_pattern.match(image)
+            if match:
+                data.append((match.group(2), True))
+            else:
+                data.append((image, False))
+        
+        return data
+
+    def _renp_parse_lifetime(lexer):
+        data = _renp_create_lifetime_data()
+
+        if lexer.keyword(_RenPLexerKeywords.RANGE):
+            if lexer.keyword(_RenPLexerKeywords.RANDOM):
+                data[_RenPKeys.TYPE] = _RenPLifetime.RangeRandom
+                data[_RenPKeys.TIMINGS] = lexer.simple_expression()
+        elif lexer.keyword(_RenPLexerKeywords.CONSTANT):
+            data[_RenPKeys.TYPE] = _RenPLifetime.Constant
+            data[_RenPKeys.TIMINGS] = lexer.simple_expression()
+        else:
+            lexer.error("expected '{}' or '{}'".format(_RenPLexerKeywords.LIFETIME_RANGE_RANDOM, _RenPLexerKeywords.LIFETIME_CONSTANT))
+
+        return data
+
+    def _renp_parse_properties(lexer, allow_dynamic=True):
+        properties = {}
+        prop_blocks = {}
+        properties_block = lexer.subblock_lexer()
+
+        while properties_block.advance():
+            if allow_dynamic and properties_block.keyword(_RenPLexerKeywords.PROP_BLOCK):
+                prop_name = properties_block.string()
+                properties_block.require(':')
+                properties_block.expect_eol()
+                prop_blocks[prop_name] = _renp_parse_properties(properties_block, False)
+            else:
+                key = properties_block.word()
+                value = properties_block.simple_expression()
+                properties[key] = value
+        
+        if prop_blocks:
+            properties[_RenPKeys.PROPERTIES_DYNAMIC] = prop_blocks
+
+        return properties
+
+    def _renp_parse_common_behavior(lexer, expect_eol=True, **kwargs):
+        """Парсит общую часть поведения (custom или shortcut)"""
+        allow_oneshot = kwargs.get("allow_oneshot", True)
+        allow_target_system = kwargs.get("allow_target_system", True)
+        allow_properties = kwargs.get("allow_properties", True)
+        is_custom = kwargs.get("is_custom", False)
+        
+        if is_custom:
+            func = lexer.simple_expression()
+            result = {_RenPKeys.FUNC: func, _RenPKeys.TYPE: _RenParserType.Func}
+        else:
+            shortcut = lexer.word()
+            shortcut_block = kwargs.get('shortcut_block', _RenPKeys.BEHAVIORS)
+            result = {
+                _RenPKeys.SHORTCUT: shortcut,
+                _RenPKeys.SHORTCUTS_BLOCK: shortcut_block,
+                _RenPKeys.TYPE: _RenParserType.Shortcut
+            }
+        
+        properties = _renp_create_shortcut_properties()
+        seen = {key: False for key in properties.keys()}
+        
+        was_delim = False
+        while not lexer.eol():
+            if allow_oneshot and lexer.keyword(_RenPLexerKeywords.ONESHOT):
+                if seen[_RenPKeys.ONESHOT]:
+                    lexer.error("only one 'oneshot' instruction allowed")
+                properties[_RenPKeys.ONESHOT] = "True"
+                seen[_RenPKeys.ONESHOT] = True
+                
+            elif allow_target_system and lexer.keyword(_RenPLexerKeywords.TARGET_SYSTEM):
+                if seen[_RenPKeys.TARGET_SYSTEM]:
+                    lexer.error("only one 'system' instruction allowed")
+                properties[_RenPKeys.TARGET_SYSTEM] = lexer.string()
+                seen[_RenPKeys.TARGET_SYSTEM] = True
+                
+            elif lexer.keyword(_RenPLexerKeywords.BEHAVIOR_ID):
+                if seen[_RenPKeys.BEHAVIOR_ID]:
+                    lexer.error("only one behavior 'id' instruction allowed")
+                properties[_RenPKeys.BEHAVIOR_ID] = lexer.string()
+                seen[_RenPKeys.BEHAVIOR_ID] = True
+                
+            elif lexer.match(':'):
+                lexer.expect_eol()
+                was_delim = True
+                break
+            else:
+                break
+        
+        if allow_properties and was_delim:
+            properties.update(_renp_parse_properties(lexer))
+        
+        if expect_eol:
+            lexer.expect_eol()
+        
+        result[_RenPKeys.PROPERTIES] = properties
+        return result
+
+    def _renp_parse_custom(lexer, **kwargs):
+        return _renp_parse_common_behavior(lexer, is_custom=True, **kwargs)
+
+    def _renp_parse_shortcut(lexer, shortcut_block=_RenPKeys.BEHAVIORS, **kwargs):
+        return _renp_parse_common_behavior(lexer, is_custom=False, shortcut_block=shortcut_block, **kwargs)
+
+    def _renp_parse_preset(lexer, preset_type=_RenParserType.GeneralPreset):
+        result = _renp_parse_shortcut(lexer, _RenPKeys.PRESETS, allow_oneshot=False)
+        result[_RenPKeys.TYPE] = preset_type
+        return result
+
+    def _renp_parse_emitter(lexer):
+        if lexer.keyword(_RenPLexerKeywords.CUSTOM):
+            return _renp_parse_custom(lexer)
+        return _renp_parse_shortcut(lexer, "emitters")
+
+    #----------------------------------------
+
+    def _renp_parse_on_block(lexer):
+        block_data = []
+        
+        lexer.require(':')
+        on_block = lexer.subblock_lexer()
+
+        while on_block.advance():
+            if on_block.keyword(_RenPLexerKeywords.EMITTER):
+                block_data.append(_renp_parse_emitter(on_block))
+            elif on_block.keyword(_RenPLexerKeywords.PRESET):
+                block_data.append(_renp_parse_preset(on_block, _RenParserType.InnerPreset))
+            elif on_block.keyword(_RenPLexerKeywords.CUSTOM):
+                block_data.append(_renp_parse_custom(on_block))
+            else:
+                block_data.append(_renp_parse_shortcut(on_block))
+            
+            on_block.expect_eol()
+        
+        return block_data
+
+    def _renp_parse_system_content(lexer, data):
+        seen = _renp_create_system_content_flags()
+        system_type = data.get(_RenPKeys.TYPE, _RenParserType.System)
+
+        while lexer.advance():
+            if lexer.keyword(_RenPKeys.REDRAW):
+                if seen[_RenPKeys.REDRAW]:
+                    lexer.error("only one 'redraw' instruction allowed")
+                data[_RenPKeys.REDRAW] = _renp_parse_redraw(lexer)
+                seen[_RenPKeys.REDRAW] = True
+
+            elif lexer.keyword(_RenPKeys.CACHE):
+                if seen[_RenPKeys.CACHE]:
+                    lexer.error("only one 'cache' instruction allowed")
+                data[_RenPKeys.CACHE] = "True"
+                seen[_RenPKeys.CACHE] = True
+                lexer.expect_eol()
+
+            elif lexer.keyword(_RenPKeys.SPRITE):
+                if seen[_RenPKeys.SPRITE]:
+                    lexer.error("only one 'sprite' instruction allowed")
+                data[_RenPKeys.IMAGES] = _renp_parse_sprites(lexer)
+                seen[_RenPKeys.SPRITE] = True
+            
+            elif lexer.keyword(_RenPKeys.LIFETIME):
+                if seen[_RenPKeys.LIFETIME]:
+                    lexer.error("only one 'lifetime' instruction allowed")
+                data[_RenPKeys.LIFETIME] = _renp_parse_lifetime(lexer)
+                seen[_RenPKeys.LIFETIME] = True
+
+            elif lexer.keyword(_RenPLexerKeywords.PRESET):
+                data[_RenPKeys.PRESETS].append(_renp_parse_preset(lexer))
+
+            elif lexer.match(_RenPLexerKeywords.ON_UPDATE):
+                if seen[_RenPKeys.ON_UPDATE]:
+                    lexer.error("only one 'on update' block allowed")
+                data[_RenPKeys.ON_UPDATE] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_UPDATE] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_EVENT):
+                if seen[_RenPKeys.ON_EVENT]:
+                    lexer.error("only one 'on event' block allowed")
+                data[_RenPKeys.ON_EVENT] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_EVENT] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
+                if seen[_RenPKeys.ON_PARTICLE_DEAD]:
+                    lexer.error("only one 'on particle dead' block allowed")
+                data[_RenPKeys.ON_PARTICLE_DEAD] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_PARTICLE_DEAD] = True
+
+            elif lexer.match(_RenPLexerKeywords.TRANSFORM_ACCELERATION):
+                if seen[_RenPKeys.TRANSFORM_ACCELERATION]:
+                    lexer.error("only one 'accelerate transforming' instruction allowed")
+                data[_RenPKeys.TRANSFORM_ACCELERATION] = "True"
+                seen[_RenPKeys.TRANSFORM_ACCELERATION] = True
+
+            elif lexer.match(_RenPLexerKeywords.UPDATE_ACCELERATION):
+                if seen[_RenPKeys.UPDATE_ACCELERATION]:
+                    lexer.error("only one 'accelerate update' instruction allowed")
+                data[_RenPKeys.UPDATE_ACCELERATION] = "True"
+                seen[_RenPKeys.UPDATE_ACCELERATION] = True
+
+            elif lexer.match(_RenPLexerKeywords.UPDATE_FIDELITY):
+                if seen[_RenPKeys.UPDATE_FIDELITY]:
+                    lexer.error("only one 'update fidelity' instruction allowed")
+                data[_RenPKeys.UPDATE_FIDELITY] = lexer.integer()
+                seen[_RenPKeys.UPDATE_FIDELITY] = True
+
+            elif lexer.match(_RenPLexerKeywords.ACCELERATION_TARGET_FPS):
+                if seen[_RenPKeys.ACCELERATION_TARGET_FPS]:
+                    lexer.error("only one 'acceleration target fps' instruction allowed")
+                data[_RenPKeys.ACCELERATION_TARGET_FPS] = lexer.integer()
+                seen[_RenPKeys.ACCELERATION_TARGET_FPS] = True
+
+            elif lexer.match(_RenPLexerKeywords.PARTICLE_EVENT_LISTENING):
+                if seen[_RenPKeys.PARTICLE_EVENT_LISTENING]:
+                    lexer.error("only one 'particles listening events' instruction allowed")
+                data[_RenPKeys.PARTICLE_EVENT_LISTENING] = "True"
+                seen[_RenPKeys.PARTICLE_EVENT_LISTENING] = True
+            
+            else:
+                return False
+            
+            lexer.expect_eol()
+        return True
+
+    def _renp_parse_preset_block(lexer, data):
+        seen = _renp_create_preset_block_flags()
+
+        while lexer.advance():
+            if lexer.match(_RenPLexerKeywords.ON_UPDATE):
+                if seen[_RenPKeys.ON_UPDATE]:
+                    lexer.error("only one 'on update' block allowed")
+                data[_RenPKeys.ON_UPDATE] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_UPDATE] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_EVENT):
+                if seen[_RenPKeys.ON_EVENT]:
+                    lexer.error("only one 'on event' block allowed")
+                data[_RenPKeys.ON_EVENT] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_EVENT] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
+                if seen[_RenPKeys.ON_PARTICLE_DEAD]:
+                    lexer.error("only one 'on particle dead' block allowed")
+                data[_RenPKeys.ON_PARTICLE_DEAD] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_PARTICLE_DEAD] = True
+            
+            elif lexer.keyword(_RenPLexerKeywords.PRESET):
+                lexer.error("recursive presets are not allowed")
+            
+            else:
+                return False
+            
+            lexer.expect_eol()
+        return True
+
+    #----------------------------------------
+
+    def renp_parse_fast_particles_show(lexer):
+        data = _renp_create_base_data_dict()
+
         if lexer.keyword(_RenPLexerKeywords.MODEL):
-            data[_RenPKeywords.MODEL_NAME] = lexer.string()
+            data[_RenPKeys.MODEL_NAME] = lexer.string()
 
             while not lexer.eol():
                 if lexer.match(':'):
-                    data[_RenPKeywords.REDEFENITION] = _renp_parse_redefinition_in_model(lexer.subblock_lexer())
-                    # renpy.error("<rparticles>: rparticles model show mode does not support redefining properties. Sub-block there is not allowed")
+                    data[_RenPKeys.REDEFINITION] = _renp_parse_redefinition_in_model(lexer.subblock_lexer())
                     lexer.expect_eol()
                     break
-
                 elif lexer.keyword(_RenPLexerKeywords.WITH):
-                    if data[_RenPLexerKeywords.WITH] != "None":
-                        renpy.error("<rparticles>: there can only be one 'with' statement")
-                    data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
-
-                data.update(_renp_try_parse_show_data_component(lexer))
+                    if data[_RenPKeys.WITH] != BASE_TRANSITION:
+                        lexer.error("there can only be one 'with' statement")
+                    data[_RenPKeys.WITH] = lexer.simple_expression()
+                data.update(_renp_parse_show_component(lexer))
 
             return data
         
-        while not lexer.match(':'):
-            show_component = _renp_parse_show_data_component(lexer)
-
-            if show_component:
-                data.update(show_component)
-
-            elif lexer.keyword(_RenPLexerKeywords.MULTIPLE):
-                data[_RenPKeywords.MULTIPLE] = True
-
-            elif lexer.keyword(_RenPLexerKeywords.WITH):
-                if data[_RenPLexerKeywords.WITH] != "None":
-                    renpy.error("<rparticles>: there can only be one 'with' statement")
-                data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
-            
-            if lexer.eol():
-                renpy.error("<rparticles>: subblock required")
+        _renp_parse_show_components(lexer, data)
+        
+        if lexer.eol():
+            lexer.error("subblock required")
 
         lexer.expect_eol()
         subblock = lexer.subblock_lexer()
-        _renp_parse_renparticles_system_subblock(subblock, data)
+        _renp_parse_system_subblock(subblock, data)
 
         return data
 
-    def _renp_parse_redefinition_in_model(subblock):
-        data = { }
-        seen = set()
-        was_at_least_one_block = False
-
-        while subblock.advance():
-            behavior_id = subblock.require(subblock.string, "handler ID is required as a string")
-            if behavior_id in seen:
-                renpy.error("<rparticles>: duplicate handler ID found: {}".format(behavior_id))
-
-            subblock.require(':')
-            data[behavior_id] = _renp_parse_properties(subblock)
-
-            seen.add(behavior_id)
-            was_at_least_one_block = True
-
-        if not was_at_least_one_block:
-            renpy.error("<rparticles>: at least one behavior handler must be redefined or don't open redefenition block")
-
-        return data
-
-    def _renp_try_parse_show_data_component(lexer):
-        data = { }
-        if lexer.keyword(_RenPLexerKeywords.AS):
-            data[_RenPKeywords.TAG] = lexer.image_name_component()
-        elif lexer.keyword(_RenPLexerKeywords.ONLAYER):
-            data[_RenPKeywords.LAYER] = lexer.simple_expression()
-        elif lexer.keyword(_RenPLexerKeywords.ZORDER):
-            data[_RenPKeywords.ZORDER] = lexer.simple_expression()
-
-        return data
-
-    def _renp_parse_renparticles_system_subblock(subblock, data):
-        if data[_RenPKeywords.MULTIPLE]:
+    def _renp_parse_system_subblock(subblock, data):
+        if data[_RenPKeys.MULTIPLE]:
             while subblock.advance():
-                if subblock.keyword(_RenPKeywords.REDRAW):
-                    data[_RenPKeywords.REDRAW] = _renp_parse_redraw(subblock)
+                if subblock.keyword(_RenPLexerKeywords.REDRAW):
+                    data[_RenPKeys.REDRAW] = _renp_parse_redraw(subblock)
                 elif subblock.keyword(_RenPLexerKeywords.SYSTEM):
                     system_id = None
                     if subblock.keyword(_RenPLexerKeywords.SUBSYSTEM_ID):
@@ -224,210 +642,327 @@ python early:
 
                     subblock.require(':')
                     subblock.expect_eol()
-                    sub_data = _renp_get_default_system_data(_RenParserType.SubSystem)
-                    sub_data[_RenPKeywords.SYSTEM_ID] = system_id
-                    _renp_parse_common_system_content(subblock.subblock_lexer(), sub_data)
-                    data[_RenPKeywords.SUBSYSTEMS].append(sub_data)
+                    sub_data = _renp_create_system_data(_RenParserType.SubSystem)
+                    sub_data[_RenPKeys.SYSTEM_ID] = system_id
+                    _renp_parse_system_content(subblock.subblock_lexer(), sub_data)
+                    data[_RenPKeys.SUBSYSTEMS].append(sub_data)
                 else:
-                    renpy.error("Multiple rparticles can only contain 'system:' blocks or 'redraw'. Got: " + subblock.rest())
+                    subblock.error("Multiple rparticles can only contain 'system:' blocks or 'redraw' instruction. Got: " + subblock.rest())
                 subblock.expect_eol()
         else:
-            system_data = _renp_get_default_system_data(_RenParserType.System)
-            if not _renp_parse_common_system_content(subblock, system_data):
-                renpy.error("Unknown instruction in rparticles: " + subblock.rest())
+            system_data = _renp_create_system_data(_RenParserType.System)
+            if not _renp_parse_system_content(subblock, system_data):
+                subblock.error("Unknown instruction in rparticles: " + subblock.rest())
             
             data.update(system_data)
 
         return data
 
-    def _renp_get_default_system_data(system_type=_RenParserType.System):
-        return {
-            _RenPKeywords.PRESETS: [], 
-            _RenPKeywords.ON_UPDATE: [], 
-            _RenPKeywords.ON_EVENT: [], 
-            _RenPKeywords.ON_PARTICLE_DEAD: [], 
-            _RenPKeywords.IMAGES: [],
-            _RenPKeywords.LIFETIME: None,
-            _RenPKeywords.TYPE: system_type
-        }
+    def _renp_parse_redefinition_in_model(lexer):
+        data = {}
+        seen = set()
+        was_at_least_one_block = False
 
-    def _renp_parse_common_system_content(subblock, data):
-        seen = {
-            _RenPKeywords.SPRITE: False, 
-            _RenPKeywords.LIFETIME: False, 
-            _RenPKeywords.ON_UPDATE: False, 
-            _RenPKeywords.ON_EVENT: False, 
-            _RenPKeywords.ON_PARTICLE_DEAD: False,
-            _RenPKeywords.REDRAW: False,
-            _RenPKeywords.CACHE: False,
-            _RenPKeywords.TRANSFORM_ACCELERATION: False,
-            _RenPKeywords.UPDATE_ACCELERATION: False,
-            _RenPKeywords.UPDATE_FIDELITY: False,
-            _RenPKeywords.ACCELERATION_TARGET_FPS: False,
-            _RenPKeywords.PARTICLE_EVENT_LISTENING: False
-        }
+        while lexer.advance():
+            behavior_id = lexer.require(lexer.string, "behavior ID is required as a string")
+            if behavior_id in seen:
+                lexer.error("duplicate behavior ID found: {}".format(behavior_id))
 
-        while subblock.advance():
-            if subblock.keyword(_RenPKeywords.REDRAW):
-                if seen[_RenPKeywords.REDRAW]: 
-                    subblock.error("only one 'redraw' instruction allowed")
-                data[_RenPKeywords.REDRAW] = _renp_parse_redraw(subblock)
-                seen[_RenPKeywords.REDRAW] = True
+            lexer.require(':')
+            data[behavior_id] = _renp_parse_properties(lexer)
 
-            elif subblock.keyword(_RenPKeywords.CACHE):
-                if seen[_RenPKeywords.CACHE]: 
-                    subblock.error("only one 'cache' instruction allowed")
-                data[_RenPKeywords.CACHE] = "True"
-                seen[_RenPKeywords.CACHE] = True
-                subblock.expect_eol()
+            seen.add(behavior_id)
+            was_at_least_one_block = True
 
-            elif subblock.keyword(_RenPKeywords.SPRITE):
-                if seen[_RenPKeywords.SPRITE]: 
-                    subblock.error("only one 'sprite' instruction allowed")
-                data[_RenPKeywords.IMAGES] = _renp_parse_sprites_keyword(subblock)
-                seen[_RenPKeywords.SPRITE] = True
-            
-            elif subblock.keyword(_RenPKeywords.LIFETIME):
-                if seen[_RenPKeywords.LIFETIME]: 
-                    subblock.error("only one 'lifetime' instruction allowed")
-                data[_RenPKeywords.LIFETIME] = _renp_parse_lifetime_keyword(subblock)
-                seen[_RenPKeywords.LIFETIME] = True
+        if not was_at_least_one_block:
+            lexer.error("at least one behavior handler must be redefined or don't open redefinition block")
 
-            elif subblock.keyword(_RenPLexerKeywords.PRESET):
-                data[_RenPKeywords.PRESETS].append(_renp_parse_preset(subblock))
+        return data
 
-            elif subblock.match(_RenPLexerKeywords.ON_UPDATE):
-                if seen[_RenPKeywords.ON_UPDATE]: 
-                    subblock.error("only one 'on update' block allowed")
-                data[_RenPKeywords.ON_UPDATE] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_UPDATE] = True
+    def renp_parse_fast_particles_define(lexer):
+        data = _renp_create_define_particles_data()
 
-            elif subblock.match(_RenPLexerKeywords.ON_EVENT):
-                if seen[_RenPKeywords.ON_EVENT]: 
-                    subblock.error("only one 'on event' block allowed")
-                data[_RenPKeywords.ON_EVENT] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_EVENT] = True
+        if lexer.keyword(_RenPLexerKeywords.MULTIPLE):
+            data[_RenPKeys.MULTIPLE] = True
 
-            elif subblock.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
-                if seen[_RenPKeywords.ON_PARTICLE_DEAD]: 
-                    subblock.error("only one 'on particle dead' block allowed")
-                data[_RenPKeywords.ON_PARTICLE_DEAD] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_PARTICLE_DEAD] = True
+        data[_RenPKeys.MODEL_NAME] = lexer.string()
 
-            elif subblock.match(_RenPLexerKeywords.TRANSFORM_ACCELERATION):
-                if seen[_RenPKeywords.TRANSFORM_ACCELERATION]: 
-                    subblock.error("only one 'accelerate transforming' instruction allowed")
-                data[_RenPKeywords.TRANSFORM_ACCELERATION] = "True"
-                seen[_RenPKeywords.TRANSFORM_ACCELERATION] = True
+        if not lexer.match(':'):
+            lexer.error("subblock required")
 
-            elif subblock.match(_RenPLexerKeywords.UPDATE_ACCELERATION):
-                if seen[_RenPKeywords.UPDATE_ACCELERATION]: 
-                    subblock.error("only one 'accelerate update' instruction allowed")
-                data[_RenPKeywords.UPDATE_ACCELERATION] = "True"
-                seen[_RenPKeywords.UPDATE_ACCELERATION] = True
+        lexer.expect_eol()
+        subblock = lexer.subblock_lexer()
+        _renp_parse_system_subblock(subblock, data)
 
-            elif subblock.match(_RenPLexerKeywords.UPDATE_FIDELITY):
-                if seen[_RenPKeywords.UPDATE_FIDELITY]: 
-                    subblock.error("only one 'update fidelity' instruction allowed")
-                data[_RenPKeywords.UPDATE_FIDELITY] = subblock.integer()
-                seen[_RenPKeywords.UPDATE_FIDELITY] = True
+        return data
 
-            elif subblock.match(_RenPLexerKeywords.ACCELERATION_TARGET_FPS):
-                if seen[_RenPKeywords.ACCELERATION_TARGET_FPS]: 
-                    subblock.error("only one 'acceleration target fps' instruction allowed")
-                data[_RenPKeywords.ACCELERATION_TARGET_FPS] = subblock.integer()
-                seen[_RenPKeywords.ACCELERATION_TARGET_FPS] = True
+    def renp_parse_fast_particles_define_preset(lexer):
+        data = _renp_create_preset_define_data()
 
-            elif subblock.match(_RenPLexerKeywords.PARTICLE_EVENT_LISTENING):
-                if seen[_RenPKeywords.PARTICLE_EVENT_LISTENING]: 
-                    subblock.error("only one 'particles listening events' instruction allowed")
-                data[_RenPKeywords.PARTICLE_EVENT_LISTENING] = "True"
-                seen[_RenPKeywords.PARTICLE_EVENT_LISTENING] = True
-            
-            else:
-                return False
-            
-            subblock.expect_eol()
-        return True
+        data[_RenPKeys.PRESET_NAME] = lexer.word()
 
-    def _renp_parse_redraw(lexer, was_redraw=False):
-        if was_redraw:
-            renpy.error("there can be only one 'redraw' instruction")
+        if lexer.keyword(_RenPLexerKeywords.PRESET_TYPE):
+            data[_RenPKeys.PRESET_TYPE] = lexer.word()
         
-        for alias in redraw_asap_aliases:
-            if lexer.keyword(alias):
-                return "0.0"
-        return lexer.float()
+        lexer.require(':')
+        lexer.expect_eol()
+        _renp_parse_preset_block(lexer.subblock_lexer(), data[_RenPKeys.PRESET_DEFINE_DATA])
 
-    def _renp_parse_on_block(subblock):
-        block_data = [ ]
+        return data
 
-        subblock.require(':')
-        on_block = subblock.subblock_lexer()
+    def renp_parse_fast_particles_reset(lexer):
+        data = _renp_create_reset_data()
 
-        while on_block.advance():
-            if on_block.keyword(_RenPLexerKeywords.EMITTER):
-                emitter_data = _renp_parse_emitter_keyword(on_block)
-                block_data.append(emitter_data)
+        if not lexer.eol():
+            data[_RenPKeys.TAG] = lexer.string()
 
-            elif on_block.keyword(_RenPLexerKeywords.PRESET):
-                preset_data = _renp_parse_preset(on_block, _RenParserType.InnerPreset)
-                block_data.append(preset_data)
+        lexer.expect_eol()
+        return data
 
-            elif on_block.keyword(_RenPLexerKeywords.CUSTOM):
-                func_data = _renp_parse_custom_keyword(on_block)
-                block_data.append(func_data)
+    def renp_parse_fast_particles_freeze(lexer):
+        data = _renp_create_freeze_data()
 
-            #<Потенциальный шорткат>#
-            else:
-                shortcut_data = _renp_parse_shortcut(on_block)
-                block_data.append(shortcut_data)
+        if not lexer.eol():
+            data[_RenPKeys.TAG] = lexer.string()
+            if lexer.match('.'):
+                data[_RenPKeys.SYSTEM_ID] = lexer.string()
 
-            on_block.expect_eol()
+        lexer.expect_eol()
+        return data
+
+    def renp_parse_fast_particles_unfreeze(lexer):
+        data = _renp_create_unfreeze_data()
+
+        if lexer.eol():
+            return data
+
+        checkpoint = lexer.checkpoint()
+        if lexer.keyword(_RenPLexerKeywords.NOREDRAW):
+            data[_RenPKeys.REDRAW] = False
+            lexer.expect_eol()
+            return data
+        lexer.revert(checkpoint)
+
+        data[_RenPKeys.TAG] = lexer.string()
+        if lexer.match('.'):
+            data[_RenPKeys.SYSTEM_ID] = lexer.string()
         
-        #renpy.error("wih?\n{}".format(block_data))
-        return block_data
+        if lexer.keyword(_RenPLexerKeywords.NOREDRAW):
+            data[_RenPKeys.REDRAW] = False
+
+        lexer.expect_eol()
+        return data
+
+    def renp_parse_fast_particles_clear_cache(lexer):
+        data = _renp_create_clear_cache_data()
+        data[_RenPLexerKeywords.DEEP] = lexer.keyword(_RenPLexerKeywords.DEEP) is not None
+        lexer.expect_eol()
+        return data
+    
+    def renp_parse_fast_particles_continue(lexer):
+        data = _renp_create_continue_data()
+
+        if lexer.eol():
+            return data
+
+        checkpoint = lexer.checkpoint()
+        
+        # Проверяем, начинается ли с ключевого слова компонента показа
+        if _renp_is_show_component_keyword(lexer):
+            data.update(_renp_parse_show_component(lexer))
+            while not lexer.eol():
+                if _renp_is_show_component_keyword(lexer):
+                    data.update(_renp_parse_show_component(lexer))
+                else:
+                    lexer.error("unknown show component: {}".format(lexer.rest()))
+            return data
+            
+        lexer.revert(checkpoint)
+
+        data[_RenPKeys.TAG] = lexer.string()
+
+        while not lexer.eol():
+            if lexer.keyword(_RenPLexerKeywords.ONLAYER):
+                data[_RenPKeys.LAYER] = lexer.simple_expression()
+            elif lexer.keyword(_RenPLexerKeywords.ZORDER):
+                data[_RenPKeys.ZORDER] = lexer.require(lexer.integer, "integer expected")
+            elif lexer.keyword(_RenPLexerKeywords.WITH):
+                if data[_RenPKeys.WITH] != BASE_TRANSITION:
+                    lexer.error("there can only be one 'with' statement")
+                data[_RenPKeys.WITH] = lexer.simple_expression()
+            else:
+                lexer.error("unknown show component: {}".format(lexer.rest()))
+
+        lexer.expect_eol()
+        return data
+
+    def renp_parse_fast_particles_simulate(lexer):
+        data = _renp_create_simulate_data()
+
+        data[_RenPKeys.TAG] = lexer.string()
+        data[_RenPKeys.SIMULATE_TIME] = lexer.simple_expression()
+        
+        if lexer.match(_RenPKeys.SIMULATE_WAIT):
+            data[_RenPKeys.SIMULATE_WAIT] = True
+
+        if not lexer.eol():
+            data[_RenPKeys.SIMULATE_WAIT_STEP] = lexer.simple_expression()
+
+        lexer.expect_eol()
+        return data
+
+    #-------------------PARSERS---------------------
+
+
+    #---------------EXECUTE------------------
 
     def renp_execute_fast_particles_show(data):
-        is_model = _RenPKeywords.MODEL_NAME in data
+        is_model = _RenPKeys.MODEL_NAME in data and data[_RenPKeys.MODEL_NAME] is not None
+        
         if is_model:
-            model_name = data[_RenPKeywords.MODEL_NAME]
+            model_name = data[_RenPKeys.MODEL_NAME]
             model_data = renparticles._fast_particles_models.get(model_name, None)
-            #redefinition_data = data.get(_RenPKeywords.REDEFENITION, None) or {}
+            
             if model_data is None:
                 renpy.error("the rparticles model named '{}' does not exist\n"
-                            "Available models: {}".format(model_name, renparticles._fast_particles_models.keys())
-                            )
+                            "Available models: {}".format(model_name, list(renparticles._fast_particles_models.keys())))
                 return
             
             data = data.copy()
             data.update(model_data)
-            #data.update(redefinition_data)
 
-        tag = data.get(_RenPKeywords.TAG, None)
-        layer = data[_RenPKeywords.LAYER]
-        zorder = eval(data[_RenPKeywords.ZORDER])
-        redraw = eval(data[_RenPKeywords.REDRAW])
+        tag = data.get(_RenPKeys.TAG, None)
+        layer = data[_RenPKeys.LAYER]
+        zorder = eval(data[_RenPKeys.ZORDER])
+        redraw = eval(data[_RenPKeys.REDRAW])
 
-        if data[_RenPKeywords.MULTIPLE]:
-            subsystems = [_renp_eval_system(system) for system in data[_RenPKeywords.SUBSYSTEMS]]
+        if data[_RenPKeys.MULTIPLE]:
+            subsystems = [_renp_eval_system(system) for system in data[_RenPKeys.SUBSYSTEMS]]
             displayable = renparticles.RenParticleFastGroup(subsystems, redraw, layer)
         else:
             displayable = _renp_eval_system(data)
 
-        if is_model and _RenPKeywords.REDEFENITION in data:
-            _renp_try_redefine_properties_in_handlers(displayable, data[_RenPKeywords.REDEFENITION])
-
-        #print(displayable.get_info())
+        if is_model and _RenPKeys.REDEFINITION in data and data[_RenPKeys.REDEFINITION]:
+            _renp_try_redefine_properties_in_handlers(displayable, data[_RenPKeys.REDEFINITION])
         
-        true_tag = tag or _RenPKeywords.BASE_NAME
+        true_tag = tag or _RenPKeys.BASE_NAME
         renparticles._fast_particles_entries[true_tag] = displayable
 
-        renpy.show(name=_RenPKeywords.BASE_NAME, tag=tag, what=displayable, layer=layer, zorder=zorder)
+        renpy.show(name=_RenPKeys.BASE_NAME, tag=tag, what=displayable, layer=layer, zorder=zorder)
 
-        with_statement = eval(data[_RenPLexerKeywords.WITH])
+        with_statement = eval(data[_RenPKeys.WITH])
         if with_statement:
             renpy.with_statement(with_statement)
+
+    def renp_parse_fast_particles_define_execute_init(data):
+        model_name = data[_RenPKeys.MODEL_NAME]
+
+        if model_name in renparticles._fast_particles_models:
+            renpy.error("rparticles model named '{}' already declared. Name your system differently".format(model_name))
+
+        renparticles._fast_particles_models[model_name] = data.copy()
+
+    def renp_execute_fast_particles_define_preset(data):
+        preset_prefab = renparticles._RFDynamicBehaviorPreset()
+        preset_data = data[_RenPKeys.PRESET_DEFINE_DATA]
+        
+        preset_prefab.behaviors[_RenPKeys.ON_UPDATE] = preset_data.get(_RenPKeys.ON_UPDATE, {})
+        preset_prefab.behaviors[_RenPKeys.ON_EVENT] = preset_data.get(_RenPKeys.ON_EVENT, {})
+        preset_prefab.behaviors[_RenPKeys.ON_PARTICLE_DEAD] = preset_data.get(_RenPKeys.ON_PARTICLE_DEAD, {})
+
+        renparticles.add_preset(data[_RenPKeys.PRESET_NAME], preset_prefab, data[_RenPKeys.PRESET_TYPE])
+
+    def renp_execute_fast_particles_reset(data):
+        tag = data[_RenPKeys.TAG] or _RenPKeys.BASE_NAME
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if system is not None:
+            system.reset()
+
+    def renp_execute_fast_particles_freeze(data):
+        tag = data[_RenPKeys.TAG] or _RenPKeys.BASE_NAME
+        system_id = data.get(_RenPKeys.SYSTEM_ID)
+        
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if not system:
+            return
+        
+        if system_id:
+            if isinstance(system, renparticles.RenParticleFastGroup):
+                system.freeze_one(system_id)
+            return
+        
+        system.freeze()
+
+    def renp_execute_fast_particles_unfreeze(data):
+        tag = data[_RenPKeys.TAG] or _RenPKeys.BASE_NAME
+        system_id = data.get(_RenPKeys.SYSTEM_ID)
+        redraw = data[_RenPKeys.REDRAW]
+        
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if not system:
+            return
+        
+        if system_id:
+            if isinstance(system, renparticles.RenParticleFastGroup):
+                system.unfreeze_one(system_id, redraw)
+            return
+            
+        system.unfreeze(redraw)
+
+    def renp_execute_fast_particles_clear_cache(data):
+        deep = data.get(_RenPLexerKeywords.DEEP, False)
+        
+        if deep:
+            for tag, system in list(renparticles._fast_particles_entries.items()):
+                renpy.hide(tag, layer=system.layer)
+            renparticles._fast_particles_entries.clear()
+        else:
+            for tag, system in list(renparticles._fast_particles_entries.items()):
+                if not renpy.showing(tag, layer=system.layer):
+                    renpy.hide(tag, layer=system.layer)
+                    renparticles._fast_particles_entries.pop(tag, None)
+
+    def renp_execute_fast_particles_continue(data):
+        tag = data[_RenPKeys.TAG] or _RenPKeys.BASE_NAME
+        system = renparticles._fast_particles_entries.get(tag, None)
+        
+        if system is not None:
+            layer = data[_RenPKeys.LAYER] or system.layer
+            system.layer = layer
+            zorder = eval(data[_RenPKeys.ZORDER])
+            renpy.show(_RenPKeys.BASE_NAME, what=system, layer=layer, tag=tag, zorder=zorder)
+            
+            with_statement = eval(data[_RenPKeys.WITH])
+            if with_statement:
+                renpy.with_statement(with_statement)
+
+    def renp_execute_fast_particles_simulate(data):
+        tag = data[_RenPKeys.TAG] or _RenPKeys.BASE_NAME
+        simulate_time = eval(data[_RenPKeys.SIMULATE_TIME])
+        simulate_wait_step = eval(data[_RenPKeys.SIMULATE_WAIT_STEP]) if data[_RenPKeys.SIMULATE_WAIT_STEP] != "None" else None
+
+        if not isinstance(simulate_time, (int, float)):
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_time), simulate_time))
+        if simulate_time < 0:
+            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' cannot be negative")
+
+        if simulate_wait_step is not None:
+            if not isinstance(simulate_wait_step, (int, float)):
+                renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_wait_step), simulate_wait_step))
+            elif simulate_wait_step < 0:
+                renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' cannot be negative")
+
+        system = renparticles._fast_particles_entries.get(tag, None)
+        if system is not None:
+            if data[_RenPKeys.SIMULATE_WAIT]:
+                system.simulate_time = simulate_time
+                renpy.call("_renp_simulate_loop_label", system, simulate_wait_step)
+            else:
+                system.simulate(simulate_time)
+
+    #---------------EXECUTE------------------
+
+    #--------------EVALUATORS----------------
 
     def _renp_try_redefine_properties_in_handlers(system, redef_properties):
         evaluated_props = _renp_eval_props(redef_properties)
@@ -440,57 +975,59 @@ python early:
             
             behavior.inject_properties(**properties)
 
-    def _renp_instantiate_system_displayable(data, redraw=0.0, layer=None):
-        if data[_RenPKeywords.MULTIPLE]:
-            subsystems = [_renp_eval_system(system) for system in data[_RenPKeywords.SUBSYSTEMS]]
-            return renparticles.RenParticleFastGroup(subsystems, redraw, layer)
-        return _renp_eval_system(data)
-
     def _renp_eval_system(system):
-        on_update = [ ]
-        on_event = [ ]
-        images = _renp_eval_images(system[_RenPKeywords.IMAGES])
+        on_update = []
+        on_event = []
+        on_particle_dead = []
+        images = _renp_eval_images(system[_RenPKeys.IMAGES])
 
-        on_update_preset = [ ]
-        on_event_preset = [ ]
-        on_particle_dead_preset = [ ]
-        _renp_eval_high_level_presets(system[_RenPKeywords.PRESETS], on_update_preset, on_event_preset, on_particle_dead_preset)
+        # Обработка пресетов высокого уровня
+        _renp_eval_high_level_presets(
+            system[_RenPKeys.PRESETS],
+            on_update,
+            on_event,
+            on_particle_dead
+        )
 
-        on_update = _renp_eval_on_block(system[_RenPKeywords.ON_UPDATE])
-        on_event = _renp_eval_on_block(system[_RenPKeywords.ON_EVENT])
-        on_particle_dead = _renp_eval_on_block(system[_RenPKeywords.ON_PARTICLE_DEAD])
+        # Обработка блоков
+        on_update.extend(_renp_eval_on_block(system[_RenPKeys.ON_UPDATE]))
+        on_event.extend(_renp_eval_on_block(system[_RenPKeys.ON_EVENT]))
+        on_particle_dead.extend(_renp_eval_on_block(system[_RenPKeys.ON_PARTICLE_DEAD]))
 
-        #<Merge lists>#
-        on_update = on_update_preset + on_update
-        on_event = on_event_preset + on_event
-        on_particle_dead = on_particle_dead_preset + on_particle_dead
-
+        # Время жизни
         lifetime_type = None
         lifetime_timings = None
-        if system[_RenPKeywords.LIFETIME]:
-            lifetime_type = system[_RenPKeywords.LIFETIME][_RenPKeywords.TYPE]
-            lifetime_timings = eval(system[_RenPKeywords.LIFETIME][_RenPKeywords.TIMINGS])
+        if system[_RenPKeys.LIFETIME]:
+            lifetime_type = system[_RenPKeys.LIFETIME][_RenPKeys.TYPE]
+            lifetime_timings = eval(system[_RenPKeys.LIFETIME][_RenPKeys.TIMINGS])
 
-        particles_data = renparticles.ParticlesData(images=images, tag=system.get(_RenPKeywords.TAG, None), lifetime_type=lifetime_type, lifetime_timings=lifetime_timings)
-        system_instance = renparticles.RenParticlesFast(on_update,
-                                                        on_event,
-                                                        on_particle_dead,
-                                                        particles_data,
-                                                        eval(system.get(_RenPKeywords.CACHE, "False")),
-                                                        eval(system.get(_RenPKeywords.REDRAW, "None")),
-                                                        system.get(_RenPKeywords.LAYER, None),
-                                                        eval(system.get(_RenPKeywords.TRANSFORM_ACCELERATION, "None")),
-                                                        eval(system.get(_RenPKeywords.PARTICLE_EVENT_LISTENING, "None")),
-                                                        _renp_eval_positive_integer(system.get(_RenPKeywords.UPDATE_FIDELITY, "None"), _RenPLexerKeywords.UPDATE_FIDELITY),
-                                                        eval(system.get(_RenPKeywords.UPDATE_ACCELERATION, "None")),
-                                                        _renp_eval_positive_integer(system.get(_RenPKeywords.ACCELERATION_TARGET_FPS, "None"), _RenPLexerKeywords.ACCELERATION_TARGET_FPS)
-                                                        )
-        system_instance.system_id = system.get(_RenPKeywords.SYSTEM_ID, None)
-
+        particles_data = renparticles.ParticlesData(
+            images=images,
+            tag=system.get(_RenPKeys.TAG, None),
+            lifetime_type=lifetime_type,
+            lifetime_timings=lifetime_timings
+        )
+        
+        system_instance = renparticles.RenParticlesFast(
+            on_update,
+            on_event,
+            on_particle_dead,
+            particles_data,
+            eval(system.get(_RenPKeys.CACHE, "False")),
+            eval(system.get(_RenPKeys.REDRAW, "None")),
+            system.get(_RenPKeys.LAYER, None),
+            eval(system.get(_RenPKeys.TRANSFORM_ACCELERATION, "None")),
+            eval(system.get(_RenPKeys.PARTICLE_EVENT_LISTENING, "None")),
+            _renp_eval_positive_integer(system.get(_RenPKeys.UPDATE_FIDELITY, "None"), _RenPLexerKeywords.UPDATE_FIDELITY),
+            eval(system.get(_RenPKeys.UPDATE_ACCELERATION, "None")),
+            _renp_eval_positive_integer(system.get(_RenPKeys.ACCELERATION_TARGET_FPS, "None"), _RenPLexerKeywords.ACCELERATION_TARGET_FPS)
+        )
+        
+        system_instance.system_id = system.get(_RenPKeys.SYSTEM_ID, None)
         return system_instance
 
     def _renp_eval_images(images_data):
-        images = [ ]
+        images = []
         for content, is_expr in images_data:
             if is_expr:
                 images.append(eval(content))
@@ -499,19 +1036,20 @@ python early:
         return images
 
     def _renp_eval_on_block(on_block_data):
-        on_block = [ ]
+        on_block = []
         for content in on_block_data:
             behavior = None
-            if content[_RenPKeywords.TYPE] in (_RenParserType.Func, _RenParserType.Emitter):
-                behavior = eval(content[_RenPKeywords.FUNC])
+            
+            if content[_RenPKeys.TYPE] in (_RenParserType.Func, _RenParserType.Emitter):
+                behavior = eval(content[_RenPKeys.FUNC])
 
-            elif content[_RenPKeywords.TYPE] == _RenParserType.Shortcut:
-                shortcuts_block = content[_RenPKeywords.SHORTCUTS_BLOCK]
-                shortcut = content[_RenPKeywords.SHORTCUT]
+            elif content[_RenPKeys.TYPE] == _RenParserType.Shortcut:
+                shortcuts_block = content[_RenPKeys.SHORTCUTS_BLOCK]
+                shortcut = content[_RenPKeys.SHORTCUT]
                 behavior = _renp_try_get_shortcut_behavior(shortcuts_block, shortcut)
 
-            elif content[_RenPKeywords.TYPE] == _RenParserType.InnerPreset:
-                behavior = _renp_try_get_preset_behavior(_RenPKeywords.INNER_SHORTCUTS, content[_RenPKeywords.SHORTCUT])
+            elif content[_RenPKeys.TYPE] == _RenParserType.InnerPreset:
+                behavior = _renp_try_get_preset_behavior(_RenPKeys.INNER_SHORTCUTS, content[_RenPKeys.SHORTCUT])
                 if isinstance(behavior, renparticles._RFDynamicBehaviorPreset):
                     if not behavior.is_one_block():
                         _renp_inner_preset_multiple_blocks_error(behavior)
@@ -519,9 +1057,9 @@ python early:
                     continue
 
             behavior = behavior()
-            props = _renp_eval_props(content[_RenPKeywords.PROPERTIES])
+            props = _renp_eval_props(content[_RenPKeys.PROPERTIES])
 
-            if content[_RenPKeywords.TYPE] not in _RenParserType.PresetsTypes:
+            if content[_RenPKeys.TYPE] not in _RenParserType.PresetsTypes:
                 behavior.inject_properties(**props)
                 behavior.check_initialised()
                 on_block.append((behavior, behavior.m_properties))
@@ -531,69 +1069,42 @@ python early:
                 behavior.build()
                 on_block.extend(behavior.get_one())
 
-            # on_block.append((behavior, props))
         return on_block
-
-    def _renp_try_get_shortcut_behavior(shortcut_block, shortcut):
-        shortcut_behavior = renparticles.static_shortcuts[shortcut_block].get(shortcut, None)
-        
-        if shortcut_behavior is None:
-            shortcut_behavior = renparticles.dynamic_shortcuts[shortcut_block].get(shortcut, None)
-        
-        if shortcut_behavior is None:
-            _renp_shortcut_error(shortcut_block, shortcut)
-        
-        return shortcut_behavior
 
     def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
         for preset in presets:
-            preset_behavior = _renp_try_get_preset_behavior(_RenPKeywords.GENERAL_SHORTCUTS, preset[_RenPKeywords.SHORTCUT])
+            preset_behavior = _renp_try_get_preset_behavior(
+                _RenPKeys.GENERAL_SHORTCUTS,
+                preset[_RenPKeys.SHORTCUT]
+            )
 
             if isinstance(preset_behavior, renparticles._RFDynamicBehaviorPreset):
-                on_update.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_UPDATE]))
-                on_event.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_EVENT]))
-                on_particle_dead.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeywords.ON_PARTICLE_DEAD]))
+                on_update.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_UPDATE]))
+                on_event.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_EVENT]))
+                on_particle_dead.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_PARTICLE_DEAD]))
             else:
                 preset_behavior = preset_behavior()
-                props = _renp_eval_props(preset[_RenPKeywords.PROPERTIES])
+                props = _renp_eval_props(preset[_RenPKeys.PROPERTIES])
                 preset_behavior.inject_properties(**props)
                 behaviors = preset_behavior.build()
-                on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_UPDATE]])
-                on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_EVENT]])
-                on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeywords.ON_PARTICLE_DEAD]])
+                on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_UPDATE]])
+                on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_EVENT]])
+                on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_PARTICLE_DEAD]])
 
-    def _renp_try_get_preset_behavior(preset_block, shortcut):
-            preset_behavior = renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
-            
-            if preset_behavior is None:
-                preset_behavior = renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS][preset_block].get(shortcut, None)
-                
-            if preset_behavior is None:
-                _renp_preset_error(preset_block, shortcut)
-            
-            return preset_behavior
-
-    def _renp_eval_props(props_raw):        
+    def _renp_eval_props(props_raw):
         if isinstance(props_raw, dict):
-            result = {}
-            for key, value in props_raw.items():
-                result[key] = _renp_eval_props(value)
-            return result
-        
+            return {key: _renp_eval_props(value) for key, value in props_raw.items()}
         elif isinstance(props_raw, (list, tuple)):
-            result = [_renp_eval_props(item) for item in props_raw]
-            return type(props_raw)(result)
-        
-        elif isinstance(props_raw, basestring) and props_raw not in renp_renpy_reserved_words:
+            return type(props_raw)(_renp_eval_props(item) for item in props_raw)
+        elif isinstance(props_raw, basestring) and props_raw not in RENPY_RESERVED_WORDS:
             try:
                 return eval(props_raw)
             except:
                 return props_raw
-        
         else:
             return props_raw
 
-    def _renp_eval_positive_integer(raw_data, instruction_name):
+    def _renp_eval_positive_integer(raw_data, instruction_name="NULL"):
         if raw_data == "None":
             return None
 
@@ -613,187 +1124,54 @@ python early:
 
         return eval_data
 
-    # lifetime ::= "constant" <postive number> | "range" <range behavior>
-    # range behavior ::= <random range>
-    # random range ::= "random" <2D positive number tuple>
-    def _renp_parse_lifetime_keyword(lexer):
-        data = { _RenPKeywords.TYPE: None, _RenPKeywords.TIMINGS: None }
-
-        if lexer.keyword(_RenPLexerKeywords.RANGE):
-            if lexer.keyword(_RenPLexerKeywords.RANDOM):
-                data[_RenPKeywords.TYPE] = "range-random"
-                data[_RenPKeywords.TIMINGS] = lexer.simple_expression()
+    def _renp_try_get_shortcut_behavior(shortcut_block, shortcut):
+        shortcut_behavior = renparticles.static_shortcuts[shortcut_block].get(shortcut, None)
         
-        elif lexer.keyword(_RenPLexerKeywords.CONSTANT):
-            data[_RenPKeywords.TYPE] = "constant"
-            data[_RenPKeywords.TIMINGS] = lexer.simple_expression()
+        if shortcut_behavior is None:
+            shortcut_behavior = renparticles.dynamic_shortcuts[shortcut_block].get(shortcut, None)
         
-        else:
-            lexer.error()
+        if shortcut_behavior is None:
+            _renp_shortcut_error(shortcut_block, shortcut)
+        
+        return shortcut_behavior
 
-        return data
-
-    # expression_jit ::= "expr" | "expession" <expression>
-    # sprite_property ::= <expression_jit> | <image tag> {";" <sprite_property>}*
-    def _renp_parse_sprites_keyword(lexer):
-        data = [ ]
-        images = [ img.strip() for img in lexer.rest().split(';') ]
-
-        expr_pattern = re.compile(r'^(expression|expr)\s+(.*)$')
-        for image in images:
-            match = expr_pattern.match(image)
-            if match:
-                content = match.group(2)
-                is_expr = True
-            else:
-                content = image
-                is_expr = False
+    def _renp_try_get_preset_behavior(preset_block, shortcut):
+        preset_behavior = renparticles.static_shortcuts[_RenPKeys.PRESETS][preset_block].get(shortcut, None)
+        
+        if preset_behavior is None:
+            preset_behavior = renparticles.dynamic_shortcuts[_RenPKeys.PRESETS][preset_block].get(shortcut, None)
             
-            data.append((content, is_expr))
-
-        return data
-
-    def _renp_parse_custom_keyword(lexer, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
-        func = lexer.simple_expression()
-        properties = { _RenPKeywords.ONESHOT: "False", _RenPKeywords.BEHAVIOR_ID: None }
-
-        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False, _RenPKeywords.BEHAVIOR_ID: False }
+        if preset_behavior is None:
+            _renp_preset_error(preset_block, shortcut)
         
-        was_delim = False
-        while not lexer.eol():
-            if allow_oneshot and lexer.keyword(_RenPKeywords.ONESHOT):
-                if seen[_RenPKeywords.ONESHOT]:
-                    lexer.error("only one 'oneshot' instruction allowed")
+        return preset_behavior
 
-                properties[_RenPKeywords.ONESHOT] = "True"
-                seen[_RenPKeywords.ONESHOT] = True
+    #--------------EVALUATORS----------------
 
-            elif allow_target_system and lexer.keyword(_RenPLexerKeywords.TARGET_SYSTEM):
-                if seen[_RenPLexerKeywords.TARGET_SYSTEM]:
-                    lexer.error("only one 'system' instruction allowed")
-
-                properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
-                seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
-            
-            elif lexer.keyword(_RenPLexerKeywords.BEHAVIOR_ID):
-                if seen[_RenPKeywords.BEHAVIOR_ID]:
-                    lexer.error("only one behavior 'id' instruction allowed")
-
-                properties[_RenPKeywords.BEHAVIOR_ID] = lexer.string()
-                seen[_RenPKeywords.BEHAVIOR_ID] = True
-
-            elif lexer.match(':'):
-                lexer.expect_eol()
-                was_delim = True
-
-        if allow_properties and was_delim:
-            properties.update(_renp_parse_properties(lexer))
-
-        if expect_eol:
-            lexer.expect_eol()
-        
-        return {_RenPKeywords.FUNC: func, _RenPKeywords.PROPERTIES: properties, _RenPKeywords.TYPE: _RenParserType.Func}
-
-    def _renp_parse_shortcut(lexer, what_block=_RenPKeywords.BEHAVIORS, allow_oneshot=True, allow_properties=True, allow_target_system=True, expect_eol=True):
-        shortcut = lexer.word()
-        properties = { _RenPKeywords.ONESHOT: "False", _RenPKeywords.BEHAVIOR_ID: None }
-
-        seen = { _RenPKeywords.ONESHOT: False, _RenPLexerKeywords.TARGET_SYSTEM: False, _RenPKeywords.BEHAVIOR_ID: False }
-
-        was_delim = False
-        while not lexer.eol():
-            if allow_oneshot and lexer.keyword(_RenPKeywords.ONESHOT):
-                if seen[_RenPKeywords.ONESHOT]:
-                    lexer.error("only one 'oneshot' instruction allowed")
-
-                properties[_RenPKeywords.ONESHOT] = "True"
-                seen[_RenPKeywords.ONESHOT] = True
-
-            elif allow_target_system and lexer.keyword(_RenPLexerKeywords.TARGET_SYSTEM):
-                if seen[_RenPLexerKeywords.TARGET_SYSTEM]:
-                    lexer.error("only one 'system' instruction allowed")
-
-                properties[_RenPKeywords.TARGET_SYSTEM] = lexer.string()
-                seen[_RenPLexerKeywords.TARGET_SYSTEM] = True
-            
-            elif lexer.keyword(_RenPLexerKeywords.BEHAVIOR_ID):
-                if seen[_RenPKeywords.BEHAVIOR_ID]:
-                    lexer.error("only one behavior 'id' instruction allowed")
-
-                properties[_RenPKeywords.BEHAVIOR_ID] = lexer.string()
-                seen[_RenPKeywords.BEHAVIOR_ID] = True
-
-            elif lexer.match(':'):
-                lexer.expect_eol()
-                was_delim = True
-
-        if allow_properties and was_delim:
-            properties.update(_renp_parse_properties(lexer))
-
-        if expect_eol:
-            lexer.expect_eol()
-
-        return {_RenPKeywords.SHORTCUT: shortcut,
-                _RenPKeywords.SHORTCUTS_BLOCK: what_block,
-                _RenPKeywords.PROPERTIES: properties,
-                _RenPKeywords.TYPE: _RenParserType.Shortcut
-                }
-
-    def _renp_parse_preset(lexer, what_type=_RenParserType.GeneralPreset):
-        shortcut_data = _renp_parse_shortcut(lexer, _RenPKeywords.PRESETS, False)
-        shortcut_data[_RenPKeywords.TYPE] = what_type
-
-        return shortcut_data
-
-    def _renp_parse_emitter_keyword(subblock):
-        data = { }
-
-        if subblock.keyword(_RenPLexerKeywords.CUSTOM):
-            data = _renp_parse_custom_keyword(subblock)
-        else:
-            data = _renp_parse_shortcut(subblock, "emitters")
-        
-        return data
-
-    def _renp_parse_properties(lexer, allow_dynamic=True):
-        properties = { }
-        prop_blocks = { }
-        properties_block = lexer.subblock_lexer()
-
-        while properties_block.advance():
-            if allow_dynamic and properties_block.keyword(_RenPLexerKeywords.PROP_BLOCK):
-                prop_name = properties_block.string()
-                properties_block.require(':')
-                properties_block.expect_eol()
-                prop_blocks[prop_name] = _renp_parse_properties(properties_block, False)
-            else:
-                key = properties_block.word()
-                value = properties_block.simple_expression()
-                properties[key] = value
-        
-        if prop_blocks:
-            properties["dynamic"] = prop_blocks
-
-        return properties
+    #------------ERROR NOTIFIERS-------------
 
     def _renp_shortcut_error(shortcuts_block, shortcut):
         renpy.error(
             "Unknown shortcut '{}' in '{}' block.\n"
             "Available static shortcuts: {}\n"
-            "Available dynamic shortcuts: {}".format(shortcut, shortcuts_block,
-                                                ", ".join(renparticles.static_shortcuts[shortcuts_block].keys()),
-                                                ", ".join(renparticles.dynamic_shortcuts[shortcuts_block].keys())
-                                                )
+            "Available dynamic shortcuts: {}".format(
+                shortcut,
+                shortcuts_block,
+                ", ".join(renparticles.static_shortcuts[shortcuts_block].keys()),
+                ", ".join(renparticles.dynamic_shortcuts[shortcuts_block].keys())
+            )
         )
 
     def _renp_preset_error(preset_block, shortcut):
         renpy.error(
             "Unknown shortcut '{}' in '{}' block.\n"
             "Available static preset shortcuts: {}\n"
-            "Available dynamic preset shortcuts: {}".format(shortcut, preset_block,
-                                                ", ".join(renparticles.static_shortcuts[_RenPKeywords.PRESETS][preset_block].keys()),
-                                                ", ".join(renparticles.dynamic_shortcuts[_RenPKeywords.PRESETS][preset_block].keys())
-                                                )
+            "Available dynamic preset shortcuts: {}".format(
+                shortcut,
+                preset_block,
+                ", ".join(renparticles.static_shortcuts[_RenPKeys.PRESETS][preset_block].keys()),
+                ", ".join(renparticles.dynamic_shortcuts[_RenPKeys.PRESETS][preset_block].keys())
+            )
         )
 
     def _renp_inner_preset_multiple_blocks_error(preset_behavior):
@@ -802,373 +1180,96 @@ python early:
             "Current blocks: on_update={}\non_event={}\non_particle_dead={}. "
             "Expected: exactly one block to be active (not None).".format(
                 preset_behavior.__class__.__name__,
-                preset_behavior.behaviors.get(_RenPKeywords.ON_UPDATE),
-                preset_behavior.behaviors.get(_RenPKeywords.ON_EVENT),
-                preset_behavior.behaviors.get(_RenPKeywords.ON_PARTICLE_DEAD)
+                preset_behavior.behaviors.get(_RenPKeys.ON_UPDATE),
+                preset_behavior.behaviors.get(_RenPKeys.ON_EVENT),
+                preset_behavior.behaviors.get(_RenPKeys.ON_PARTICLE_DEAD)
             )
         )
 
-    renpy.register_statement("rparticles", renp_parse_fast_particles_show, None, renp_execute_fast_particles_show, block=_RenPKeywords.POSSIBLE)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_define(lexer):
-        data = {
-            _RenPKeywords.MODEL_NAME: None, 
-            _RenPKeywords.MULTIPLE: False, 
-            _RenPKeywords.SUBSYSTEMS: [], 
-            _RenPKeywords.REDRAW: "None"
-        }
-
-        if lexer.keyword(_RenPLexerKeywords.MULTIPLE):
-            data[_RenPKeywords.MULTIPLE] = True
-
-        data[_RenPKeywords.MODEL_NAME] = lexer.string()
-
-        if not lexer.match(':'):
-            renpy.error("rparticles define: subblock required")
-
-        lexer.expect_eol()
-        subblock = lexer.subblock_lexer()
-        _renp_parse_renparticles_system_subblock(subblock, data)
-
-        return data
-
-    def renp_parse_fast_particles_define_execute_init(data):
-        model_name = data[_RenPKeywords.MODEL_NAME]
-
-        if model_name in renparticles._fast_particles_models:
-            renpy.error("rparticles model named '{}' already declared. Name your system differently".format(model_name))
-
-        renparticles._fast_particles_models[model_name] = data.copy()
-    
-    renpy.register_statement("rparticles define", renp_parse_fast_particles_define, None, execute_init=renp_parse_fast_particles_define_execute_init, block=_RenPKeywords.POSSIBLE)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_define_preset(lexer):
-        data = {
-            _RenPKeywords.PRESET_NAME: None,
-            _RenPKeywords.PRESET_TYPE: "general",
-            _RenPKeywords.PRESET_DEFINE_DATA: { }
-        }
-
-        data[_RenPKeywords.PRESET_NAME] = lexer.word()
-
-        if lexer.keyword(_RenPLexerKeywords.PRESET_TYPE):
-            data[_RenPKeywords.PRESET_TYPE] = lexer.word()
-        
-        lexer.require(':')
-        lexer.expect_eol()
-        _renp_parse_fast_particles_preset_block(lexer.subblock_lexer(), data[_RenPKeywords.PRESET_DEFINE_DATA])
-
-        return data
-
-    def _renp_parse_fast_particles_preset_block(subblock, data):
-        seen = {
-                _RenPKeywords.ON_UPDATE: False, 
-                _RenPKeywords.ON_EVENT: False, 
-                _RenPKeywords.ON_PARTICLE_DEAD: False
-            }
-
-        while subblock.advance():
-            if subblock.match(_RenPLexerKeywords.ON_UPDATE):
-                if seen[_RenPKeywords.ON_UPDATE]: 
-                    subblock.error("only one 'on update' block allowed")
-                data[_RenPKeywords.ON_UPDATE] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_UPDATE] = True
-
-            elif subblock.match(_RenPLexerKeywords.ON_EVENT):
-                if seen[_RenPKeywords.ON_EVENT]: 
-                    subblock.error("only one 'on event' block allowed")
-                data[_RenPKeywords.ON_EVENT] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_EVENT] = True
-
-            elif subblock.match(_RenPLexerKeywords.ON_PARTICLE_DEAD):
-                if seen[_RenPKeywords.ON_PARTICLE_DEAD]: 
-                    subblock.error("only one 'on particle dead' block allowed")
-                data[_RenPKeywords.ON_PARTICLE_DEAD] = _renp_parse_on_block(subblock)
-                seen[_RenPKeywords.ON_PARTICLE_DEAD] = True
-            
-            elif subblock.keyword(_RenPLexerKeywords.PRESET):
-                renpy.error("recursive presets are not allowed")
-                #data[_RenPKeywords.PRESETS].append(_renp_parse_preset(subblock))
-            
-            else:
-                return False
-            
-            subblock.expect_eol()
-        return True
-
-    def renp_execute_fast_particles_define_preset(data):
-        preset_prefab = renparticles._RFDynamicBehaviorPreset()
-        preset_prefab.behaviors[_RenPKeywords.ON_UPDATE] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_UPDATE, {})
-        preset_prefab.behaviors[_RenPKeywords.ON_EVENT] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_EVENT, {})
-        preset_prefab.behaviors[_RenPKeywords.ON_PARTICLE_DEAD] = data[_RenPKeywords.PRESET_DEFINE_DATA].get(_RenPKeywords.ON_PARTICLE_DEAD, {})
-
-        renparticles.add_preset(data[_RenPKeywords.PRESET_NAME], preset_prefab, data[_RenPKeywords.PRESET_TYPE])
-        
-    renpy.register_statement("rparticles define preset", renp_parse_fast_particles_define_preset, None, execute_init=renp_execute_fast_particles_define_preset, block=_RenPKeywords.POSSIBLE)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_reset(lexer):
-        data = { _RenPKeywords.TAG: None }
-
-        if lexer.eol():
-            return data
-
-        data[_RenPKeywords.TAG] = lexer.string()
-
-        lexer.expect_eol()
-
-        return data
- 
-    def renp_execute_fast_particles_reset(data):
-        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
-
-        system = renparticles._fast_particles_entries.get(tag, None)
-        if system is not None:
-            system.reset()
-
-    renpy.register_statement("rparticles reset", renp_parse_fast_particles_reset, None, renp_execute_fast_particles_reset)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    # rparticles freeze ["particles_tag"[."subsystem"]]
-
-    def renp_parse_fast_particles_freeze(lexer):
-        data = { _RenPKeywords.TAG: None, _RenPKeywords.SYSTEM_ID: None }
-
-        if lexer.eol():
-            return data
-
-        data[_RenPKeywords.TAG] = lexer.string()
-        if lexer.match('.'):
-            data[_RenPKeywords.SYSTEM_ID] = lexer.string()
-
-        lexer.expect_eol()
-
-        return data
-
-    def renp_execute_fast_particles_freeze(data):
-        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
-        system_id = data.get(_RenPKeywords.SYSTEM_ID)
-        
-        system = renparticles._fast_particles_entries.get(tag, None)
-        if not system:
-            return
-        
-        if system_id:
-            if isinstance(system, renparticles.RenParticleFastGroup):
-                system.freeze_one(system_id)
-            return
-        
-        system.freeze()
-
-    renpy.register_statement("rparticles freeze", renp_parse_fast_particles_freeze, None, renp_execute_fast_particles_freeze)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    # rparticles unfreeze ["particles_tag"[."subsystem"]] [noredraw]
-
-    def renp_parse_fast_particles_unfreeze(lexer):
-        data = { _RenPKeywords.TAG: None, _RenPKeywords.SYSTEM_ID: None, _RenPKeywords.REDRAW: True }
-
-        if lexer.eol():
-            return data
-
-        #<da fuq?>#
-        checkpoint = lexer.checkpoint()
-        if lexer.keyword( _RenPLexerKeywords.NOREDRAW):
-            data[_RenPKeywords.REDRAW] = False
-            lexer.expect_eol()
-            return data
-        lexer.revert(checkpoint)
-
-        data[_RenPKeywords.TAG] = lexer.string()
-        
-        if lexer.match('.'):
-            data[_RenPKeywords.SYSTEM_ID] = lexer.string()
-        
-        if lexer.keyword(_RenPLexerKeywords.NOREDRAW):
-            data[_RenPKeywords.REDRAW] = False
-
-        lexer.expect_eol()
-
-        return data
-
-    def renp_execute_fast_particles_unfreeze(data):
-        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
-        system_id = data.get(_RenPKeywords.SYSTEM_ID)
-        redraw = data[_RenPKeywords.REDRAW]
-        
-        system = renparticles._fast_particles_entries.get(tag, None)
-        if not system:
-            return
-        
-        if system_id:
-            if isinstance(system, renparticles.RenParticleFastGroup):
-                system.unfreeze_one(system_id, redraw)
-            return
-            
-        system.unfreeze(redraw)
-
-    renpy.register_statement("rparticles unfreeze", renp_parse_fast_particles_unfreeze, None, renp_execute_fast_particles_unfreeze)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_clear_cache(lexer):
-        data = {
-            _RenPLexerKeywords.DEEP: lexer.keyword(_RenPLexerKeywords.DEEP) is not None
-        }
-
-        lexer.expect_eol()
-        return data
-
-    def renp_execute_fast_particles_clear_cache(data):
-        deep = data.get(_RenPLexerKeywords.DEEP, False)
-        
-        if deep:
-            for tag, system in renparticles._fast_particles_entries.items():
-                renpy.hide(tag, layer=system.layer)
-            renparticles._fast_particles_entries.clear()
-        else:
-            for tag, system in list(renparticles._fast_particles_entries.items()):
-                if not renpy.showing(tag, layer=system.layer):
-                    renpy.hide(tag, layer=system.layer)
-                    renparticles._fast_particles_entries.pop(tag, None)
-
-    renpy.register_statement("rparticles clear cache", renp_parse_fast_particles_clear_cache, None, renp_execute_fast_particles_clear_cache)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_continue(lexer):
-        data = {_RenPKeywords.TAG: None,
-                _RenPKeywords.LAYER: None, 
-                _RenPKeywords.ZORDER: "0",
-                _RenPLexerKeywords.WITH: "None"
-                }
-
-        if lexer.eol():
-            return data
-
-        #<da fuq?>#
-        checkpoint = lexer.checkpoint()
-        was_show_component_keyword = False
-
-        if lexer.keyword(_RenPLexerKeywords.ONLAYER):
-            data[_RenPKeywords.LAYER] = lexer.simple_expression()
-            was_show_component_keyword = True
-        elif lexer.keyword(_RenPLexerKeywords.ZORDER):
-            data[_RenPKeywords.ZORDER] = lexer.integer()
-            was_show_component_keyword = True
-        elif lexer.keyword(_RenPLexerKeywords.WITH):
-            if data[_RenPLexerKeywords.WITH] != "None":
-                renpy.error("There can only be one 'with' statement")
-            data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
-        
-        if was_show_component_keyword:
-            while not lexer.eol():
-                if lexer.keyword(_RenPLexerKeywords.ONLAYER):
-                    data[_RenPKeywords.LAYER] = lexer.simple_expression()
-                elif lexer.keyword(_RenPLexerKeywords.ZORDER):
-                    data[_RenPKeywords.ZORDER] = lexer.integer()
-                else:
-                    renpy.error("unknown show component\ngot: {}".format(lexer.rest()))
-            
-            return data
-            
-        lexer.revert(checkpoint)
-
-        data[_RenPKeywords.TAG] = lexer.string()
-
-        #<Пошло оно всё в пизду.>#
-        while not lexer.eol():
-            if lexer.keyword(_RenPLexerKeywords.ONLAYER):
-                data[_RenPKeywords.LAYER] = lexer.simple_expression()
-            elif lexer.keyword(_RenPLexerKeywords.ZORDER):
-                data[_RenPKeywords.ZORDER] = lexer.require(lexer.integer, "integer expected")
-            elif lexer.keyword(_RenPLexerKeywords.WITH):
-                if data[_RenPLexerKeywords.WITH] != "None":
-                    renpy.error("There can only be one 'with' statement")
-                data[_RenPLexerKeywords.WITH] = lexer.simple_expression()
-            else:
-                    renpy.error("unknown show component\ngot: {}".format(lexer.rest()))
-
-        lexer.expect_eol()
-
-        return data
-
-    def renp_execute_fast_particles_continue(data):
-        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
-
-        system = renparticles._fast_particles_entries.get(tag, None)
-        if system is not None:
-            layer = data[_RenPKeywords.LAYER] or system.layer
-            system.layer = layer
-            zorder = eval(data[_RenPKeywords.ZORDER])
-            renpy.show(_RenPKeywords.BASE_NAME, what=system, layer=layer, tag=tag, zorder=zorder)
-            with_statement = eval(data[_RenPLexerKeywords.WITH])
-            if with_statement:
-                renpy.with_statement(with_statement)
-
-    renpy.register_statement("rparticles continue", renp_parse_fast_particles_continue, None, renp_execute_fast_particles_continue)
-
-# -------------------------------------------------------------------------------------------------------------------------------
-
-    def renp_parse_fast_particles_simulate(lexer):
-        data = { _RenPKeywords.TAG: None,
-                _RenPLexerKeywords.SIMULATE_TIME: "None",
-                _RenPLexerKeywords.SIMULATE_WAIT: False,
-                _RenPLexerKeywords.SIMULATE_WAIT_STEP: "None"
-                }
-
-        data[_RenPKeywords.TAG] = lexer.string()
-        data[_RenPKeywords.SIMULATE_TIME] = lexer.simple_expression()
-        if lexer.match(_RenPKeywords.SIMULATE_WAIT):
-            data[_RenPKeywords.SIMULATE_WAIT] = True
-
-        if not lexer.eol():
-            data[_RenPKeywords.SIMULATE_WAIT_STEP] = lexer.simple_expression()
-
-        lexer.expect_eol()
-        return data
-
-    def renp_execute_fast_particles_simulate(data):
-        tag = data[_RenPKeywords.TAG] or _RenPKeywords.BASE_NAME
-        simulate_time = eval(data[_RenPKeywords.SIMULATE_TIME])
-        simulate_wait_step = eval(data[_RenPKeywords.SIMULATE_WAIT_STEP])
-
-        if not isinstance(simulate_time, (int, float)):
-            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_time), simulate_time))
-        if simulate_time < 0:
-            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate time' cannot be negative")
-
-        if simulate_wait_step is None:
-            pass
-        elif not isinstance(simulate_wait_step, (int, float)):
-            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' statement is not int or float\nGot: Type <{}> Value <{}>".format(type(simulate_wait_step), simulate_wait_step))
-        elif simulate_wait_step < 0:
-            renpy.error("[[RENPARTICLES]: rparticles simulate error: 'simulate wait step' cannot be negative")
-
-        system = renparticles._fast_particles_entries.get(tag, None)
-        if system is not None:
-            if data[_RenPKeywords.SIMULATE_WAIT]:
-                system.simulate_time = simulate_time
-                renpy.call("_renp_simulate_loop_label", system, simulate_wait_step)
-            else:
-                system.simulate(simulate_time)
-
-    renpy.register_statement("rparticles simulate", renp_parse_fast_particles_simulate, None, renp_execute_fast_particles_simulate)
-
-# -------------------------------------------------------------------------------------------------------------------------------
+    #------------ERROR NOTIFIERS-------------
+
+    #----------------SCREENS-----------------
+
+    def _renp_instantiate_system_displayable(data, redraw=0.0, layer=None):
+        if data[_RenPKeys.MULTIPLE]:
+            subsystems = [_renp_eval_system(system) for system in data[_RenPKeys.SUBSYSTEMS]]
+            return renparticles.RenParticleFastGroup(subsystems, redraw, layer)
+        return _renp_eval_system(data)
 
     def _renp_sl_displayable_early_wrapper(tag, **properties):
         return renparticles.instantiate_model(tag)
 
     renpy.register_sl_displayable("rparticles", _renp_sl_displayable_early_wrapper, "default", 0) \
-    .add_positional("child")
+        .add_positional("child")
 
-# -------------------------------------------------------------------------------------------------------------------------------
+    #----------------SCREENS-----------------
 
+    #------------------CDS-------------------
+
+    renpy.register_statement(
+        "rparticles",
+        renp_parse_fast_particles_show,
+        None,
+        renp_execute_fast_particles_show,
+        block=_RenPKeys.POSSIBLE
+    )
+
+    renpy.register_statement(
+        "rparticles define",
+        renp_parse_fast_particles_define,
+        None,
+        execute_init=renp_parse_fast_particles_define_execute_init,
+        block=_RenPKeys.POSSIBLE
+    )
+
+    renpy.register_statement(
+        "rparticles define preset",
+        renp_parse_fast_particles_define_preset,
+        None,
+        execute_init=renp_execute_fast_particles_define_preset,
+        block=_RenPKeys.POSSIBLE
+    )
+
+    renpy.register_statement(
+        "rparticles reset",
+        renp_parse_fast_particles_reset,
+        None,
+        renp_execute_fast_particles_reset
+    )
+
+    renpy.register_statement(
+        "rparticles freeze",
+        renp_parse_fast_particles_freeze,
+        None,
+        renp_execute_fast_particles_freeze
+    )
+
+    renpy.register_statement(
+        "rparticles unfreeze",
+        renp_parse_fast_particles_unfreeze,
+        None,
+        renp_execute_fast_particles_unfreeze
+    )
+
+    renpy.register_statement(
+        "rparticles clear cache",
+        renp_parse_fast_particles_clear_cache,
+        None,
+        renp_execute_fast_particles_clear_cache
+    )
+
+    renpy.register_statement(
+        "rparticles continue",
+        renp_parse_fast_particles_continue,
+        None,
+        renp_execute_fast_particles_continue
+    )
+
+    renpy.register_statement(
+        "rparticles simulate",
+        renp_parse_fast_particles_simulate,
+        None,
+        renp_execute_fast_particles_simulate
+    )
+
+    #------------------CDS-------------------

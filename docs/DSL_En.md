@@ -50,6 +50,7 @@
 * [Handler: repulsor](#handler-repulsor)
 * [Handler: tween](#handler-tween)
 * [Handler: color_curve](#handler-color_curve)
+* [Event Zone Handlers](#event-zone-handlers)
 ---
 * [Presets](#presets)
     * [Built-in Presets](#built-in-presets)
@@ -1293,6 +1294,126 @@ on update:
 ```
 
 >**Important**: You must set the lifetime of the particles. Otherwise, you will get an error when you try to display the particle system on the screen.
+
+---
+
+## Event Zone Handlers
+
+A group of handlers that allow you to track zones on the screen or relative to particles themselves and call custom functions when zone intersection conditions are met.
+
+**Shortcuts**
+
+The following keywords are available inside `on update` / `on event` / `on particle dead` blocks:
+* `zone` — base zone handler (triggers while the particle is inside the zone).
+* `zone_enter` — triggers strictly when the particle **enters** the zone.
+* `zone_exit` — triggers strictly when the particle **exits** the zone.
+* `zone_while` — triggers **every frame** while the particle remains inside the zone.
+
+**Common Parameters**
+
+All four handlers share the same configuration and support the following parameters inside their block:
+
+* **`x`** (*float*) — X coordinate of the zone center. Default `0.0`.
+* **`y`** (*float*) — Y coordinate of the zone center. Default `0.0`.
+* **`width`** (*float*) — Zone width (or diameter along X for circles/ellipses). Default `100.0`.
+* **`height`** (*float*) — Zone height (or diameter along Y for ellipses). Default `100.0`.
+* **`shape`** (*string*) — Zone shape. Available options:
+    * `"rect"` (default) — Rectangle.
+    * `"circle"` — Circle (radius = `width / 2`).
+    * `"ellipse"` — Ellipse with semi-axes `width/2` and `height/2`.
+* **`function`** (*callable* or *list of callables*) — Callback function(s). Signature: `def my_callback(particle, context, behavior):`. Default `None`.
+* **`once`** (*bool*) — One-time trigger flag. If `True`, the handler fires only once per particle lifetime (on state change). Default `True`.
+* **`particle_local`** (*bool*) — Local mode. If `True`, `x` and `y` are relative to the particle’s current position (`particle.x + x`). Default `False`.
+* **`inverse`** (*bool*) — Invert logic. If `True`, the geometric condition is inverted (the zone is considered where it originally is *not*). Default `False`.
+
+**Trigger Specifics**
+
+1. **`zone`** (Base trigger)  
+   Checks whether the particle is inside the defined area. Suitable for simple continuous checks.
+
+2. **`zone_enter`** (On Enter)  
+   Fires only when the particle was outside the zone on the previous frame and is inside on the current frame.
+
+3. **`zone_exit`** (On Exit)  
+   Fires only when the particle was inside the zone on the previous frame and is outside on the current frame.
+
+4. **`zone_while`** (While Inside)  
+   Calls the function every frame while the particle is inside the geometric boundaries (respects the `once` flag).
+
+**Architecture & Data Isolation**
+
+* Each zone handler automatically creates a unique internal key (`_renp_event_zone_<counter>`) in the particle’s `particles_properties` to store:
+  * `triggered` — whether the callback has already fired (for `once`).
+  * `last_state` — previous geometric state (inside/outside) used by `zone_enter` / `zone_exit`.
+* If `function` is `None`, the handler safely returns `UpdateState.Pass` without performance impact.
+
+**Usage Examples**
+
+**Example 1: Destroy or mark particles on zone entry**
+
+```python
+init python:
+    def example_log_particle(particle, context, behavior):
+        particle.destroy()
+        renpy.notify("Particle {} entered zone {}.\nDelta: {}".format(particle, behavior, context.delta))
+```
+
+Then, in the DSL system, we can describe a circular area in the center of the screen, where particles will trigger this callback:
+
+```renpy
+rparticles as zone_demo:
+    sprite expr Solid("#ffffff", xysize=(8, 8))
+    lifetime constant 5.0
+    
+    preset interval_spray:
+        amount "infinite"
+        interval 0.05
+        
+    on update:
+        simple_move:
+            velocity [200.0, 0.0]
+            
+        # Circular zone in the center of the screen
+        zone_enter:
+            x 960.0
+            y 540.0
+            width 300.0   # radius = width / 2 = 150
+            shape "circle"
+            function example_log_particle
+            once True
+            
+        auto_expire
+```
+
+*Example 2: Local inverted zone (react when something leaves the particle’s personal area)*
+
+```renpy
+rparticles as zone_demo:
+    sprite expr Solid("#ffffff", xysize=(8, 8))
+    lifetime constant 5.0
+    
+    preset interval_spray:
+        amount "infinite"
+        interval 0.05
+        
+    on update:
+        simple_move:
+            velocity [200.0, 0.0]
+            
+        # It will be called if the global conditions change the position of the inverted local zone
+        zone_exit:
+            x 0.0
+            y 0.0
+            width 150.0
+            height 150.0
+            shape "ellipse"
+            particle_local True
+            inverse True
+            function my_custom_callback
+            once False
+        
+        auto_expire
+```
 
 ---
 

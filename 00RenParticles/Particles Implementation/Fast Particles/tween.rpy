@@ -16,7 +16,7 @@ init -1115 python in renparticles:
         mode = "absolute"
         from_end = False
         
-        # "once" (обычный), "loop" (повтор), "ping-pong" (туда-обратно)
+        # "once" (обычный), "loop" (повтор), "ping-pong" (туда-обратно) #
         animation_mode = "once" 
 
         dynamic = None
