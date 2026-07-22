@@ -59,6 +59,9 @@ init -1337 python in renparticles:
     class ParticleDeadContext(RenpFContext):
         pass
 
+    class ParticleAppearContext(RenpFContext):
+        pass
+
     class RenParticlesPool:
         _stock = None
 
@@ -217,7 +220,7 @@ init -1337 python in renparticles:
         _UPDATE_BUFFER_AMOUNT = [1, 2, 4, 6, 8, 10, 12, 14, 16]
         _UPDATE_BUFFER_AMOUNT_DELTAS = [0.00125, 0.002, 0.004, 0.006, 0.009, 0.012, 0.017, 0.024, 0.034]
 
-        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=None, particles_listening_events=None, update_fidelity=None, update_acceleration=None, acceleration_target_fps=None, **properties):
+        def __init__(self, on_update=None, on_event=None, on_particle_dead=None, on_particle_appear=None, particles_data=None, ignore_time=False, redraw=None, layer=None, transform_acceleration=None, particles_listening_events=None, update_fidelity=None, update_acceleration=None, acceleration_target_fps=None, **properties):
             super(RenParticlesFast, self).__init__(ignore_time=ignore_time, **properties)
             self.layer = layer
 
@@ -233,19 +236,22 @@ init -1337 python in renparticles:
             self.on_update = [ ]
             self.on_event = [ ]
             self.on_particle_dead = [ ]
+            self.on_particle_appear = [ ]
             self.oneshotted_on_update = [ ]
             self.oneshotted_on_update_emitters = [ ]
             self.oneshotted_on_event = [ ]
             self.oneshotted_on_dead = [ ]
+            self.oneshotted_on_appear = [ ]
             self._set_on_update(on_update)
             self._set_on_update_emitters_from_update_list()
             self._set_on_event(on_event)
             self._set_on_particle_dead(on_particle_dead)
-
+            self._set_on_particle_appear(on_particle_appear)
 
             self.on_update_raw = on_update
             self.on_event_raw = on_event
             self.on_particle_dead_raw = on_particle_dead
+            self.on_particle_appear_raw = on_particle_appear
 
             self._old_st = 0.0
             self._dtime = 0.0
@@ -343,6 +349,7 @@ init -1337 python in renparticles:
             self._update_emitters_ctx = UpdateEmitterContext(self._update_ctx)
             self._event_ctx = EventContext(self._update_ctx)
             self._particle_dead_ctx = ParticleDeadContext(self._update_ctx)
+            self._particle_appear_ctx = ParticleAppearContext(self._update_ctx)
 
         def _process_behavior_list(self, source, target_list):
             if source is None:
@@ -366,6 +373,9 @@ init -1337 python in renparticles:
 
         def _set_on_particle_dead(self, on_particle_dead):
             self.on_particle_dead = self._process_behavior_list(on_particle_dead, self.on_particle_dead)
+
+        def _set_on_particle_appear(self, on_particle_appear):
+            self.on_particle_appear = self._process_behavior_list(on_particle_appear, self.on_particle_appear)
 
         def _set_on_update_emitters_from_update_list(self):
             new_on_update = []
@@ -479,6 +489,7 @@ init -1337 python in renparticles:
             self._set_on_update_emitters_from_update_list()
             self._set_on_event(self.on_event_raw)
             self._set_on_particle_dead(self.on_particle_dead_raw)
+            self._set_on_particle_appear(self.on_particle_appear_raw)
 
         def freeze(self):
             self._frozen = True
@@ -507,6 +518,23 @@ init -1337 python in renparticles:
 
             #Логично же. Чего я об этом не додумался -_-#
             self.particles_data.particles_properties[s] = { }
+
+            new_on_particle_appear = []
+            oneshotted_appear = []
+            if self.on_particle_appear:
+                self._particle_appear_ctx.particle = s
+                self._particle_appear_ctx.delta = self._dtime
+                for behavior_func, props in self.on_particle_appear:
+                    return_value = behavior_func(self._particle_appear_ctx)
+                    if props.get("oneshot", False) or return_value == UpdateState.Kill:
+                        if (behavior_func, props) not in oneshotted_appear:
+                            oneshotted_appear.append((behavior_func, props))
+                    else:
+                        if (behavior_func, props) not in new_on_particle_appear:
+                            new_on_particle_appear.append((behavior_func, props))
+                if oneshotted_appear:
+                    self.oneshotted_on_appear.extend(oneshotted_appear)
+                self.on_particle_appear = new_on_particle_appear
 
             return s
 
@@ -590,6 +618,7 @@ init -1337 python in renparticles:
 
             self._update_ctx.st = st
             self._particle_dead_ctx.st = st
+            self._particle_appear_ctx.st = st
 
             if self._update_acceleration:
                 true_delta = self._update_fidelity_delta_accumulator * self._update_buffer_amount

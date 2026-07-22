@@ -35,6 +35,8 @@ init -555 python in renparticles:
             "zone_enter": EventZoneOnEnter,
             "zone_exit": EventZoneOnExit,
             "zone_while": EventZoneWhileIn,
+
+            "sound": PlaySound,
         },
 
         "emitters": {

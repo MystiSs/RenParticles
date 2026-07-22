@@ -46,6 +46,7 @@ python early:
         ON_UPDATE = "on update"
         ON_EVENT = "on event"
         ON_PARTICLE_DEAD = "on particle dead"
+        ON_PARTICLE_APPEAR = "on particle appear"
         
         # Ключевые слова поведения
         ONESHOT = "oneshot"
@@ -104,6 +105,7 @@ python early:
         ON_UPDATE = "on_update"
         ON_EVENT = "on_event"
         ON_PARTICLE_DEAD = "on_particle_dead"
+        ON_PARTICLE_APPEAR = "on_particle_appear"
         
         # Ключи поведения
         FUNC = "func"
@@ -177,6 +179,7 @@ python early:
             _RenPKeys.ON_UPDATE: [],
             _RenPKeys.ON_EVENT: [],
             _RenPKeys.ON_PARTICLE_DEAD: [],
+            _RenPKeys.ON_PARTICLE_APPEAR: [],
             _RenPKeys.IMAGES: [],
             _RenPKeys.LIFETIME: None,
             _RenPKeys.TYPE: system_type,
@@ -223,6 +226,7 @@ python early:
             _RenPKeys.ON_UPDATE: False,
             _RenPKeys.ON_EVENT: False,
             _RenPKeys.ON_PARTICLE_DEAD: False,
+            _RenPKeys.ON_PARTICLE_APPEAR: False,
             _RenPKeys.REDRAW: False,
             _RenPKeys.CACHE: False,
             _RenPKeys.TRANSFORM_ACCELERATION: False,
@@ -237,6 +241,7 @@ python early:
             _RenPKeys.ON_UPDATE: False,
             _RenPKeys.ON_EVENT: False,
             _RenPKeys.ON_PARTICLE_DEAD: False,
+            _RenPKeys.ON_PARTICLE_APPEAR: False,
         }
 
     def _renp_create_simulate_data():
@@ -530,6 +535,12 @@ python early:
                     lexer.error("only one 'on particle dead' block allowed")
                 data[_RenPKeys.ON_PARTICLE_DEAD] = _renp_parse_on_block(lexer)
                 seen[_RenPKeys.ON_PARTICLE_DEAD] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_PARTICLE_APPEAR):
+                if seen[_RenPKeys.ON_PARTICLE_APPEAR]:
+                    lexer.error("only one 'on particle appear' block allowed")
+                data[_RenPKeys.ON_PARTICLE_APPEAR] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_PARTICLE_APPEAR] = True
 
             elif lexer.match(_RenPLexerKeywords.TRANSFORM_ACCELERATION):
                 if seen[_RenPKeys.TRANSFORM_ACCELERATION]:
@@ -979,6 +990,7 @@ python early:
         on_update = []
         on_event = []
         on_particle_dead = []
+        on_particle_appear = []
         images = _renp_eval_images(system[_RenPKeys.IMAGES])
 
         # Обработка пресетов высокого уровня
@@ -986,13 +998,15 @@ python early:
             system[_RenPKeys.PRESETS],
             on_update,
             on_event,
-            on_particle_dead
+            on_particle_dead,
+            on_particle_appear
         )
 
         # Обработка блоков
         on_update.extend(_renp_eval_on_block(system[_RenPKeys.ON_UPDATE]))
         on_event.extend(_renp_eval_on_block(system[_RenPKeys.ON_EVENT]))
         on_particle_dead.extend(_renp_eval_on_block(system[_RenPKeys.ON_PARTICLE_DEAD]))
+        on_particle_appear.extend(_renp_eval_on_block(system[_RenPKeys.ON_PARTICLE_APPEAR]))
 
         # Время жизни
         lifetime_type = None
@@ -1012,6 +1026,7 @@ python early:
             on_update,
             on_event,
             on_particle_dead,
+            on_particle_appear,
             particles_data,
             eval(system.get(_RenPKeys.CACHE, "False")),
             eval(system.get(_RenPKeys.REDRAW, "None")),
@@ -1071,7 +1086,7 @@ python early:
 
         return on_block
 
-    def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead):
+    def _renp_eval_high_level_presets(presets, on_update, on_event, on_particle_dead, on_particle_appear):
         for preset in presets:
             preset_behavior = _renp_try_get_preset_behavior(
                 _RenPKeys.GENERAL_SHORTCUTS,
@@ -1082,6 +1097,7 @@ python early:
                 on_update.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_UPDATE]))
                 on_event.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_EVENT]))
                 on_particle_dead.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_PARTICLE_DEAD]))
+                on_particle_appear.extend(_renp_eval_on_block(preset_behavior.behaviors[_RenPKeys.ON_PARTICLE_APPEAR]))
             else:
                 preset_behavior = preset_behavior()
                 props = _renp_eval_props(preset[_RenPKeys.PROPERTIES])
@@ -1090,6 +1106,7 @@ python early:
                 on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_UPDATE]])
                 on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_EVENT]])
                 on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_PARTICLE_DEAD]])
+                on_particle_appear.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_PARTICLE_APPEAR]])
 
     def _renp_eval_props(props_raw):
         if isinstance(props_raw, dict):

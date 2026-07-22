@@ -7,7 +7,8 @@ init -1226 python in renparticles:
         behaviors = {
             "on_update": None,
             "on_event": None,
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         m_oneshot = False

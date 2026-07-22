@@ -80,5 +80,8 @@ init -2448 python in renparticles:
 
     class _OnDeadBehavior(_Behavior):
         def __call__(self, context):
-            raise NotImplementedError("_EventBehavior base class must be implemented")
+            raise NotImplementedError("_OnDeadBehavior base class must be implemented")
 
+    class _OnAppearBehavior(_Behavior):
+        def __call__(self, context):
+            raise NotImplementedError("_OnAppearBehavior base class must be implemented")

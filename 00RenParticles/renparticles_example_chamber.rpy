@@ -220,6 +220,11 @@ init 100:
         sprite expr Solid("#fdfdfdc2", xysize=(8, 8))
         lifetime constant 0.5
 
+        # on particle appear:
+        #     sound:
+        #         file "RenParticles/00RenParticles/assets/Bubble_Crack.mp3"
+        #         channel "audio"
+
         on update:
             simple_move id "move_handler":
                 velocity [0.0, 0.0]
