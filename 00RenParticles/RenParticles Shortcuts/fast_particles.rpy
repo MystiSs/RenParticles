@@ -8,6 +8,8 @@ init -555 python in renparticles:
             "repulsor_update": RepulsorUpdate,
             "repulsor_event": RepulsorEvent,
 
+            "mouse_event": MouseEvent,
+
             "auto_expire": LifetimeDeltaDecreaser,
             "bounds_killer": BoundsKiller,
 
