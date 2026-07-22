@@ -599,6 +599,12 @@ python early:
                     lexer.error("only one 'on particle dead' block allowed")
                 data[_RenPKeys.ON_PARTICLE_DEAD] = _renp_parse_on_block(lexer)
                 seen[_RenPKeys.ON_PARTICLE_DEAD] = True
+
+            elif lexer.match(_RenPLexerKeywords.ON_PARTICLE_APPEAR):
+                if seen[_RenPKeys.ON_PARTICLE_APPEAR]:
+                    lexer.error("only one 'on particle appear' block allowed")
+                data[_RenPKeys.ON_PARTICLE_APPEAR] = _renp_parse_on_block(lexer)
+                seen[_RenPKeys.ON_PARTICLE_APPEAR] = True
             
             elif lexer.keyword(_RenPLexerKeywords.PRESET):
                 lexer.error("recursive presets are not allowed")
@@ -880,6 +886,7 @@ python early:
         preset_prefab.behaviors[_RenPKeys.ON_UPDATE] = preset_data.get(_RenPKeys.ON_UPDATE, {})
         preset_prefab.behaviors[_RenPKeys.ON_EVENT] = preset_data.get(_RenPKeys.ON_EVENT, {})
         preset_prefab.behaviors[_RenPKeys.ON_PARTICLE_DEAD] = preset_data.get(_RenPKeys.ON_PARTICLE_DEAD, {})
+        preset_prefab.behaviors[_RenPKeys.ON_PARTICLE_APPEAR] = preset_data.get(_RenPKeys.ON_PARTICLE_APPEAR, {})
 
         renparticles.add_preset(data[_RenPKeys.PRESET_NAME], preset_prefab, data[_RenPKeys.PRESET_TYPE])
 

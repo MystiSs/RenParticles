@@ -18,6 +18,7 @@
 * [Behavior Blocks](#behavior-blocks)
     * [on update](#on-update)
     * [on event](#on-event)
+    * [on particle appear](#on-particle-appear)
     * [on particle dead](#on-particle-dead)
 * [Emitters](#emitters)
 ---
@@ -51,6 +52,8 @@
 * [Handler: tween](#handler-tween)
 * [Handler: color_curve](#handler-color_curve)
 * [Event Zone Handlers](#event-zone-handlers)
+* [Handler: mouse_event](#handler-mouse_event)
+* [Handler: sound](#handler-sound)
 ---
 * [Presets](#presets)
     * [Built-in Presets](#built-in-presets)
@@ -243,11 +246,28 @@ on update:
 
 ### on event
 
-Reacts to mouse events:
+Reacts to pygame events:
 
 ```renpy
 on event:
     repulsor_event
+```
+
+### on particle appear
+
+Reacts to the creation of a particle 
+
+```renpy
+system id "magical_spark":
+    sprite expr Solid("#ffffff", xysize=(4, 4))
+    lifetime constant 3.0
+
+    # Initialization block at particle appearing
+    on particle appear:
+        # Your handlers
+        sound:
+            file "sfx/spawn.ogg"
+            volume 0.4
 ```
 
 ### on particle dead
@@ -1413,6 +1433,141 @@ rparticles as zone_demo:
             once False
         
         auto_expire
+```
+
+---
+
+## Handler: `mouse_event`
+
+A mouse event handler that allows particles to respond to left/right mouse clicks or mouse movements by calling custom functions. This handler works directly with the global events of the Pygame input subsystem.
+
+```renpy
+# In the behavior block (on event)
+    ...
+    on event:
+        mouse_event:
+            mode "lmb"
+            function my_mouse_callback
+```
+
+**Parameters:**
+
+* **`mode`** (*string*): Mouse event tracking mode. Available options:
+    * `"lmb"` (default) — Pressing the left mouse Button (`Left Mouse Button`).
+    * `"rmb"` — Pressing the right mouse button (`Right Mouse Button`).
+    * `"move"` — Moving the mouse cursor (`Mouse Motion`).
+* **`function`** (*callable* or *callable list*): A function or list of callback functions that will be executed when an event occurs. The signature of the function should be: `def my_callback(context, behavior):`. By default, `None`.
+
+### Architecture and nuances of work
+
+1. **Strict context dependence**:
+   This handler is designed to work **exclusively** inside the `on event` block. When trying to call it inside `on update`, the engine will force a context mismatch error (`Invalid context type for MouseEvent: Expected: EventContext`).
+2. **Secure normalization**:
+   The `function` parameter is automatically normalized on the first call. If a single callback is passed, it is converted to a list; all `None` values inside the lists are automatically filtered to avoid errors.
+3. **Validity filtering**:
+   If the incorrect `mode` is specified (not included in the list of allowed ones: `lmb`, `rmb`, `move`), the simulation will return a critical error listing the available configurations. If no callback function is specified, the handler simply returns `updateState.Pass`.
+
+### Usage example
+
+Registering a function in Python and calling it when clicking on the screen:
+
+```python
+init python:
+    def spawn_spark_impulse(context, behavior):
+        # context.event contains a Pygame event
+        # behavior refers to an instance of MouseEvent
+        renpy.notify("The player clicked the mouse in the mode: {}".format(behavior.mode))
+```
+
+In the Particle System:
+
+```renpy
+rparticles as interactive_click:
+    sprite expr Solid("#ffffff", xysize=(5, 5))
+    lifetime constant 2.0
+    
+    preset spray:
+        amount 50
+
+    on event:
+        # Reacting to the left mouse button click
+        mouse_event:
+            mode "lmb"
+            function spawn_spark_impulse
+```
+
+---
+
+# Handler: `sound`
+
+Allows you to play audio files (sound effects, ambient or music) through the built-in Ren'Py sound system at the time of executing the particle behavior block.
+
+### Syntax:
+
+```renpy
+# In any behavior block (for example, on particle dead or on particle appear)
+...
+on particle dead:
+        sound:
+            file "audio/explosion.ogg"
+            channel "audio"
+            volume 0.8
+```
+
+**Parameters:**
+
+* **`file`** (*string*, **required**): The path to the audio file in the game directory.
+* **`channel`** (*string*): The Ren'Py audio channel to play. By default, `"audio"`.
+* **`loop`** (*boolean value*): Whether to loop audio file playback. The default value is `False`.
+* **`fadein`** (*float/int*): The time of smooth sound appearance in seconds. The default value is `0`.
+* **`fadeout`** (*float/int* or *None*): The time of smooth fading of the sound in seconds when stopping/overwriting the channel. By default, `None`.
+* **`volume`** (*float/int*): Relative playback volume (from `0.0` to `1.0`). The default is `1.0`.
+
+### Technical Features
+
+1. **Direct call to the Ren'Py subsystem**:
+Internally, the handler translates the parameters directly to the `renpy.music.play()` method, fully obeying the global volume mixers of the game.
+2. **Instant execution**:
+   The handler always returns `updateState.Pass`. It should be borne in mind that if you call `sound` in the `on update` block without using restriction modifiers (for example, `oneshot`), the sound will start restarting **every frame**, which will overload the audio channel and sound artifacts.
+
+### Usage examples
+
+*1. Voicing the death of a particle (Explosion of a projectile)*
+The ideal use case is a single call in the `on particle dead` block:
+
+```renpy
+...
+system id "rocket_shell":
+    sprite expr Solid("#ffaa00", xysize=(6, 6))
+    lifetime constant 1.2
+    
+    on update:
+        move:
+            velocity [0, -300]
+            
+    on particle dead:
+        # Playing the sound of an explosion when a particle is destroyed
+        sound:
+            file "sfx/boom.wav"
+            channel "audio"
+            volume 0.7
+```
+
+*2. Sound marker with `oneshot` modifier inside `on update`*
+If it is necessary to start the sound in the update cycle, but strictly once at the birth of the particle:
+
+```renpy
+...
+on update:
+    # Oneshot modifier guarantees one-time playback
+    sound oneshot:
+        file "sfx/sparkle_cast.ogg"
+        channel "audio"
+        fadein 0.2
+        volume 0.5
+        
+    move:
+        velocity_range [100, 100]
 ```
 
 ---

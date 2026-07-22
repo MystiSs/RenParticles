@@ -81,7 +81,8 @@ init -1115 python in renparticles:
         behaviors = {
             "on_update": [RepulsorUpdate],
             "on_event": [RepulsorEvent],
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         repulsor_pos = None

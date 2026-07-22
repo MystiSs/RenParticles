@@ -83,7 +83,8 @@ init -1115 python in renparticles:
         behaviors = {
             "on_update": [BoundsKiller],
             "on_event": None,
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         m_oneshot = False

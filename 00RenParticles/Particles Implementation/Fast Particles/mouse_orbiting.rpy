@@ -161,7 +161,8 @@ init -1115 python in renparticles:
         behaviors = {
             "on_update": [OrbitCursorUpdate],
             "on_event": None,
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         radius = 100.0

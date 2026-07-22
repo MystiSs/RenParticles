@@ -261,7 +261,8 @@ init -1115 python in renparticles:
         behaviors = {
             "on_update": [EmitterRandom],
             "on_event": None,
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         m_oneshot = True
@@ -279,7 +280,8 @@ init -1115 python in renparticles:
         behaviors = {
             "on_update": [IntervalSprayEmitter],
             "on_event": None,
-            "on_particle_dead": None
+            "on_particle_dead": None,
+            "on_particle_appear": None,
         }
 
         m_oneshot = False

@@ -308,6 +308,11 @@ init 100:
                 target_behavior_id "base_move"
                 friction 0.25
 
+            turbulence:
+                amount (160, 90)
+                frequency 1.5
+                smoothness 0.33
+
             attractor:
                 target (960.0, 540.0)
                 strength 17500.0
