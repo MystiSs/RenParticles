@@ -53,6 +53,7 @@ python early:
         BEHAVIOR_ID = "id"
         EMITTER = "emitter"
         CUSTOM = "custom"
+        IF_CONDITION = "if"
         
         # Ключевые слова для значений
         RANDOM = "random"
@@ -114,6 +115,7 @@ python early:
         BEHAVIOR_ID = "renp_behavior_id"
         TARGET_SYSTEM = "renp_target_system"
         PROPERTIES = "properties"
+        CONDITION = "m_renp_condition"
         
         # Ключи шорткатов
         SHORTCUT = "shortcut"
@@ -148,6 +150,21 @@ python early:
     class _RenPLifetime:
         Constant = "constant"
         RangeRandom = "range-random"
+
+    class _RenPConditionCache:
+        _cache = {}
+
+        @classmethod
+        def get(cls, source):
+            if source not in cls._cache:
+                cls._cache[source] = renpy.python.py_compile(source, "eval")
+            return cls._cache[source]
+        
+        @classmethod
+        def eval_fast(cls, source):
+            if source not in cls._cache:
+                cls._cache[source] = renpy.python.py_compile(source, "eval")
+            return renpy.python.py_eval_bytecode(cls._cache[source])
 
     REDRAW_ASAP_ALIASES = {"asap", "fastest", "fast"}
     RENPY_RESERVED_WORDS = {"move", "dissolve", "dspr"}
@@ -210,6 +227,7 @@ python early:
             _RenPKeys.ONESHOT: "False",
             _RenPKeys.BEHAVIOR_ID: None,
             _RenPKeys.TARGET_SYSTEM: None,
+            _RenPKeys.CONDITION: "True",
         }
 
     def _renp_create_show_component_keys():
@@ -405,7 +423,7 @@ python early:
             result = {
                 _RenPKeys.SHORTCUT: shortcut,
                 _RenPKeys.SHORTCUTS_BLOCK: shortcut_block,
-                _RenPKeys.TYPE: _RenParserType.Shortcut
+                _RenPKeys.TYPE: _RenParserType.Shortcut,
             }
         
         properties = _renp_create_shortcut_properties()
@@ -430,6 +448,12 @@ python early:
                     lexer.error("only one behavior 'id' instruction allowed")
                 properties[_RenPKeys.BEHAVIOR_ID] = lexer.string()
                 seen[_RenPKeys.BEHAVIOR_ID] = True
+
+            elif lexer.keyword(_RenPLexerKeywords.IF_CONDITION):
+                if seen[_RenPKeys.CONDITION]:
+                    lexer.error("only one behavior 'if' instruction allowed")
+                properties[_RenPKeys.CONDITION] = lexer.string()
+                seen[_RenPKeys.CONDITION] = True
                 
             elif lexer.match(':'):
                 lexer.expect_eol()
@@ -830,7 +854,6 @@ python early:
 
     #-------------------PARSERS---------------------
 
-
     #---------------EXECUTE------------------
 
     def renp_execute_fast_particles_show(data):
@@ -1110,14 +1133,20 @@ python early:
                 props = _renp_eval_props(preset[_RenPKeys.PROPERTIES])
                 preset_behavior.inject_properties(**props)
                 behaviors = preset_behavior.build()
-                on_update.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_UPDATE]])
-                on_event.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_EVENT]])
-                on_particle_dead.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_PARTICLE_DEAD]])
-                on_particle_appear.extend([(behavior, behavior.m_properties or {}) for behavior in behaviors[_RenPKeys.ON_PARTICLE_APPEAR]])
+                on_update.extend([(behavior, _renp_safe_merge_preset_props(preset, behavior)) for behavior in behaviors[_RenPKeys.ON_UPDATE]])
+                on_event.extend([(behavior, _renp_safe_merge_preset_props(preset, behavior)) for behavior in behaviors[_RenPKeys.ON_EVENT]])
+                on_particle_dead.extend([(behavior, _renp_safe_merge_preset_props(preset, behavior)) for behavior in behaviors[_RenPKeys.ON_PARTICLE_DEAD]])
+                on_particle_appear.extend([(behavior, _renp_safe_merge_preset_props(preset, behavior)) for behavior in behaviors[_RenPKeys.ON_PARTICLE_APPEAR]])
 
     def _renp_eval_props(props_raw):
         if isinstance(props_raw, dict):
-            return {key: _renp_eval_props(value) for key, value in props_raw.items()}
+            evaluated_collection = { }
+            for key, value in props_raw.items():
+                if key == _RenPKeys.CONDITION:
+                    evaluated_collection[key] = value
+                else:
+                    evaluated_collection[key] = _renp_eval_props(value)
+            return evaluated_collection
         elif isinstance(props_raw, (list, tuple)):
             return type(props_raw)(_renp_eval_props(item) for item in props_raw)
         elif isinstance(props_raw, basestring) and props_raw not in RENPY_RESERVED_WORDS:
@@ -1171,6 +1200,25 @@ python early:
         return preset_behavior
 
     #--------------EVALUATORS----------------
+
+    #-----------------MISC-------------------
+
+    def _renp_safe_merge_preset_props(preset, behavior):
+        misc = {}
+
+        preset_condition = preset.get(_RenPKeys.PROPERTIES, {}).get(_RenPKeys.CONDITION, None)
+        if preset_condition is not None:
+            misc[_RenPKeys.CONDITION] = preset_condition
+        
+        behavior_props = behavior.m_properties or {}
+        if not isinstance(behavior_props, dict):
+            behavior_props = {}
+        
+        final_dict = misc
+        final_dict.update(behavior_props)
+        return final_dict
+
+    #-----------------MISC-------------------
 
     #------------ERROR NOTIFIERS-------------
 

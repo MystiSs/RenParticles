@@ -204,7 +204,7 @@ init 100:
                     start_value 0.0
                     end_value 1.0
             
-            tween:
+            tween if "5 > 2":
                 block "alpha":
                     mode "lifetime"
                     time 0.3

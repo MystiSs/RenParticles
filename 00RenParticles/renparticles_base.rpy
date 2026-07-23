@@ -17,7 +17,7 @@ init -2448 python in renparticles:
 
     class _InjectPropertiesMixin:
         m_properties = None
-        _renp_always = { "oneshot", "renp_behavior_id", "renp_target_system" }
+        _renp_always = { "oneshot", "renp_behavior_id", "renp_target_system", "m_renp_condition" }
         _valid = set()
         _check_is_valid = False
 
@@ -31,6 +31,9 @@ init -2448 python in renparticles:
 
                 if key == "dynamic" and hasattr(self, "dynamic") and self.dynamic is not None:
                     self.dynamic.update(value)
+                # #<CPickle жалуется на code object. Что уж поделать, повинуемся.>#
+                # elif key == "m_renp_condition":
+                #     continue
                 else:
                     setattr(self, key, value)
                     self.m_properties[key] = value
@@ -67,6 +70,8 @@ init -2448 python in renparticles:
             return context.systems.get(id, None)
 
     class _Behavior(_InjectPropertiesMixin, _CheckInitialisedMixin, _TryGetOtherSystemMixin):
+        nosave = ["m_renp_condition"]
+
         def __call__(self, context):
             raise NotImplementedError("_Behavior base class must be implemented")
 

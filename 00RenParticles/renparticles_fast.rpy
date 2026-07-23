@@ -16,6 +16,9 @@ init -1337 python in renparticles:
         "constant": float
     }
 
+    _RenPConditionCache = renpy.store._RenPConditionCache
+    _CONDTION_KEY = renpy.store._RenPKeys.CONDITION
+
     class ParticlesData:
         particles_properties = None
 
@@ -359,7 +362,7 @@ init -1337 python in renparticles:
             else:
                 result = [ ]
                 for func, props in source:
-                    behavior_id = props.get("renp_behavior_id")
+                    behavior_id = props.get("renp_behavior_id", None)
                     if behavior_id is not None:
                         self.behaviors_by_id[behavior_id] = func
                     result.append((func, props))
@@ -632,6 +635,10 @@ init -1337 python in renparticles:
                 new_update_emitters = []
                 self._update_emitters_ctx.delta = self._dtime
                 for emitter_func, props in self.on_update_emitters:
+                    if not _RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")):
+                        new_update_emitters.append((emitter_func, props))
+                        continue
+
                     return_value = emitter_func(self._update_emitters_ctx)
                     if props.get("oneshot", False) or return_value == UpdateState.Kill:
                         self.oneshotted_on_update_emitters.append((emitter_func, props))
@@ -659,6 +666,10 @@ init -1337 python in renparticles:
                             self._particle_dead_ctx.particle = particle
 
                             for behavior_func, props in self.on_particle_dead:
+                                if not _RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")):
+                                    new_on_particle_dead.append((behavior_func, props))
+                                    continue
+
                                 return_value = behavior_func(self._particle_dead_ctx)
                                 if props.get("oneshot", False) or return_value == UpdateState.Kill:
                                     if (behavior_func, props) not in oneshotted_dead:
@@ -677,6 +688,9 @@ init -1337 python in renparticles:
                             self._update_ctx.particle = particle
                             
                             for update_func, props in new_on_update:
+                                if not _RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")):
+                                    continue
+
                                 return_value = update_func(self._update_ctx)
                                 if props.get("oneshot", False) or return_value == UpdateState.Kill:
                                     if (update_func, props) not in oneshotted_update:
@@ -790,6 +804,13 @@ init -1337 python in renparticles:
                 self._event_ctx.event = ev
 
                 for event_func, props in self.on_event:
+                    if not _RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")):
+                        new_on_event.append((event_func, props))
+                        print(_RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")))
+                        continue
+
+                    print(_RenPConditionCache.eval_fast(props.get(_CONDTION_KEY, "True")))
+
                     return_value = event_func(self._event_ctx)
 
                     if return_value == UpdateState.Kill or props.get("oneshot", False):
