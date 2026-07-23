@@ -32,6 +32,7 @@
 * [Particle Behaviors](#particle-behaviors)
     * [What Are They?](#what-are-they)
     * [Behavior Identifiers (id)](#behavior-identifiers-id)
+    * [Conditional if statement](#conditional-if-statement)
 ---
 * [Handler: auto_expire](#handler-auto_expire-or-preset-auto_expire)
 * [Handler: bounds_killer](#handler-bounds_killer-or-preset-bounds_killer)
@@ -564,6 +565,45 @@ on update:
 
 > **Note:** The ID system is especially useful when combining behaviors that modify each other (e.g., `friction`, `bounce` bound to a specific movement).
 
+---
+
+### Conditional if statement
+
+*RenParticles* supports conditional execution of handlers and presets using the `if` instrution. This allows you to control the behavior of particles depending on different conditions.
+
+```renpy
+...
+
+on update:
+    handler if "condition":
+    ...
+```
+
+Or
+
+```renpy
+...
+
+preset my_preset if "renpy.mouse_get_pos() > (240, 150)" # The condition will be passed to all the handlers that are in the preset.
+
+```
+
+**Features:**
+
+* The condition is specified in quotation marks as a `string` of a Python expression.
+* The expression is evaluated **for each particle** each time the handler is called.
+* If the condition is True, the handler is executed. If false, it is skipped.
+
+
+**Examples:**
+
+#### 1. Random behavior
+```renpy
+on update:
+    flicker if "renpy.random.random() < 0.3":
+        intensity 0.4
+        frequency 8.0
+```
 
 ---
 
