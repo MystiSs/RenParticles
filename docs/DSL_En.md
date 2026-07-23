@@ -792,10 +792,10 @@ Springy attraction to a point or mouse with inertia, damping, and spring physics
 
 on update:
     spring:
-        target "mouse` # or, for example, point (960, 540)
-stiffness 800.0
-damping 0.85
-rest_length 50.0
+        target "mouse" # or, for example, point (960, 540)
+         stiffness 800.0
+         damping 0.85
+         rest_length 50.0
 ```
 
 **Parameters:**
