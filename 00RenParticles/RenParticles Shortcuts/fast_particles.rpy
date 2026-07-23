@@ -20,6 +20,9 @@ init -555 python in renparticles:
             "bounce": Bounce,
             "attractor": Attractor,
             "turbulence": Turbulence,
+            "spring": Spring,
+            "wander": Wander,
+            "flock": Flock,
 
             "orbit_mouse": OrbitCursorUpdate,
             "orbit_point": OrbitPoint,

@@ -59,12 +59,13 @@ init -1115 python in renparticles:
     
     class FaceVelocity(_UpdateBehavior):
         target_behavior_id = _RequiredField()
+        target_key = None # Если нужно найти точный параметр, по которому надо определять поворот
         base_angle = 0.0
         mode = "absolute" # "absolute" | "additive"
         invert = False
 
         _check_is_valid = True
-        _valid = { "target_behavior_id", "base_angle", "mode", "invert" }
+        _valid = { "target_behavior_id", "target_key", "base_angle", "mode", "invert" }
 
         def __init__(self):
             self._target_behavior = None
@@ -91,7 +92,12 @@ init -1115 python in renparticles:
             if not vel_key or vel_key not in particle_data:
                 return UpdateState.Pass
 
-            vx, vy = particle_data[vel_key]
+            vx, vx = 0, 0
+
+            if self.target_key is None:
+                vx, vy = particle_data[vel_key]
+            else:
+                vx, vy = particle_data[vel_key][self.target_key]
 
             if abs(vx) < 0.1 and abs(vy) < 0.1:
                 return UpdateState.Pass

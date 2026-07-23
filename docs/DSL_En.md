@@ -40,6 +40,8 @@
 * [Handler: friction](#handler-friction)
 * [Handler: bounce](#handler-bounce)
 * [Handler: turbulence](#handler-turbulence)
+* [Handler: spring](#handler-spring)
+* [Handler: wander](#handler-wander)
 * [Handler: rotate](#handler-rotate)
 * [Handler: face_velocity](#handler-face_velocity)
 * [Handler: flicker](#handler-flicker)
@@ -779,6 +781,138 @@ on update:
 
 ---
 
+### Handler: `spring`
+
+Springy attraction to a point or mouse with inertia, damping, and spring physics. Creates a natural "rubbery" movement of particles.
+
+**Usage Example:**
+
+```renpy
+...
+
+on update:
+    spring:
+        target "mouse` # or, for example, point (960, 540)
+stiffness 800.0
+damping 0.85
+rest_length 50.0
+```
+
+**Parameters:**
+
+* **`target`** (string `"mouse"` or tuple `(x, y)`, **required**) is the target point of attraction.
+* **`stiffness`** (float) — The stiffness of the spring. The higher it is, the stronger and faster it reacts. The default is `500.0`.
+* **`damping`** (float, from 0.0 to 1.0) — Attenuation of vibrations. `1.0` — without attenuation, `0.0` — instantaneous stop. The default is `0.9`.
+* **`rest_length`** (float) — The length of rest (the distance at which the force = 0). The default is `0.0`.
+* **`max_force`** (float) — Maximum strength limit. The default is `50000.0`.
+* **`max_speed`** (float) — Particle velocity limit. The default is `2500.0`.
+* **`screen_bounds`** (boolean value) — Keep the particle within the screen. The default value is `True`.
+
+**Spread parameters (range):**
+
+* `stiffness_range`, `damping_range`, `rest_length_range` — allow you to set a random spread for each parameter when creating a particle (a float or 2 float as the range `[min, max]`).
+
+## Technical features of the implementation
+
+1. The handler is **additive**. This means that it can be combined with other handlers that change the position of the particle.
+
+**Examples:**
+
+#### 1. The trail is springy behind the mouse
+
+```renpy
+...
+
+on update:
+    spring:
+        target "mouse"
+        stiffness 1200.0
+        damping 0.82
+        rest_length 30.0
+```
+
+#### 2. Attraction to the center of the screen with fluctuations
+
+```renpy
+...
+
+on update:
+    spring:
+        target (960, 540)
+        stiffness 600.0
+        damping 0.75
+        rest_length 80.0
+        max_speed 800.0
+```
+
+---
+
+### Handler: `wander`
+
+Smooth wandering of the particle with random turns.
+
+**Usage Example:**
+
+```renpy
+...
+
+on update:
+    wander:
+        radius 40.0
+        speed 60.0
+        turn_chance 0.4
+```
+
+**Parameters:**
+
+* **`radius`** (float) — The radius of the wandering area (maximum deviation from the current trajectory). The default is `15.0`.
+* **`speed`** (float) — The base speed of movement. The default is `35.0`.
+* **`turn_chance`** (float, from 0.0 to 1.0) — The probability of a change of direction per frame. The default value is `0.35`.
+* **`turn_angle`** (float, in degrees) — The maximum angle of rotation. The default is `180.0`.
+* **`smoothness`** (float, from 0.0 to 1.0) — smoothness of rotation. The higher the altitude, the milder the change in direction. The default value is `0.33`.
+* **`min_speed` / `max_speed`** (float) — Speed limits. The default is `10.0` and `100'.0` respectively.
+* **`screen_bounds`** (boolean value) — Whether to hold it within the screen. The default value is `True'.
+
+**Spread parameters (range):**
+
+* `radius_range`, `speed_range`, `turn_chance_range`, `turn_angle_range`, `smoothness_range` — random scatter when creating a particle (a float or 2 floats as the range `[min, max]`).
+
+## Technical features of the implementation
+
+1. The handler is **additive**. This means that it can be combined with other handlers that change the position of the particle.
+
+**Examples:**
+
+#### 1. Flying fireflies / motes of dust
+
+```renpy
+...
+
+on update:
+    wander:
+        radius 35.0
+        speed 45.0
+        turn_chance 0.45
+        smoothness 0.6
+    auto_expire
+```
+
+#### 2. Chaotic smoke/ fog
+
+```renpy
+...
+
+on update:
+    wander:
+        radius 25.0
+        speed 28.0
+        turn_chance 0.25
+        smoothness 0.8
+        max_speed 55.0
+```
+
+---
+
 ## Handler: `bounce`
 
 Enables particles to bounce off screen boundaries or custom margins. It requires a movement behavior (e.g., `move`) to function properly.
@@ -876,6 +1010,7 @@ Automatically rotates the sprite of the particle so that it is always directed i
 **Parameters:**
 
 * **`target_behavior_id`** (str, **required**) is the ID of the behavior whose speed we are monitoring (for example, `move`).
+* **`target_key`** (str) – The name of the key for which the speed data will be taken. It is applied if another handler stores its data in its dictionary. For example, the [`wander`](#handler-wander) handler. To get the speed information from it, you must set the `target_key` as `"velocity"`. And, for example, the handlers `move` or `simple_move` store the speed as a parameter unique to the particle, i.e. for them `target_key` does not need to be set. By default, `None`.
 * **`base_angle`** (float) — Additional rotation of the sprite in degrees. If the sprite is "looking" in the wrong direction, use this value for correction.
 * **`invert`** (bool) — Expand the particle in the opposite direction from the direction of flight.
 * **`mode`** (str) — `"absolute"` (replaces rotation) or `"additive"` (adds to an existing one).

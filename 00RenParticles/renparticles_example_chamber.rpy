@@ -171,6 +171,8 @@ init 100:
         sprite expr Solid("#ffff99", xysize=(5, 5))
         lifetime range random (3.0, 6.0)
 
+        preset repulsor
+
         on update:
             emitter radial_interval_spray:
                 amount 25
@@ -184,6 +186,16 @@ init 100:
                 amplitudes_range [15.0, 15.0]
                 frequencies [0.3, 0.5]
                 phases_range [6.28, 6.28]
+            
+            wander
+
+            attractor:
+                target (960.0, 540.0)
+                strength 250.0
+                radius 0.0
+                falloff 0.25
+                max_speed 1000.0
+                screen_bounds False
             
             tween:
                 block "alpha":
@@ -345,6 +357,82 @@ init 100:
 
             auto_expire
 
+    # -------------------------------------------------------------------------------------------------------------
+
+    rparticles define "rparticles_spring_demo":
+        redraw asap
+        sprite expr Solid("#e7a900", xysize=(24, 24))
+
+        preset spray:
+            amount 10
+        
+        on update:
+            spring:
+                target "mouse"
+                stiffness 100.0
+                max_force 50000.0
+                max_speed 5000.0
+
+                stiffness_range 50.0
+                rest_length_range 100
+                damping_range 0.05
+
+    # -------------------------------------------------------------------------------------------------------------
+
+    rparticles define "rparticles_wander_demo":
+        redraw asap
+        sprite expr Solid("#e7a900", xysize=(24, 24))
+
+        preset spray:
+            amount 5
+        
+        on update:
+            # face_velocity:
+            #     target_behavior_id "wandering"
+            #     target_key "velocity"
+
+            wander id "wandering":
+                speed_range 15
+
+    # -------------------------------------------------------------------------------------------------------------
+
+    rparticles define "rparticles_wander_and_flock_demo":
+        sprite expr Solid("#333333", xysize=(6, 4))
+        lifetime range random (8.0, 15.0)
+        redraw 0.016
+        
+        preset interval_spray:
+            amount 30
+            interval 0.1
+            per_amount 2
+            area (100, 100, 1720, 580)
+        
+        on update:
+            flock:
+                separation_radius 40.0
+                alignment_radius 100.0
+                cohesion_radius 200.0
+                separation_weight 1.5
+                alignment_weight 2.0
+                cohesion_weight 0.5
+                max_speed 300.0
+                min_speed 50.0
+                margin 100.0
+            
+            turbulence:
+                amount [30, 15]
+                frequency 0.5
+                smoothness 0.3
+            
+            face_velocity:
+                target_behavior_id "flock_motion"
+                target_key "velocity"
+                base_angle -90.0
+            
+            auto_expire
+
+    # -------------------------------------------------------------------------------------------------------------
+
 label renparticles_choice:
     $ renpy.block_rollback()
     scene black
@@ -352,7 +440,9 @@ label renparticles_choice:
     hide window
 
     rparticles clear cache deep
+    jump renparticles_choice_p1 # На всякий случай
 
+label renparticles_choice_p1:
     menu:
         "Orbit Mouse And Rotate":
             jump renparticles_orbit_mouse_and_rotate
@@ -370,10 +460,23 @@ label renparticles_choice:
             jump renparticles_fireflies_demo
         "Sparkles v2.0":
             jump renparticles_sparkles_v2_demo
+        "[[Page 2]":
+            jump renparticles_choice_p2
+
+label renparticles_choice_p2:
+    menu:
         "Black Hole on the center!":
             jump renparticles_attractor_zone_demo
+        "Springy":
+            jump renparticles_spring_demo
+        "Oow? it's wandering!":
+            jump renparticles_wander_demo
+        # "Oow? it's flocking!!":
+        #     jump renparticles_wander_and_flock_demo
         "_Screen Test":
             jump renparticles_screen_test_demo
+        "[[Page 1]":
+            jump renparticles_choice_p1
 
 label renparticles_orbit_mouse_and_rotate:
     rparticles model "rparticles_mouse_orbit_simple" as _renp_demo_displ
@@ -490,6 +593,33 @@ label renparticles_screen_test_demo:
 
 label renparticles_attractor_zone_demo:
     rparticles model "rparticles_mouse_trail_to_center_attractor" as _renp_demo_displ
+    with Dissolve(0.1)
+    "Executed"
+
+    hide _renp_demo_displ with Dissolve(0.1)
+    "Hided"
+    jump renparticles_choice
+
+label renparticles_spring_demo:
+    rparticles model "rparticles_spring_demo" as _renp_demo_displ
+    with Dissolve(0.1)
+    "Executed"
+
+    hide _renp_demo_displ with Dissolve(0.1)
+    "Hided"
+    jump renparticles_choice
+
+label renparticles_wander_demo:
+    rparticles model "rparticles_wander_demo" as _renp_demo_displ
+    with Dissolve(0.1)
+    "Executed"
+
+    hide _renp_demo_displ with Dissolve(0.1)
+    "Hided"
+    jump renparticles_choice
+
+label renparticles_wander_and_flock_demo:
+    rparticles model "rparticles_wander_and_flock_demo" as _renp_demo_displ
     with Dissolve(0.1)
     "Executed"
 
